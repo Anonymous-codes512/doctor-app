@@ -3,6 +3,8 @@ from routes import init_routes
 from config import Config
 from extensions import db, migrate, jwt
 from models import *  # Ensure models are registered (e.g., User)
+from extensions import mail
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -11,6 +13,7 @@ app.config.from_object(Config)
 db.init_app(app)
 migrate.init_app(app, db)
 jwt.init_app(app)
+mail.init_app(app)
 
 # ✅ Register all route blueprints
 init_routes(app)

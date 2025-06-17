@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
+import 'package:doctor_app/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   final String email;
@@ -23,6 +25,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   Timer? _timer;
   int _secondsRemaining = 60;
   bool _canResend = false;
+  bool _isVerifying = false;
+  bool _isResending = false;
 
   @override
   void initState() {
@@ -68,50 +72,66 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   void _onOtpChanged(int index, String value) {
     if (value.length > 1) {
-      // Only take the first character
       _controllers[index].text = value[0];
     }
-    if (value.isNotEmpty) {
-      // Move focus to next field if any
-      if (index < _otpLength - 1) {
-        FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
-      } else {
-        _focusNodes[index].unfocus();
-      }
-    } else {
-      // If deleted and not first field, move focus back
-      if (index > 0) {
-        FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
-      }
+    if (value.isNotEmpty && index < _otpLength - 1) {
+      FocusScope.of(context).requestFocus(_focusNodes[index + 1]);
+    } else if (value.isEmpty && index > 0) {
+      FocusScope.of(context).requestFocus(_focusNodes[index - 1]);
     }
     setState(() {});
   }
 
-  void _onVerifyPressed() {
+  Future<void> _onVerifyPressed() async {
     final otpCode = _controllers.map((c) => c.text).join();
 
-    if (otpCode.isEmpty || otpCode.length < _otpLength) {
+    if (otpCode.length < _otpLength) {
       setState(() {
         _errorMessage = 'Please fill the code';
       });
-    } else {
-      setState(() {
-        _errorMessage = null;
-      });
-      Navigator.pushNamed(context, Routes.resetPasswordScreen);
+      return;
     }
+
+    setState(() {
+      _isVerifying = true;
+      _errorMessage = null;
+    });
+
+    final success = await Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    ).verifyResetOtp(context, widget.email, otpCode);
+
+    if (success) {
+      Navigator.pushNamed(
+        context,
+        Routes.resetPasswordScreen,
+        arguments: widget.email,
+      );
+    }
+
+    setState(() => _isVerifying = false);
   }
 
-  void _onResendPressed() {
-    if (_canResend) {
-      debugPrint('Resend code requested');
-      _startTimer();
+  Future<void> _onResendPressed() async {
+    if (!_canResend || _isResending) return;
+
+    setState(() => _isResending = true);
+
+    final success = await Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    ).sendResetCode(context, widget.email);
+
+    if (success) {
       for (var c in _controllers) {
         c.clear();
       }
       FocusScope.of(context).requestFocus(_focusNodes[0]);
-      setState(() {});
+      _startTimer();
     }
+
+    setState(() => _isResending = false);
   }
 
   @override
@@ -124,7 +144,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back button
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
@@ -137,16 +156,12 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   child: const Icon(Icons.arrow_back_ios_new, size: 20),
                 ),
               ),
-
               const SizedBox(height: 24),
-
               const Text(
                 'Please check your email',
                 style: TextStyle(fontWeight: FontWeight.w900, fontSize: 24),
               ),
-
               const SizedBox(height: 8),
-
               RichText(
                 text: TextSpan(
                   style: const TextStyle(fontSize: 16, color: Colors.black),
@@ -159,10 +174,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 32),
-
-              // Editable OTP inputs
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: List.generate(_otpLength, (index) {
@@ -200,7 +212,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   );
                 }),
               ),
-
               const SizedBox(height: 16),
               if (_errorMessage != null) ...[
                 const SizedBox(height: 12),
@@ -214,25 +225,28 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 ),
                 const SizedBox(height: 12),
               ],
-
               const SizedBox(height: 24),
-
-              PrimaryCustomButton(text: 'Verify', onPressed: _onVerifyPressed),
-
+              PrimaryCustomButton(
+                text: 'Verify',
+                isLoading: _isVerifying,
+                onPressed: _isVerifying ? null : _onVerifyPressed,
+              ),
               const SizedBox(height: 24),
-
               Center(
                 child:
                     _canResend
                         ? GestureDetector(
                           onTap: _onResendPressed,
-                          child: const Text(
-                            'Send code again',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
+                          child:
+                              _isResending
+                                  ? const CircularProgressIndicator()
+                                  : const Text(
+                                    'Send code again',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
                         )
                         : Text(
                           'Send code again  00:${_secondsRemaining.toString().padLeft(2, '0')}',
@@ -242,7 +256,6 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                           ),
                         ),
               ),
-
               const Spacer(),
             ],
           ),

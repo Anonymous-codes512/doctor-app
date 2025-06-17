@@ -160,7 +160,10 @@ class Routes {
           builder: (_) => OtpVerificationScreen(email: email),
         );
       case resetPasswordScreen:
-        return MaterialPageRoute(builder: (_) => ResetPasswordScreen());
+        final email = settings.arguments as String;
+        return MaterialPageRoute(
+          builder: (_) => ResetPasswordScreen(email: email),
+        );
       case passwordChangedScreen:
         return MaterialPageRoute(builder: (_) => PasswordChangedScreen());
       case homeScreen:
