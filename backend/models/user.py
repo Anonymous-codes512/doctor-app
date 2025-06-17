@@ -1,9 +1,10 @@
 import enum
+from datetime import datetime
 from extensions import db
 
-class UserRole(enum.Enum):
-    DOCTOR = 'doctor'
-    PATIENT = 'patient'
+from sqlalchemy.dialects.postgresql import ENUM
+
+UserRole = ENUM("DOCTOR", "PATIENT", name="userrole")
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -12,9 +13,14 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone_number = db.Column(db.BigInteger, unique=True, nullable=True)
-    role = db.Column(db.Enum(UserRole), nullable=False)
-    profile_picture = db.Column(db.String(200), nullable=True)
+    role = db.Column(UserRole, nullable=False)
+    email_confirmed = db.Column(db.Boolean, default=False)
     password = db.Column(db.String(200), nullable=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    reset_otps = db.relationship('PasswordResetOTP', back_populates='user', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<User {self.email}>'

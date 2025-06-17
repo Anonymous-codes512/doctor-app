@@ -1,12 +1,14 @@
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/presentation/widgets/error_dialog.dart';
+import 'package:doctor_app/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
 import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
-  const ResetPasswordScreen({super.key});
+  final String email;
+  const ResetPasswordScreen({super.key, required this.email});
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -20,6 +22,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   bool _passwordVisible = false;
   bool _passwordConfirmVisible = false;
+  bool _isResetting = false;
 
   void _toggleVisibility(String field) {
     setState(() {
@@ -59,14 +62,34 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     );
   }
 
-  void _resetPassword() {
-    if (_formKey.currentState?.validate() ?? false) {
-      if (_passwordController.text != _passwordConfirmController.text) {
-        _showErrorDialog();
-      } else {
-        Navigator.pushNamed(context, Routes.passwordChangedScreen);
-      }
+  Future<void> _resetPassword() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    if (_passwordController.text != _passwordConfirmController.text) {
+      _showErrorDialog();
+      return;
     }
+
+    setState(() {
+      _isResetting = true;
+    });
+
+    final success = await Provider.of<AuthProvider>(
+      context,
+      listen: false,
+    ).resetPassword(
+      context,
+      widget.email.trim(),
+      _passwordController.text.trim(),
+    );
+
+    if (success) {
+      Navigator.pushNamed(context, Routes.passwordChangedScreen);
+    }
+
+    setState(() {
+      _isResetting = false;
+    });
   }
 
   @override
@@ -151,10 +174,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                       const SizedBox(height: 16),
 
-                      // Password with toggle visibility
+                      // Confirm password with toggle visibility
                       LabeledTextField(
                         label: 'Confirm new password',
-                        hintText: 'repeat password',
+                        hintText: 'Repeat password',
                         controller: _passwordConfirmController,
                         obscureText: !_passwordConfirmVisible,
                         validator: (value) {
@@ -180,8 +203,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       const SizedBox(height: 30),
 
                       PrimaryCustomButton(
-                        text: 'Reset password',
-                        onPressed: _resetPassword,
+                        text: _isResetting ? 'Resetting...' : 'Reset password',
+                        onPressed: _isResetting ? null : _resetPassword,
                       ),
                     ],
                   ),

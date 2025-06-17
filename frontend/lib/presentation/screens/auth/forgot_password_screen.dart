@@ -1,9 +1,11 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
 
 import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
+import 'package:provider/provider.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -16,6 +18,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
+
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -100,16 +104,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       const SizedBox(height: 30),
 
                       PrimaryCustomButton(
-                        text: 'Send Code',
-                        onPressed: () {
+                        text: _isLoading ? 'Sending...' : 'Send Code',
+                        isLoading: _isLoading,
+                        onPressed: () async {
                           if (_formKey.currentState?.validate() ?? false) {
-                            Navigator.pushNamed(
+                            setState(() => _isLoading = true);
+                            final success = await Provider.of<AuthProvider>(
                               context,
-                              Routes.otpVerificationScreen,
-                              arguments: _emailController.text,
-                            );
+                              listen: false,
+                            ).sendResetCode(context, _emailController.text);
+                            setState(() => _isLoading = false);
+
+                            if (success) {
+                              Navigator.pushNamed(
+                                context,
+                                Routes.otpVerificationScreen,
+                                arguments: _emailController.text,
+                              );
+                            }
                           }
-                          // If invalid, the validator will show error message automatically
                         },
                       ),
                     ],

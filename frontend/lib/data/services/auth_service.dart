@@ -90,4 +90,91 @@ class AuthService {
     }
     return false;
   }
+
+  Future<Map<String, dynamic>> sendResetCode(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.sendResetCode),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'Reset code sent successfully.',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': body['message'] ?? 'Failed to send reset code.',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Something went wrong. Please check your connection.',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyResetOtp(String email, String otp) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.verifyResetOtp),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'otp': otp}),
+      );
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'OTP verified successfully.',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': body['message'] ?? 'Invalid OTP or expired.',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Network error. Please try again later.',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> resetPassword(
+    String email,
+    String newPassword,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.resetPassword),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': newPassword}),
+      );
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'Password reset successfully.',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': body['message'] ?? 'Failed to reset password.',
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Could not reset password. Check your internet connection.',
+      };
+    }
+  }
 }
