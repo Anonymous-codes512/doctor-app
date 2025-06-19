@@ -1,3 +1,4 @@
+import 'package:doctor_app/data/models/appointment_model.dart';
 import 'package:doctor_app/presentation/widgets/date_selector_widget.dart';
 import 'package:doctor_app/presentation/widgets/gender_radio_group.dart';
 import 'package:doctor_app/presentation/widgets/labeled_dropdown.dart';
@@ -5,8 +6,10 @@ import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:doctor_app/presentation/widgets/outlined_custom_button.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
 import 'package:doctor_app/presentation/widgets/time_selector_widget.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:doctor_app/core/assets/colors/app_colors.dart'; // Ensure this path is correct
+import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:provider/provider.dart';
 
 class AddAppointmentScreen extends StatefulWidget {
   const AddAppointmentScreen({super.key});
@@ -16,31 +19,17 @@ class AddAppointmentScreen extends StatefulWidget {
 }
 
 class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
-  final TextEditingController _appointmentController = TextEditingController();
+  // final TextEditingController _appointmentController = TextEditingController();
   final TextEditingController _patientNameController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
   final TextEditingController _feeController = TextEditingController();
-  final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
   final TextEditingController _consultationNotesController =
       TextEditingController();
 
-  @override
-  void dispose() {
-    _patientNameController.dispose();
-    _dateController.dispose();
-    _timeController.dispose();
-    _consultationNotesController.dispose();
-    super.dispose();
-  }
-
-  String? _selectedGender;
-  final List<String> _genderOptions = ['Male', 'Female', 'Other'];
-
   String? _selectedAppointmentReason;
   final List<String> _appointmentReasonOptions = [
-    'Follow up',
-    'Check up',
+    'Follow-up',
+    'Check-up',
     'Consultation',
   ];
 
@@ -54,10 +43,20 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
   ];
 
   String? _selectedAppointmentMode;
-  final List<String> _appointmentModeOptions = ['Online', 'Face to Face'];
+  final List<String> _appointmentModeOptions = ['Online', 'in-person'];
 
   DateTime initialDate = DateTime.now();
   TimeOfDay initialTime = TimeOfDay.now();
+
+  @override
+  void dispose() {
+    // _appointmentController.dispose();
+    _patientNameController.dispose();
+    _durationController.dispose();
+    _feeController.dispose();
+    _consultationNotesController.dispose();
+    super.dispose();
+  }
 
   void onDateChanged(DateTime date) {
     setState(() {
@@ -69,6 +68,30 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
     setState(() {
       initialTime = time;
     });
+  }
+
+  void _saveAppointment(BuildContext context) async {
+    final appointment = AppointmentModel(
+      // appointmentId: _appointmentController.text.trim(),
+      patientName: _patientNameController.text.trim(),
+      duration: int.tryParse(_durationController.text) ?? 0,
+      appointmentReason: _selectedAppointmentReason,
+      appointmentMode: _selectedAppointmentMode,
+      fee: double.tryParse(_feeController.text.trim()) ?? 0.0,
+      paymentMode: _selectedPaymentMode,
+      description: _consultationNotesController.text.trim(),
+      appointmentDate: initialDate,
+      appointmentTime: initialTime,
+    );
+
+    final provider = Provider.of<DoctorProvider>(context, listen: false);
+    provider.setAppointment(appointment);
+
+    bool saved = await provider.saveAppointment(context);
+
+    if (saved) {
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -93,19 +116,19 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
         centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              LabeledTextField(
-                label: 'Appointment ID',
-                hintText: 'Enter Id Here',
-                controller: _appointmentController,
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
+              // LabeledTextField(
+              //   label: 'Appointment ID',
+              //   hintText: 'Enter Id Here',
+              //   controller: _appointmentController,
+              //   keyboardType: TextInputType.number,
+              // ),
+              // const SizedBox(height: 16),
               LabeledTextField(
                 label: 'Patient Name',
                 hintText: 'Enter Name Here',
@@ -117,17 +140,6 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 hintText: 'Enter Duration Here',
                 controller: _durationController,
                 keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-              GenderRadioGroup(
-                label: 'Gender',
-                groupValue: _selectedGender,
-                options: _genderOptions,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedGender = value;
-                  });
-                },
               ),
               const SizedBox(height: 16),
               GenderRadioGroup(
@@ -162,18 +174,16 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
                 label: 'Payment mode',
                 items: _paymentModeOptions,
                 selectedValue: _selectedPaymentMode,
-                onChanged:
-                    (value) => {
-                      setState(() {
-                        _selectedPaymentMode = value;
-                      }),
-                    },
+                onChanged: (value) {
+                  setState(() {
+                    _selectedPaymentMode = value;
+                  });
+                },
               ),
               const SizedBox(height: 16),
               LabeledTextField(
                 label: 'Description',
-                hintText:
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
+                hintText: 'Enter description here',
                 controller: _consultationNotesController,
                 maxline: 4,
               ),
@@ -195,17 +205,19 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
               ),
               const SizedBox(height: 16),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: OutlinedCustomButton(
                       text: 'Cancel',
-                      onPressed: () {},
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: PrimaryCustomButton(text: 'Save', onPressed: () {}),
+                    child: PrimaryCustomButton(
+                      text: 'Save',
+                      onPressed: () => _saveAppointment(context),
+                    ),
                   ),
                 ],
               ),

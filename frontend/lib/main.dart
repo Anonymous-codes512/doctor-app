@@ -1,5 +1,6 @@
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/provider/auth_provider.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,7 +52,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        // Add other providers
+        ChangeNotifierProvider(create: (_) => DoctorProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

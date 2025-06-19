@@ -52,16 +52,17 @@ class AuthService {
       );
 
       final body = jsonDecode(response.body);
-      print('✅✅✅$body✅✅✅');
+      print(body);
       if (response.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', body['token']);
         await prefs.setString('user', jsonEncode(body['user']));
         await prefs.setInt('loginTime', DateTime.now().millisecondsSinceEpoch);
-        print('✅✅✅$body✅✅✅');
+
         return {
           'success': true,
           'message': body['message'] ?? 'Login successful',
+          'role': body['user']['role'] ?? 'unknown',
         };
       } else {
         return {'success': false, 'message': body['message'] ?? 'Login failed'};
