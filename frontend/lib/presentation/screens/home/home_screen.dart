@@ -3,7 +3,10 @@ import 'package:doctor_app/core/assets/images/images_paths.dart';
 import 'package:doctor_app/presentation/widgets/app_drawer.dart';
 import 'package:doctor_app/presentation/widgets/calendar_task_card.dart';
 import 'package:doctor_app/presentation/widgets/icon_item.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,16 +21,16 @@ class _HomeScreenState extends State<HomeScreen> {
   ViewType calendarView = ViewType.list;
   ViewType taskBarView = ViewType.list;
 
-  final List<Map<String, String>> calendarData = List.generate(
-    5,
-    (index) => {
-      'name': 'Lora',
-      'phone': '9217689098',
-      'date': '12 March 2025',
-      'time': '10:30 am',
-      'imageUrl': 'https://i.pravatar.cc/150?img=5',
-    },
-  );
+  late DoctorProvider doctorProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      doctorProvider = Provider.of<DoctorProvider>(context, listen: false);
+      doctorProvider.getHomeData();
+    });
+  }
 
   final List<Map<String, String>> taskBarData = List.generate(
     5,
@@ -66,7 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget buildCalendarSection() {
+  Widget buildCalendarSection(List appointments) {
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.primaryColor),
@@ -94,20 +97,27 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SizedBox(height: 8),
-          // Content
-          calendarView == ViewType.list
+          appointments.isEmpty
+              ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('No appointments for today'),
+              )
+              : calendarView == ViewType.list
               ? ListView.builder(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
-                itemCount: calendarData.length,
+                itemCount: appointments.length,
                 itemBuilder: (context, index) {
-                  final item = calendarData[index];
+                  final appt = appointments[index];
                   return CalendarTaskCard(
-                    name: item['name']!,
-                    phone: item['phone']!,
-                    date: item['date']!,
-                    time: item['time']!,
-                    imageUrl: item['imageUrl']!,
+                    name: appt.patientName,
+                    phone: '',
+                    date: DateFormat(
+                      'dd MMM yyyy',
+                    ).format(appt.appointmentDate),
+                    time:
+                        '${appt.appointmentTime.hour.toString().padLeft(2, '0')}:${appt.appointmentTime.minute.toString().padLeft(2, '0')}',
+                    imageUrl: 'https://i.pravatar.cc/150?img=${index + 5}',
                     isGrid: false,
                   );
                 },
@@ -116,15 +126,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 140,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: calendarData.length,
+                  itemCount: appointments.length,
                   itemBuilder: (context, index) {
-                    final item = calendarData[index];
+                    final appt = appointments[index];
                     return CalendarTaskCard(
-                      name: item['name']!,
-                      phone: item['phone']!,
-                      date: item['date']!,
-                      time: item['time']!,
-                      imageUrl: item['imageUrl']!,
+                      name: appt.patientName,
+                      phone: '',
+                      date: DateFormat(
+                        'dd MMM yyyy',
+                      ).format(appt.appointmentDate),
+                      time:
+                          '${appt.appointmentTime.hour.toString().padLeft(2, '0')}:${appt.appointmentTime.minute.toString().padLeft(2, '0')}',
+                      imageUrl: 'https://i.pravatar.cc/150?img=${index + 5}',
                       isGrid: true,
                     );
                   },
@@ -310,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      backgroundColor: AppColors.backgroundColor, // purple background
+      backgroundColor: AppColors.backgroundColor,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: ListView(
@@ -318,41 +331,41 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Greeting texts
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Good Morning!",
-                      style: TextStyle(fontSize: 16, color: Colors.black87),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "Dr. Staller Kane",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 24,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Bell icon button
-                IconButton(
-                  onPressed: () {
-                    // Add your bell action here
-                    print("Bell clicked");
+                Consumer<DoctorProvider>(
+                  builder: (context, provider, _) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          provider.greeting,
+                          style: TextStyle(fontSize: 16, color: Colors.black87),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          provider.userName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    );
                   },
+                ),
+                IconButton(
+                  onPressed: () {},
                   icon: Icon(Icons.notifications_none, color: Colors.black87),
-                  tooltip: 'Notifications',
                 ),
               ],
             ),
             SizedBox(height: 16),
-            buildCalendarSection(),
+            Consumer<DoctorProvider>(
+              builder: (context, provider, _) {
+                return buildCalendarSection(provider.appointments);
+              },
+            ),
             buildTaskBarSection(),
             SizedBox(height: 8),
             buildBottomIconsGrid(),

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify
 from werkzeug.security import generate_password_hash , check_password_hash
-from models.user import User, UserRole
+from models import User, Doctor, Patient
 from extensions import db
 from flask_jwt_extended import create_access_token
 from utils.token_utils import generate_confirmation_token
@@ -26,32 +26,51 @@ def register():
     if not all([name, email, password, role]):
         return jsonify({'success': False, 'message': 'Missing required fields'}), 400
 
-    # Check if user already exists
+    VALID_ROLES = ['DOCTOR', 'PATIENT']
+    role_upper = role.upper()
+    if role_upper not in VALID_ROLES:
+        return jsonify({'success': False, 'message': 'Invalid user role'}), 400
+
     if User.query.filter_by(email=email).first():
         return jsonify({'success': False, 'message': 'Email already registered'}), 409
 
-    # Hash password
     hashed_password = generate_password_hash(password)
 
-    # Create user
-    new_user = User(
-        name=name,
-        email=email,
-        phone_number=phone,
-        password=hashed_password,
-        role=role.upper()
-    )
+    try:
+        # ✅ Create User
+        new_user = User(
+            name=name,
+            email=email,
+            phone_number=phone,
+            password=hashed_password,
+            role=role_upper
+        )
+        db.session.add(new_user)
+        db.session.commit()
 
-    db.session.add(new_user)
-    db.session.commit()
+        # ✅ Role-specific profile
+        if role_upper == 'DOCTOR':
+            doctor = Doctor(user_id=new_user.id)
+            db.session.add(doctor)
+        elif role_upper == 'PATIENT':
+            patient = Patient(user_id=new_user.id)
+            db.session.add(patient)
 
-    token = generate_confirmation_token(email)
-    send_confirmation_email(email, name, token)
+        db.session.commit()
 
-    return jsonify({
-        'success': True,
-        'message': 'User registered successfully & confirmation mail is sent'
-    }), 201
+        # ✅ Send confirmation email
+        token = generate_confirmation_token(email)
+        send_confirmation_email(email, name, token)
+
+        return jsonify({
+            'success': True,
+            'message': 'User registered successfully & confirmation mail is sent',
+            'user_id': new_user.id
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'Server error'}), 500
 
 @auth_bp.route('/login', methods=['POST'])
 def login():

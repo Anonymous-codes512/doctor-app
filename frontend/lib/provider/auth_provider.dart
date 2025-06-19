@@ -39,12 +39,25 @@ class AuthProvider with ChangeNotifier {
     final result = await _authService.login(email: email, password: password);
 
     if (result['success']) {
-      ToastHelper.showSuccess(context, result['message']);
+      final role = result['role'].toString().toLowerCase();
+
+      if (role == 'doctor') {
+        ToastHelper.showSuccess(context, result['message']);
+        return true;
+      } else if (role == 'patient') {
+        ToastHelper.showInfo(
+          context,
+          'Patient panel is currently in development.',
+        );
+        return false;
+      } else {
+        ToastHelper.showError(context, 'Unknown user role.');
+        return false;
+      }
     } else {
       ToastHelper.showError(context, result['message']);
+      return false;
     }
-
-    return result['success'];
   }
 
   Future<void> logout(BuildContext context) async {

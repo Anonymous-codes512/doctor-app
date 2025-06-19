@@ -148,9 +148,7 @@ class _CalendarScreenState extends State<AppointmentScreen> {
     });
 
     // Navigate to the new screens based on filter
-    if (filter == CalendarFilter.addTask) {
-      Navigator.pushNamed(context, Routes.addNewTaskScreen);
-    } else if (filter == CalendarFilter.addAppointment) {
+    if (filter == CalendarFilter.addAppointment) {
       Navigator.pushNamed(context, Routes.addNewAppointmentScreen);
     }
   }
@@ -273,7 +271,9 @@ class _CalendarScreenState extends State<AppointmentScreen> {
 
   Widget _buildActionButton(String text, CalendarFilter filter) {
     return GestureDetector(
-      onTap: () => _onFilterChanged(filter),
+      onTap: () {
+        Navigator.pushNamed(context, Routes.addNewAppointmentScreen);
+      },
       child: Container(
         alignment: Alignment.center,
         height: _buttonHeight,
@@ -780,7 +780,7 @@ class _CalendarScreenState extends State<AppointmentScreen> {
               ),
               const SizedBox(height: 4),
               if (dayEvents.isNotEmpty) ...[
-                Expanded(
+                SizedBox(
                   child: Column(
                     children:
                         dayEvents.take(3).map((event) {

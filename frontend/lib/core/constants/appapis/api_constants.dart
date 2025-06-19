@@ -5,4 +5,7 @@ class ApiConstants {
   static const String sendResetCode = '$baseUrl/send-reset-code';
   static const String verifyResetOtp = '$baseUrl/verify-reset-otp';
   static const String resetPassword = '$baseUrl/reset-password';
+
+  static const String fetchAppointment = '$baseUrl/doctor_appointments';
+  static const String createAppointment = '$baseUrl/create_appointment';
 }
