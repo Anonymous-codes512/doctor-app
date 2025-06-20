@@ -8,4 +8,7 @@ class ApiConstants {
 
   static const String fetchAppointment = '$baseUrl/doctor_appointments';
   static const String createAppointment = '$baseUrl/create_appointment';
+
+  static const String fetchTasks = '$baseUrl/fetch_tasks';
+  static const String createTask = '$baseUrl/create_task';
 }

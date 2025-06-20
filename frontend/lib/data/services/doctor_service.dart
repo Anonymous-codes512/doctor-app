@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:doctor_app/data/models/appointment_model.dart';
+import 'package:doctor_app/data/models/task_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -80,6 +81,50 @@ class DoctorService {
       }
     } catch (e) {
       print('❌ Error fetching appointments: $e');
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> createTask(TaskModel task) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConstants.createTask),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(task.toJson()),
+      );
+      final body = jsonDecode(response.body);
+      print('🚨🚨$body🚨🚨');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'Task created successfully.',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': body['message'] ?? 'Failed to create task.',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error. Please try again.'};
+    }
+  }
+
+  Future<List<TaskModel>> fetchTasks(int userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.fetchTasks}/$userId'),
+      );
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 && body['success']) {
+        final List data = body['tasks'];
+        return data.map((e) => TaskModel.fromJson(e)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('❌ Error fetching tasks: $e');
       return [];
     }
   }

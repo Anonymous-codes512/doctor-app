@@ -7,3 +7,6 @@ AppointmentStatus = ENUM("confirmed", "canceled", "pending", name="appointment_s
 AppointmentReason = ENUM("consultation", "follow-up","check-up" ,name="appointment_reason", create_type=True)
 PaymentMode = ENUM("cash", "credit card", "bank transfer", "cheque", name="payment_mode", create_type=True)
 PaymentStatus = ENUM("paid", "pending", "overdue", name="payment_status", create_type=True)
+
+taskPriority = ENUM ("low", "medium", "high", name="task_priority", create_type=True)
+taskCategory = ENUM("patient care","admin","follow up","regular", name="task_category", create_type=True)

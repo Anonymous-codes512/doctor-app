@@ -1,12 +1,15 @@
 // lib/presentation/screens/add_task_screen.dart
+import 'package:doctor_app/data/models/task_model.dart';
 import 'package:doctor_app/presentation/widgets/date_selector_widget.dart';
 import 'package:doctor_app/presentation/widgets/labeled_dropdown.dart';
 import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:doctor_app/presentation/widgets/outlined_custom_button.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
 import 'package:doctor_app/presentation/widgets/time_selector_widget.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:doctor_app/core/assets/colors/app_colors.dart'; // Ensure this path is correct
+import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:provider/provider.dart'; // Ensure this path is correct
 
 class AddTaskScreen extends StatefulWidget {
   const AddTaskScreen({super.key});
@@ -26,14 +29,14 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   TimeOfDay _selectedTime = TimeOfDay.now();
 
   String? _selectedPriority;
-  final List<String> _priorityOptions = ['High', 'Medium', 'Low'];
+  final List<String> _priorityOptions = ["low", "medium", "high"];
 
   String? _selectedCategory;
   final List<String> _categoryOptions = [
-    'Patient care',
-    'Admin',
-    'Regular',
-    'Follow up',
+    "patient care",
+    "admin",
+    "follow up",
+    "regular",
   ];
 
   DateTime get initialDate => _selectedDate;
@@ -49,6 +52,23 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     setState(() {
       _selectedTime = newTime;
     });
+  }
+
+  void _saveTask(BuildContext context) async {
+    final task = TaskModel(
+      taskTitle: _taskNameController.text.trim(),
+      patientName: _patientNameController.text.trim(),
+      taskPriority: _selectedPriority!.toLowerCase(),
+      taskCategory: _selectedCategory!.toLowerCase(),
+      taskDescription: _descriptionController.text.trim(),
+      taskDueDate: _selectedDate,
+      taskDueTime: _selectedTime,
+    );
+    final provider = Provider.of<DoctorProvider>(context, listen: false);
+    provider.setTask(task);
+    bool saved = await provider.saveTask(context);
+
+    if (saved) Navigator.pop(context);
   }
 
   @override
@@ -165,7 +185,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: PrimaryCustomButton(text: 'Save', onPressed: () {}),
+                    child: PrimaryCustomButton(
+                      text: 'Save',
+                      onPressed: () => _saveTask(context),
+                    ),
                   ),
                 ],
               ),

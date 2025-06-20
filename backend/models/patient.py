@@ -20,6 +20,7 @@ class Patient(db.Model):
     user = db.relationship('User', back_populates='patient')
     doctors = db.relationship('Doctor', secondary=doctor_patient, back_populates='patients')
 
+    tasks = db.relationship('Task', back_populates='patient', cascade='all, delete-orphan')
     appointments = db.relationship('Appointment', back_populates='patient', cascade='all, delete-orphan')
     invoices = db.relationship('Invoice', back_populates='patient', cascade='all, delete-orphan')
     health_records = db.relationship('HealthTracker', back_populates='patient', cascade='all, delete-orphan')
