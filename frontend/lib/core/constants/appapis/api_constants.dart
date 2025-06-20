@@ -1,4 +1,5 @@
 class ApiConstants {
+  static const String imageBaseUrl = 'http://192.168.100.12:5000/';
   static const String baseUrl = 'http://192.168.100.12:5000/api';
   static const String register = '$baseUrl/register';
   static const String login = '$baseUrl/login';
@@ -11,4 +12,7 @@ class ApiConstants {
 
   static const String fetchTasks = '$baseUrl/fetch_tasks';
   static const String createTask = '$baseUrl/create_task';
+
+  static const String fetchPatients = '$baseUrl/fetch_patients';
+  static const String createPatient = '$baseUrl/create_patient';
 }

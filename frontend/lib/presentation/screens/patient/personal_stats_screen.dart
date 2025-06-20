@@ -1,5 +1,5 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
-import 'package:doctor_app/presentation/screens/patient/add_new_patient_screen.dart';
+import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:flutter/material.dart';
 
 enum TimePeriod { daily, weekly, monthly }

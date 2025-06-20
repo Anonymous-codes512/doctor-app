@@ -1,6 +1,6 @@
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
-import 'package:doctor_app/presentation/screens/patient/add_new_patient_screen.dart';
 import 'package:doctor_app/presentation/widgets/gender_radio_group.dart';
+import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:doctor_app/presentation/widgets/patient_list_item.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
 import 'package:flutter/material.dart';
