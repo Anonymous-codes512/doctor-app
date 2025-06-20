@@ -1,5 +1,6 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/assets/images/images_paths.dart';
+import 'package:doctor_app/data/models/task_model.dart';
 import 'package:doctor_app/presentation/widgets/app_drawer.dart';
 import 'package:doctor_app/presentation/widgets/calendar_task_card.dart';
 import 'package:doctor_app/presentation/widgets/icon_item.dart';
@@ -32,16 +33,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  final List<Map<String, String>> taskBarData = List.generate(
-    5,
-    (index) => {
-      'name': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit',
-      'date': '12 March 2025',
-      'time': '10:30 am',
-      'imageUrl': 'https://i.pravatar.cc/150?img=6',
-    },
-  );
-
   Widget buildToggleButtons(
     ViewType currentView,
     void Function(ViewType) onToggle,
@@ -70,6 +61,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget buildCalendarSection(List appointments) {
+    final today = DateTime.now();
+    final todayAppointments =
+        appointments.where((appt) {
+          return appt.appointmentDate.year == today.year &&
+              appt.appointmentDate.month == today.month &&
+              appt.appointmentDate.day == today.day;
+        }).toList();
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.primaryColor),
@@ -97,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SizedBox(height: 8),
-          appointments.isEmpty
+          todayAppointments.isEmpty
               ? Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text('No appointments for today'),
@@ -106,9 +105,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ? ListView.builder(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
-                itemCount: appointments.length,
+                itemCount: todayAppointments.length,
                 itemBuilder: (context, index) {
-                  final appt = appointments[index];
+                  final appt = todayAppointments[index];
                   return CalendarTaskCard(
                     name: appt.patientName,
                     phone: '',
@@ -126,9 +125,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 140,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: appointments.length,
+                  itemCount: todayAppointments.length,
                   itemBuilder: (context, index) {
-                    final appt = appointments[index];
+                    final appt = todayAppointments[index];
                     return CalendarTaskCard(
                       name: appt.patientName,
                       phone: '',
@@ -148,7 +147,17 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget buildTaskBarSection() {
+  Widget buildTaskBarSection(List<TaskModel> tasks) {
+    final today = DateTime.now();
+    final todayTasks =
+        tasks.where((task) {
+          final dueDate = task.taskDueDate;
+          if (dueDate == null) return false;
+          return dueDate.year == today.year &&
+              dueDate.month == today.month &&
+              dueDate.day == today.day;
+        }).toList();
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: AppColors.primaryColor),
@@ -164,7 +173,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               children: [
                 Text(
-                  "My Task Bar",
+                  "Today's Tasks",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Spacer(),
@@ -177,19 +186,27 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SizedBox(height: 8),
-          taskBarView == ViewType.list
+          todayTasks.isEmpty
+              ? Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('No tasks for today'),
+              )
+              : taskBarView == ViewType.list
               ? ListView.builder(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
-                itemCount: taskBarData.length,
+                itemCount: todayTasks.length,
                 itemBuilder: (context, index) {
-                  final item = taskBarData[index];
+                  final task = todayTasks[index];
                   return CalendarTaskCard(
-                    name: item['name']!,
+                    name: task.taskTitle,
                     phone: '',
-                    date: item['date']!,
-                    time: item['time']!,
-                    imageUrl: item['imageUrl']!,
+                    date: DateFormat('dd MMM yyyy').format(task.taskDueDate),
+                    time:
+                        task.taskDueTime != null
+                            ? '${task.taskDueTime.hour.toString().padLeft(2, '0')}:${task.taskDueTime.minute.toString().padLeft(2, '0')}'
+                            : '',
+                    imageUrl: 'https://i.pravatar.cc/150?img=${index + 10}',
                     isGrid: false,
                   );
                 },
@@ -198,15 +215,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 140,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: taskBarData.length,
+                  itemCount: todayTasks.length,
                   itemBuilder: (context, index) {
-                    final item = taskBarData[index];
+                    final task = todayTasks[index];
                     return CalendarTaskCard(
-                      name: item['name']!,
+                      name: task.taskTitle,
                       phone: '',
-                      date: item['date']!,
-                      time: item['time']!,
-                      imageUrl: item['imageUrl']!,
+                      date: DateFormat('dd MMM yyyy').format(task.taskDueDate),
+                      time:
+                          task.taskDueTime != null
+                              ? '${task.taskDueTime.hour.toString().padLeft(2, '0')}:${task.taskDueTime.minute.toString().padLeft(2, '0')}'
+                              : '',
+                      imageUrl: 'https://i.pravatar.cc/150?img=${index + 10}',
                       isGrid: true,
                     );
                   },
@@ -366,7 +386,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 return buildCalendarSection(provider.appointments);
               },
             ),
-            buildTaskBarSection(),
+            Consumer<DoctorProvider>(
+              builder: (context, provider, _) {
+                return buildTaskBarSection(provider.tasks);
+              },
+            ),
             SizedBox(height: 8),
             buildBottomIconsGrid(),
             SizedBox(height: 16),

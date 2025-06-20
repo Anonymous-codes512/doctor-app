@@ -1,4 +1,5 @@
 import 'package:doctor_app/core/assets/images/images_paths.dart';
+import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -50,8 +51,16 @@ class AppDrawer extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.home),
               title: const Text('Home'),
-              onTap: () => Navigator.pop(context),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  Routes.homeScreen,
+                  (route) => false,
+                );
+              },
             ),
+
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),

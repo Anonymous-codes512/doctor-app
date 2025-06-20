@@ -19,3 +19,4 @@ class Doctor(db.Model):
     user = db.relationship('User', back_populates='doctor')
     patients = db.relationship('Patient', secondary=doctor_patient, back_populates='doctors')
     appointments_as_doctor = db.relationship('Appointment', back_populates='doctor', foreign_keys='Appointment.doctor_id')
+    tasks = db.relationship('Task', back_populates='doctor', foreign_keys='Task.doctor_id')
