@@ -1,26 +1,53 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:flutter/material.dart';
 
 class PatientListItem extends StatelessWidget {
   final String name;
-  final String?
-  phoneNumber; // Changed to nullable based on PatientSelectionScreen data
+  final String? phoneNumber;
+  final String? imagePath; // ✅ New field to show patient image
   final VoidCallback? onTap;
   final bool showDivider;
-  final Widget?
-  trailing; // Added this property for the checkbox or other widgets
+  final Widget? trailing;
 
   const PatientListItem({
     Key? key,
     required this.name,
-    this.phoneNumber, // Updated to be nullable
+    this.phoneNumber,
+    this.imagePath, // ✅ Constructor update
     this.onTap,
     this.showDivider = true,
-    this.trailing, // Added to constructor
+    this.trailing,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    String? fixedImagePath;
+    if (imagePath != null && imagePath!.isNotEmpty) {
+      fixedImagePath = imagePath?.replaceAll(r'\', '/');
+    }
+
+    ImageProvider? avatarImage;
+    if (fixedImagePath != null && fixedImagePath.isNotEmpty) {
+      // Build full URL by joining base URL and cleaned path without double slashes
+      final fullUrl =
+          ApiConstants.imageBaseUrl.endsWith('/')
+              ? ApiConstants.imageBaseUrl.substring(
+                0,
+                ApiConstants.imageBaseUrl.length - 1,
+              )
+              : ApiConstants.imageBaseUrl;
+
+      final cleanedPath =
+          fixedImagePath.startsWith('/')
+              ? fixedImagePath.substring(1)
+              : fixedImagePath;
+
+      final imageUrl = '$fullUrl/$cleanedPath';
+
+      avatarImage = NetworkImage(imageUrl);
+    }
+
     return Column(
       children: [
         InkWell(
@@ -32,11 +59,15 @@ class PatientListItem extends StatelessWidget {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: AppColors.confirmedEventColor,
-                  child: const Icon(
-                    Icons.person_rounded,
-                    color: Colors.white,
-                    size: 35,
-                  ),
+                  backgroundImage: avatarImage,
+                  child:
+                      avatarImage == null
+                          ? const Icon(
+                            Icons.person_rounded,
+                            color: Colors.white,
+                            size: 28,
+                          )
+                          : null,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -61,14 +92,7 @@ class PatientListItem extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (trailing !=
-                    null) // Conditionally display the trailing widget
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 8.0,
-                    ), // Add some spacing
-                    child: trailing!,
-                  ),
+                if (trailing != null) ...[const SizedBox(width: 8), trailing!],
               ],
             ),
           ),

@@ -1,319 +1,76 @@
-import 'package:doctor_app/presentation/widgets/custom_date_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-// Your existing widgets (assuming they're imported)
-// import 'labeled_text_field.dart';
-// import 'custom_date_picker.dart';
+import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/data/models/patient_model.dart';
+import 'package:doctor_app/presentation/widgets/custom_date_picker.dart';
+import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
+import 'package:doctor_app/provider/patient_provider.dart';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class AddNewPatientScreen extends StatefulWidget {
-  const AddNewPatientScreen({Key? key}) : super(key: key);
+  const AddNewPatientScreen({super.key});
 
   @override
-  _AddNewPatientScreenState createState() => _AddNewPatientScreenState();
+  State<AddNewPatientScreen> createState() => _AddNewPatientScreenState();
 }
 
 class _AddNewPatientScreenState extends State<AddNewPatientScreen> {
+  final _formKey = GlobalKey<FormState>();
+
   final _firstNameController = TextEditingController();
   final _middleNameController = TextEditingController();
   final _surnameController = TextEditingController();
   final _contactController = TextEditingController();
   final _emailController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _weightController = TextEditingController();
+  final _footController = TextEditingController();
+  final _inchController = TextEditingController();
+  final _bpController = TextEditingController();
+  final _pulseController = TextEditingController();
   final _allergiesController = TextEditingController();
 
   DateTime _selectedDate = DateTime(2000, 1, 1);
-  bool _showSuccessDialog = false;
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Wrap(
-            children: [
-              ListTile(
-                leading: Icon(Icons.photo_library),
-                title: Text('Photo Library'),
-                onTap: () async {
-                  Navigator.of(context).pop();
-                  final XFile? image = await _picker.pickImage(
-                    source: ImageSource.gallery,
-                  );
-                  if (image != null) {
-                    setState(() {
-                      _selectedImage = File(image.path);
-                    });
-                  }
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.photo_camera),
-                title: Text('Camera'),
-                onTap: () async {
-                  Navigator.of(context).pop();
-                  final XFile? image = await _picker.pickImage(
-                    source: ImageSource.camera,
-                  );
-                  if (image != null) {
-                    setState(() {
-                      _selectedImage = File(image.path);
-                    });
-                  }
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    final picked = await _picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _selectedImage = File(picked.path);
+      });
+    }
   }
 
-  void _showPatientAddedDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade100,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.check, color: Colors.green, size: 32),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'New Patient Added',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'By clicking continue you will be able to add further patient information in detail.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          side: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          // Navigate to detailed patient info screen
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          'Continue',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+  void _submitForm(BuildContext context) {
+    if (_formKey.currentState!.validate()) {
+      final fullName =
+          "${_firstNameController.text.trim()} ${_middleNameController.text.trim()} ${_surnameController.text.trim()}"
+              .trim();
+      final height = "${_footController.text}'${_inchController.text}\"";
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Add New Patient',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.check, color: Colors.black),
-            onPressed: _showPatientAddedDialog,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Profile Picture Section
-            Center(
-              child: GestureDetector(
-                onTap: _pickImage,
-                child: Stack(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.purple.shade100,
-                        shape: BoxShape.circle,
-                      ),
-                      child:
-                          _selectedImage != null
-                              ? ClipRRect(
-                                borderRadius: BorderRadius.circular(40),
-                                child: Image.file(
-                                  _selectedImage!,
-                                  width: 80,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                              : Icon(
-                                Icons.person,
-                                size: 40,
-                                color: Colors.purple.shade300,
-                              ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[800],
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.camera_alt,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
+      final patient = Patient(
+        fullName: fullName,
+        contact: _contactController.text,
+        email: _emailController.text,
+        address: _addressController.text,
+        weight: _weightController.text,
+        height: height,
+        bloodPressure: _bpController.text,
+        pulse: _pulseController.text,
+        allergies: _allergiesController.text,
+        dateOfBirth: _selectedDate.toIso8601String(),
+        imagePath: _selectedImage?.path,
+      );
 
-            // Form Fields
-            LabeledTextField(
-              label: 'First name',
-              hintText: 'Enter here...',
-              controller: _firstNameController,
-            ),
-            const SizedBox(height: 16),
-
-            LabeledTextField(
-              label: 'Middle name',
-              hintText: 'Enter here...',
-              controller: _middleNameController,
-            ),
-            const SizedBox(height: 16),
-
-            LabeledTextField(
-              label: 'Sur name',
-              hintText: 'Enter here...',
-              controller: _surnameController,
-            ),
-            const SizedBox(height: 16),
-
-            // Date of Birth Section
-            CustomDatePicker(
-              label: 'Date Of Birth',
-              initialDate: _selectedDate,
-              onDateChanged: (DateTime newDate) {
-                setState(() {
-                  _selectedDate = newDate;
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-
-            LabeledTextField(
-              label: 'Contact no.',
-              hintText: 'Enter here...',
-              controller: _contactController,
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 16),
-
-            LabeledTextField(
-              label: 'Email Address',
-              hintText: 'Enter here...',
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-
-            LabeledTextField(
-              label: 'Specific Allergies if any:',
-              hintText: 'Enter here...',
-              controller: _allergiesController,
-              maxline: 3,
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-    );
+      Provider.of<PatientProvider>(
+        context,
+        listen: false,
+      ).addPatient(patient, context);
+    }
   }
 
   @override
@@ -323,73 +80,186 @@ class _AddNewPatientScreenState extends State<AddNewPatientScreen> {
     _surnameController.dispose();
     _contactController.dispose();
     _emailController.dispose();
+    _addressController.dispose();
+    _weightController.dispose();
+    _footController.dispose();
+    _inchController.dispose();
+    _bpController.dispose();
+    _pulseController.dispose();
     _allergiesController.dispose();
     super.dispose();
   }
-}
-
-// LabeledTextField Widget (if not already available)
-class LabeledTextField extends StatelessWidget {
-  final String label;
-  final String hintText;
-  final TextEditingController controller;
-  final bool obscureText;
-  final TextInputType keyboardType;
-  final String? Function(String?)? validator;
-  final Widget? suffixIcon;
-  final int? maxline;
-
-  const LabeledTextField({
-    Key? key,
-    required this.label,
-    required this.hintText,
-    required this.controller,
-    this.obscureText = false,
-    this.keyboardType = TextInputType.text,
-    this.validator,
-    this.suffixIcon,
-    this.maxline = 1,
-  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          obscureText: obscureText,
-          keyboardType: keyboardType,
-          validator: validator,
-          maxLines: maxline,
-          decoration: InputDecoration(
-            hintText: hintText,
-            hintStyle: TextStyle(color: Colors.grey[500]),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.blue),
-            ),
-            suffixIcon: suffixIcon,
+    return Scaffold(
+      backgroundColor: AppColors.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: AppColors.backgroundColor,
+        centerTitle: true,
+        title: const Text(
+          'Add New Patient',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
           ),
         ),
-      ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.check),
+            onPressed: () => _submitForm(context),
+          ),
+        ],
+      ),
+      body: Consumer<PatientProvider>(
+        builder: (context, provider, _) {
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: _pickImage,
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundImage:
+                              _selectedImage != null
+                                  ? FileImage(_selectedImage!)
+                                  : null,
+                          child:
+                              _selectedImage == null
+                                  ? const Icon(Icons.camera_alt)
+                                  : null,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      LabeledTextField(
+                        label: 'First Name',
+                        hintText: 'Enter first name',
+                        controller: _firstNameController,
+                        validator:
+                            (val) =>
+                                val == null || val.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      LabeledTextField(
+                        label: 'Middle Name',
+                        hintText: 'Enter middle name',
+                        controller: _middleNameController,
+                      ),
+                      const SizedBox(height: 12),
+                      LabeledTextField(
+                        label: 'Surname',
+                        hintText: 'Enter surname',
+                        controller: _surnameController,
+                        validator:
+                            (val) =>
+                                val == null || val.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      CustomDatePicker(
+                        label: 'Date of Birth',
+                        initialDate: _selectedDate,
+                        onDateChanged:
+                            (date) => setState(() => _selectedDate = date),
+                      ),
+                      const SizedBox(height: 12),
+                      LabeledTextField(
+                        label: 'Contact Number',
+                        hintText: 'Enter phone number',
+                        controller: _contactController,
+                        keyboardType: TextInputType.phone,
+                        validator:
+                            (val) =>
+                                val == null || val.isEmpty ? 'Required' : null,
+                      ),
+                      const SizedBox(height: 12),
+                      LabeledTextField(
+                        label: 'Email',
+                        hintText: 'Enter email address',
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: 12),
+                      LabeledTextField(
+                        label: 'Address',
+                        hintText: 'Enter address',
+                        controller: _addressController,
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: LabeledTextField(
+                              label: 'Weight (kg)',
+                              hintText: 'Enter weight in kg',
+                              controller: _weightController,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: LabeledTextField(
+                              label: 'Blood Pressure',
+                              hintText: 'Enter BP (e.g., 120/80)',
+                              controller: _bpController,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: LabeledTextField(
+                              label: 'Height (ft)',
+                              hintText: 'Enter feet',
+                              controller: _footController,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: LabeledTextField(
+                              label: 'Height (in)',
+                              hintText: 'Enter inches',
+                              controller: _inchController,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      LabeledTextField(
+                        label: 'Pulse',
+                        hintText: 'Enter pulse',
+                        controller: _pulseController,
+                      ),
+                      const SizedBox(height: 12),
+                      LabeledTextField(
+                        label: 'Allergies',
+                        hintText: 'Enter any allergies',
+                        controller: _allergiesController,
+                        maxline: 3,
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+              ),
+              if (provider.isLoading)
+                Container(
+                  color: Colors.black.withOpacity(0.4),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 }
