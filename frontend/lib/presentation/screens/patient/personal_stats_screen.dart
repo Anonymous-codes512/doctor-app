@@ -1,33 +1,134 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:flutter/material.dart';
 
 enum TimePeriod { daily, weekly, monthly }
 
 class PersonalStatsScreen extends StatefulWidget {
-  const PersonalStatsScreen({super.key});
+  final Patient patientData;
+  const PersonalStatsScreen({required this.patientData, super.key});
 
   @override
   State<PersonalStatsScreen> createState() => _PersonalStatsScreenState();
 }
 
 class _PersonalStatsScreenState extends State<PersonalStatsScreen> {
-  // Controllers for the input fields
-  final TextEditingController heightController = TextEditingController(
-    text: '5 ft 8 inch',
-  );
-  final TextEditingController weightController = TextEditingController(
-    text: '70 kg',
-  );
-  final TextEditingController bmiController = TextEditingController(
-    text: 'xyz',
-  );
-  final TextEditingController bpController = TextEditingController(
-    text: '80/120',
-  );
-  final TextEditingController pulseController = TextEditingController(
-    text: '80/120',
-  );
+  late final TextEditingController heightController;
+  late final TextEditingController weightController;
+  late final TextEditingController bmiController;
+  late final TextEditingController bpController;
+  late final TextEditingController pulseController;
+  late final TextEditingController ageController;
+
+  // Calculated age value, used to set ageController text
+  late num
+  _patientAge; // Renamed 'age' to '_patientAge' for clarity and consistency
+
+  num _calculateAge(dynamic dob) {
+    if (dob is String) {
+      final DateTime? parsedDob = DateTime.tryParse(dob);
+      if (parsedDob == null) return 0; // Handle invalid date string
+      dob = parsedDob;
+    }
+    if (dob is! DateTime) return 0; // Ensure dob is DateTime
+
+    final today = DateTime.now();
+    num age = today.year - dob.year;
+    if (today.month < dob.month ||
+        (today.month == dob.month && today.day < dob.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  double _convertHeightToMeters(String heightStr) {
+    // Convert from format like 5'4" to 5.4
+    final regex = RegExp(r"(\d+)'(\d+)");
+    final match = regex.firstMatch(heightStr);
+    if (match != null) {
+      final feet = int.parse(match.group(1)!);
+      final inches = int.parse(match.group(2)!);
+      final totalInches = (feet * 12) + inches;
+      return totalInches * 0.0254;
+    }
+
+    // fallback to dot format like 5.4
+    if (heightStr.contains('.')) {
+      final parts = heightStr.split('.');
+      final feet = int.tryParse(parts[0]) ?? 0;
+      final inches = int.tryParse(parts[1]) ?? 0;
+      final totalInches = (feet * 12) + inches;
+      return totalInches * 0.0254;
+    } else {
+      final feet = int.tryParse(heightStr) ?? 0;
+      return feet * 0.3048;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _patientAge = _calculateAge(
+      widget.patientData.dateOfBirth,
+    ); // Use _patientAge here
+
+    heightController = TextEditingController(
+      text: widget.patientData.height ?? 'Not set yet',
+    );
+    weightController = TextEditingController(
+      text: widget.patientData.weight ?? 'Not set yet',
+    );
+    ageController = TextEditingController(
+      text:
+          widget.patientData.dateOfBirth != null &&
+                  widget.patientData.dateOfBirth.isNotEmpty
+              ? '$_patientAge Years' // Use _patientAge here
+              : 'Not set yet',
+    );
+    bmiController = TextEditingController(
+      text:
+          _calculateBMI(
+            widget.patientData.weight,
+            widget.patientData.height,
+            _patientAge, // Pass the calculated age to BMI function
+          ) ??
+          'Not set yet',
+    );
+    bpController = TextEditingController(
+      text: widget.patientData.bloodPressure ?? 'Not set yet',
+    );
+    pulseController = TextEditingController(
+      text: widget.patientData.pulse ?? 'Not set yet',
+    );
+  }
+
+  // Modified _calculateBMI to accept 'age' parameter
+  String? _calculateBMI(String? weightStr, String? heightStr, num age) {
+    if (weightStr == null ||
+        heightStr == null ||
+        weightStr.isEmpty ||
+        heightStr.isEmpty) {
+      return null;
+    }
+
+    try {
+      double weightKg = double.parse(
+        weightStr.replaceAll(RegExp(r'[^0-9.]'), ''),
+      );
+      double heightMeters = _convertHeightToMeters(heightStr);
+
+      if (heightMeters > 0) {
+        double bmi = weightKg / (heightMeters * heightMeters);
+        return bmi.toStringAsFixed(1);
+      }
+    } catch (e) {
+      print(
+        'Error calculating BMI for weight: $weightStr, height: $heightStr, age: $age. Error: $e',
+      );
+    }
+    return null;
+  }
 
   // View mode toggle
   bool isTableView = true;
@@ -148,7 +249,14 @@ class _PersonalStatsScreenState extends State<PersonalStatsScreen> {
             children: [
               const SizedBox(height: 16),
 
-              // Input Fields Section
+              // Input Fields Section (Now including Age)
+              LabeledTextField(
+                label: 'Age',
+                hintText: 'Age here...',
+                controller: ageController,
+                readOnly: true, // Age is typically read-only
+              ),
+              const SizedBox(height: 16),
               LabeledTextField(
                 label: 'Height',
                 hintText: 'Height here...',
@@ -489,8 +597,7 @@ class _PersonalStatsScreenState extends State<PersonalStatsScreen> {
   Widget _buildChartView() {
     final data = currentData;
     final double chartHeight = 280;
-    final double maxBarHeight =
-        chartHeight - 60; // Adjusted for padding and labels
+    final double maxBarHeight = 200; // Adjusted for padding and labels
 
     // Determine max values for normalization to make the chart dynamic
     double maxWeight = dailyData
@@ -692,5 +799,16 @@ class _PersonalStatsScreenState extends State<PersonalStatsScreen> {
         ),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    heightController.dispose();
+    weightController.dispose();
+    bmiController.dispose();
+    bpController.dispose();
+    pulseController.dispose();
+    ageController.dispose();
+    super.dispose();
   }
 }

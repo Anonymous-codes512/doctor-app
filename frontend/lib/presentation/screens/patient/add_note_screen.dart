@@ -1,8 +1,11 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/data/models/notes_model.dart';
 import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:doctor_app/presentation/widgets/outlined_custom_button.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AddNoteScreen extends StatefulWidget {
   const AddNoteScreen({super.key});
@@ -38,9 +41,7 @@ class _AddNoteScreen extends State<AddNoteScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () {
-              // Handle menu button press
-            },
+            onPressed: () {},
           ),
         ],
       ),
@@ -48,7 +49,6 @@ class _AddNoteScreen extends State<AddNoteScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Input Fields Section
             LabeledTextField(
               label: 'Title',
               hintText: 'Enter title here...',
@@ -56,7 +56,6 @@ class _AddNoteScreen extends State<AddNoteScreen> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              // Use Expanded to allow the description field to take available space
               child: LabeledTextField(
                 label: 'Description',
                 hintText: 'Enter description here...',
@@ -64,8 +63,7 @@ class _AddNoteScreen extends State<AddNoteScreen> {
                 maxline: 15,
               ),
             ),
-            const SizedBox(height: 16), // Space between content and buttons
-            // Buttons Section
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -77,18 +75,23 @@ class _AddNoteScreen extends State<AddNoteScreen> {
                     },
                   ),
                 ),
-                const SizedBox(width: 12), // Space between buttons
+                const SizedBox(width: 12),
                 Expanded(
                   child: PrimaryCustomButton(
                     text: 'Save Note',
-                    onPressed: () {
-                      // Implement save changes logic here
-                      // e.g., print updated values:
-                      print('Updated Title: ${_titleController.text}');
-                      print(
-                        'Updated Description: ${_descriptionController.text}',
+                    onPressed: () async {
+                      final note = Note(
+                        notesTitle: _titleController.text.trim(),
+                        notesDescription: _descriptionController.text.trim(),
+                        date: DateTime.now().toIso8601String(),
                       );
-                      Navigator.pop(context); // Pop after saving
+
+                      await Provider.of<DoctorProvider>(
+                        context,
+                        listen: false,
+                      ).createNote(context, note);
+
+                      Navigator.pop(context);
                     },
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:flutter/material.dart';
 
 class PatientHeaderCard extends StatelessWidget {
@@ -6,6 +7,7 @@ class PatientHeaderCard extends StatelessWidget {
   final String age;
   final String condition;
   final String? phone;
+  final String? imagePath;
 
   const PatientHeaderCard({
     Key? key,
@@ -13,6 +15,7 @@ class PatientHeaderCard extends StatelessWidget {
     required this.age,
     required this.condition,
     this.phone,
+    this.imagePath,
   }) : super(key: key);
 
   @override
@@ -36,19 +39,62 @@ class PatientHeaderCard extends StatelessWidget {
       child: Row(
         children: [
           // Patient Avatar
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 2,
-              ),
-            ),
-            child: const Icon(Icons.person, color: Colors.white, size: 30),
+          Builder(
+            builder: (context) {
+              String? fixedImagePath;
+              if (imagePath != null && imagePath!.isNotEmpty) {
+                fixedImagePath = imagePath!.replaceAll(r'\', '/');
+              }
+
+              ImageProvider? avatarImage;
+              if (fixedImagePath != null && fixedImagePath.isNotEmpty) {
+                final fullUrl =
+                    ApiConstants.imageBaseUrl.endsWith('/')
+                        ? ApiConstants.imageBaseUrl.substring(
+                          0,
+                          ApiConstants.imageBaseUrl.length - 1,
+                        )
+                        : ApiConstants.imageBaseUrl;
+
+                final cleanedPath =
+                    fixedImagePath.startsWith('/')
+                        ? fixedImagePath.substring(1)
+                        : fixedImagePath;
+
+                final imageUrl = '$fullUrl/$cleanedPath';
+                avatarImage = NetworkImage(imageUrl);
+              }
+
+              return Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 2,
+                  ),
+                  image:
+                      avatarImage != null
+                          ? DecorationImage(
+                            image: avatarImage,
+                            fit: BoxFit.cover,
+                          )
+                          : null,
+                ),
+                child:
+                    avatarImage == null
+                        ? const Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: 30,
+                        )
+                        : null,
+              );
+            },
           ),
+
           const SizedBox(width: 16),
           // Patient Info
           Expanded(

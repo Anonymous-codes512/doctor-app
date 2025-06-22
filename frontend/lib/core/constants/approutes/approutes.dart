@@ -1,3 +1,5 @@
+import 'package:doctor_app/data/models/notes_model.dart';
+import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/screens/patient/add_new_appointment_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/add_new_group_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/add_new_patient_screen.dart';
@@ -271,15 +273,13 @@ class Routes {
       case myPatientsScreen:
         return MaterialPageRoute(builder: (_) => MyPatientsScreen());
 
-      case patientProfileScreen:
+      case Routes.patientProfileScreen:
         final args = settings.arguments;
-        Map<String, dynamic> patient = {};
-        if (args != null && args is Map<String, dynamic>) {
-          patient = args;
+        if (args != null && args is Patient) {
+          return MaterialPageRoute(
+            builder: (_) => PatientProfileScreen(patient: args),
+          );
         }
-        return MaterialPageRoute(
-          builder: (_) => PatientProfileScreen(patient: patient),
-        );
 
       case addNewPatientScreen:
         return MaterialPageRoute(builder: (_) => AddNewPatientScreen());
@@ -309,27 +309,30 @@ class Routes {
 
       case personalDetailsScreen:
         final args = settings.arguments;
-        Map<String, dynamic> patient = {};
-        if (args != null && args is Map<String, dynamic>) {
-          patient = args;
+        if (args != null && args is Patient) {
+          return MaterialPageRoute(
+            builder: (_) => PersonalDetailsScreen(patientData: args),
+          );
         }
-        return MaterialPageRoute(
-          builder: (_) => PersonalDetailsScreen(patientData: patient),
-        );
 
       case personalStatsScreen:
-        return MaterialPageRoute(builder: (_) => PersonalStatsScreen());
+        final args = settings.arguments;
+        if (args != null && args is Patient) {
+          return MaterialPageRoute(
+            builder: (_) => PersonalStatsScreen(patientData: args),
+          );
+        }
 
       case notesScreen:
         return MaterialPageRoute(builder: (_) => NotesScreen());
 
       case updateNoteScreen:
         final args = settings.arguments;
-        Map<String, dynamic> note = {};
-        if (args != null && args is Map<String, dynamic>) {
-          note = args;
+        if (args != null && args is Note) {
+          return MaterialPageRoute(
+            builder: (_) => UpdateNoteScreen(note: args),
+          );
         }
-        return MaterialPageRoute(builder: (_) => UpdateNoteScreen(note: note));
 
       case addNoteScreen:
         return MaterialPageRoute(builder: (_) => AddNoteScreen());
@@ -393,5 +396,12 @@ class Routes {
               ),
         );
     }
+
+    return MaterialPageRoute(
+      builder:
+          (_) => Scaffold(
+            body: Center(child: Text('No route defined for ${settings.name}')),
+          ),
+    );
   }
 }

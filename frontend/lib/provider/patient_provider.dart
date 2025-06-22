@@ -38,6 +38,13 @@ class PatientProvider with ChangeNotifier {
   Future<bool> addPatient(Patient patient, BuildContext context) async {
     _setLoading(true);
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('user');
+      if (userJson == null) return false;
+
+      final userMap = jsonDecode(userJson);
+      final userId = userMap['id'];
+      patient.doctorUserId = userId;
       final result = await _service.addPatient(patient);
       if (result['success']) {
         ToastHelper.showSuccess(context, result['message']);
@@ -69,6 +76,7 @@ class PatientProvider with ChangeNotifier {
 
       final userMap = jsonDecode(userJson);
       final userId = userMap['id'];
+
       final fetchedPatients = await _service.getPatientsForDoctor(userId);
 
       setPatients(fetchedPatients);

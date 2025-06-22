@@ -15,4 +15,7 @@ class ApiConstants {
 
   static const String fetchPatients = '$baseUrl/fetch_patients';
   static const String createPatient = '$baseUrl/create_patient';
+
+  static const String createNote = '$baseUrl/create_note';
+  static const String updateNote = '$baseUrl/update_note';
 }
