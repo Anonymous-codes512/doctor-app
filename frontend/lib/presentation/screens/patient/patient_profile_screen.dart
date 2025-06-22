@@ -1,11 +1,12 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/menu_list_item.dart';
 import 'package:doctor_app/presentation/widgets/patient_header_card.dart';
 import 'package:flutter/material.dart';
 
 class PatientProfileScreen extends StatefulWidget {
-  final Map<String, dynamic> patient;
+  final Patient patient;
   const PatientProfileScreen({Key? key, required this.patient})
     : super(key: key);
 
@@ -14,6 +15,19 @@ class PatientProfileScreen extends StatefulWidget {
 }
 
 class _PatientProfileScreenState extends State<PatientProfileScreen> {
+  num _calculateAge(dynamic dob) {
+    if (dob is String) {
+      dob = DateTime.parse(dob);
+    }
+    final today = DateTime.now();
+    num age = today.year - dob.year;
+    if (today.month < dob.month ||
+        (today.month == dob.month && today.day < dob.day)) {
+      age--;
+    }
+    return age;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,7 +52,7 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
           IconButton(
             icon: const Icon(Icons.menu, color: Colors.black),
             onPressed: () {
-              // Handle menu button press
+              print(widget.patient);
             },
           ),
         ],
@@ -50,10 +64,11 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: PatientHeaderCard(
-                name: widget.patient['name'] ?? 'N/A',
-                age: '${widget.patient['age']?.toString()} Years',
-                condition: widget.patient['condition'] ?? 'Allergic',
-                phone: widget.patient['phone'] ?? '9456379036',
+                name: widget.patient.fullName,
+                age: '${_calculateAge(widget.patient.dateOfBirth)} Years',
+                condition: widget.patient.allergies ?? 'Allergic',
+                phone: widget.patient.contact,
+                imagePath: widget.patient.imagePath,
               ),
             ),
             const SizedBox(height: 16),
@@ -115,7 +130,11 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                     icon: Icons.analytics_outlined,
                     title: 'Personal Stats',
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.personalStatsScreen);
+                      Navigator.pushNamed(
+                        context,
+                        Routes.personalStatsScreen,
+                        arguments: widget.patient,
+                      );
                     },
                   ),
                   const Divider(height: 1, indent: 56),

@@ -1,5 +1,6 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/data/models/notes_model.dart';
 import 'package:doctor_app/presentation/widgets/custom_search_widget.dart'; // Assuming this provides SearchBarWithAddButton
 import 'package:doctor_app/presentation/widgets/note_list_item.dart';
 import 'package:flutter/material.dart';
@@ -14,40 +15,40 @@ class NotesScreen extends StatefulWidget {
 class _NotesScreenState extends State<NotesScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  final List<Map<String, dynamic>> notes = [
-    {
-      'title': 'Patient Follow-up Plan',
-      'description':
+  final List<Note> notes = [
+    Note(
+      notesTitle: 'Patient Follow-up Plan',
+      notesDescription:
           'Patient shows significant improvement in mobility after physical therapy sessions. Recommended continuing with twice weekly sessions for another month and reassess progress.',
-      'date': 'May 30, 2025',
-    },
-    {
-      'title': 'Medication Adjustment',
-      'description':
+      date: 'May 30, 2025',
+    ),
+    Note(
+      notesTitle: 'Medication Adjustment',
+      notesDescription:
           'Reduced dosage of Lisinopril from 20mg to 10mg daily due to patient experiencing persistent dry cough. Will monitor blood pressure closely over the next two weeks.',
-      'date': ' May 25, 2025',
-    },
-    {
-      'title': 'Lab Results Review',
-      'description':
+      date: 'May 25, 2025',
+    ),
+    Note(
+      notesTitle: 'Lab Results Review',
+      notesDescription:
           'CBC results show normal WBC count. Hemoglobin slightly low at 11.8 g/dL. Recommended iron supplement and dietary changes. Will recheck in 3 months.',
-      'date': 'May 22, 2025',
-    },
-    {
-      'title': 'Treatment Plan Discussion',
-      'description':
+      date: 'May 22, 2025',
+    ),
+    Note(
+      notesTitle: 'Treatment Plan Discussion',
+      notesDescription:
           'Discussed treatment options for chronic lower back pain. Patient prefers non-surgical approach. Agreed on combination of physical therapy, NSAIDs, and muscle relaxants.',
-      'date': 'May 17, 2025',
-    },
-    {
-      'title': 'Initial Consultation',
-      'description':
-          'New patient with complaints of recurring headaches for past 3 months. No family history of patient.',
-      'date': 'May 15, 2025',
-    },
+      date: 'May 17, 2025',
+    ),
+    Note(
+      notesTitle: 'Initial Consultation',
+      notesDescription:
+          'New patient with complaints of recurring headaches for past 3 months. No family history of migraines or related conditions.',
+      date: 'May 15, 2025',
+    ),
   ];
 
-  List<Map<String, dynamic>> filteredNotes = [];
+  List<Note> filteredNotes = [];
   bool _isSearching = false;
 
   @override
@@ -72,7 +73,7 @@ class _NotesScreenState extends State<NotesScreen> {
         final lowerCaseQuery = query.toLowerCase();
         filteredNotes =
             notes.where((note) {
-              final title = note['title']?.toLowerCase() ?? '';
+              final title = note.notesTitle.toLowerCase();
               return title.contains(lowerCaseQuery);
             }).toList();
       }
@@ -134,9 +135,9 @@ class _NotesScreenState extends State<NotesScreen> {
                         final note = filteredNotes[index];
                         return NoteListItem(
                           // Using a new widget for notes
-                          title: note['title'] as String,
-                          description: note['description'] as String,
-                          date: note['date'] as String,
+                          title: note.notesTitle,
+                          description: note.notesDescription,
+                          date: note.date,
                           onTap: () {
                             Navigator.pushNamed(
                               context,

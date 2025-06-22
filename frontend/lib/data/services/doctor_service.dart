@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:doctor_app/data/models/appointment_model.dart';
+import 'package:doctor_app/data/models/notes_model.dart';
 import 'package:doctor_app/data/models/task_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -126,6 +127,55 @@ class DoctorService {
     } catch (e) {
       print('❌ Error fetching tasks: $e');
       return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> createNote(Note note, int doctorId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.createNote}/$doctorId'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(note.toJson()),
+      );
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'Note created successfully.',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': body['message'] ?? 'Failed to create note.',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error. Please try again.'};
+    }
+  }
+
+  Future<Map<String, dynamic>> updateNote(Note note, int noteId) async {
+    try {
+      final response = await http.put(
+        Uri.parse('${ApiConstants.updateNote}/$noteId'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(note.toJson()),
+      );
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'Note updated successfully.',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': body['message'] ?? 'Failed to update note.',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error. Please try again.'};
     }
   }
 }

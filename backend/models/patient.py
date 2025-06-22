@@ -13,6 +13,11 @@ class Patient(db.Model):
     gender = db.Column(Gender, nullable=True)
     allergies = db.Column(db.String(200), nullable=True)
     address = db.Column(db.String(200), nullable=True)
+    
+    weight = db.Column(db.String(200), nullable=True)
+    height = db.Column(db.String(200), nullable=True)
+    blood_pressure = db.Column(db.String(200), nullable=True)
+    pulse = db.Column(db.String(200), nullable=True)
 
     image_path = db.Column(db.String(200), nullable=True)
 

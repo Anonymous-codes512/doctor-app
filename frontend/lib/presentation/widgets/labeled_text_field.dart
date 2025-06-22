@@ -9,7 +9,7 @@ class LabeledTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final Widget? suffixIcon;
   final int? maxline;
-
+  final bool? readOnly;
   const LabeledTextField({
     Key? key,
     required this.label,
@@ -20,6 +20,7 @@ class LabeledTextField extends StatelessWidget {
     this.validator,
     this.suffixIcon,
     this.maxline = 1,
+    this.readOnly = false,
   }) : super(key: key);
 
   @override
@@ -37,6 +38,7 @@ class LabeledTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           validator: validator,
+          readOnly: readOnly ?? false,
           maxLines: maxline,
           decoration: InputDecoration(
             hintText: hintText,

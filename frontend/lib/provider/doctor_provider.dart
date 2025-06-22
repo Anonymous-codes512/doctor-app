@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:doctor_app/core/utils/toast_helper.dart';
 import 'package:doctor_app/data/models/appointment_model.dart';
+import 'package:doctor_app/data/models/notes_model.dart';
 import 'package:doctor_app/data/models/task_model.dart';
 import 'package:doctor_app/data/services/doctor_service.dart';
 import 'package:flutter/material.dart';
@@ -139,5 +140,44 @@ class DoctorProvider with ChangeNotifier {
     setTasks(tasks);
 
     print(tasks);
+  }
+
+  Future<void> createNote(BuildContext context, Note note) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('user');
+      if (userJson == null) return;
+
+      final userMap = jsonDecode(userJson);
+      final doctorId = userMap['id'];
+
+      final result = await _service.createNote(note, doctorId);
+
+      if (result['success']) {
+        ToastHelper.showSuccess(context, result['message']);
+      } else {
+        ToastHelper.showError(context, result['message']);
+      }
+    } catch (e) {
+      print("❌ Error in createNote (provider): $e");
+    }
+  }
+
+  Future<void> updateNote(BuildContext context, Note note, int noteId) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('user');
+      if (userJson == null) return;
+
+      final result = await _service.updateNote(note, noteId);
+
+      if (result['success']) {
+        ToastHelper.showSuccess(context, result['message']);
+      } else {
+        ToastHelper.showError(context, result['message']);
+      }
+    } catch (e) {
+      print("❌ Error in updateNote (provider): $e");
+    }
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
-import 'package:doctor_app/presentation/widgets/custom_search_widget.dart';
+import 'package:doctor_app/presentation/widgets/custom_search_widget.dart'; // Assuming this is SearchBarWithAddButton
 import 'package:doctor_app/presentation/widgets/patient_list_item.dart';
 import 'package:doctor_app/provider/patient_provider.dart';
 import 'package:doctor_app/data/models/patient_model.dart';
@@ -73,6 +73,7 @@ class _MyPatientsScreenState extends State<MyPatientsScreen> {
         listen: false,
       );
       patientProvider.fetchPatients().then((_) {
+        // Initialize filteredPatients with all patients after fetching
         setState(() {
           filteredPatients = patientProvider.patients;
         });
@@ -137,23 +138,7 @@ class _MyPatientsScreenState extends State<MyPatientsScreen> {
       ),
       body: Consumer<PatientProvider>(
         builder: (context, patientProvider, _) {
-          if (patientProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (patientProvider.patients.isEmpty) {
-            return const Center(
-              child: Text(
-                'No patients found.',
-                style: TextStyle(fontSize: 16, color: AppColors.iconColor),
-              ),
-            );
-          }
-
-          // Use filteredPatients for search results or full list
-          final displayPatients =
-              _isSearching ? filteredPatients : patientProvider.patients;
-
+          // Always show the search bar and add button at the top of the body
           return Column(
             children: [
               SearchBarWithAddButton(
@@ -165,26 +150,61 @@ class _MyPatientsScreenState extends State<MyPatientsScreen> {
                 onTap: () {},
               ),
               const SizedBox(height: 10),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: displayPatients.length,
-                  itemBuilder: (context, index) {
-                    final patient = displayPatients[index];
-                    return PatientListItem(
-                      name: patient.fullName,
-                      phoneNumber: patient.contact,
-                      imagePath: patient.imagePath,
-                      onTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          Routes.patientProfileScreen,
-                          arguments: patient,
-                        );
-                      },
-                    );
-                  },
+              if (patientProvider.isLoading)
+                const Expanded(
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (patientProvider.patients.isEmpty &&
+                  !_isSearching) // Show message only if no patients and not actively searching
+                const Expanded(
+                  child: Center(
+                    child: Text(
+                      'No patients found. Add a new patient to get started!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.iconColor,
+                      ),
+                    ),
+                  ),
+                )
+              else if (filteredPatients.isEmpty &&
+                  _isSearching) // Message for no search results
+                const Expanded(
+                  child: Center(
+                    child: Text(
+                      'No matching patients found for your search.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.iconColor,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.builder(
+                    itemCount:
+                        filteredPatients.length, // Use filteredPatients here
+                    itemBuilder: (context, index) {
+                      final patient =
+                          filteredPatients[index]; // Use filteredPatients here
+                      return PatientListItem(
+                        name: patient.fullName,
+                        phoneNumber: patient.contact,
+                        imagePath: patient.imagePath,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            Routes.patientProfileScreen,
+                            arguments: patient,
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
             ],
           );
         },

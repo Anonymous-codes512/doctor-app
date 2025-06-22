@@ -17,15 +17,19 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 @patient_bp.route('/create_patient', methods=['POST'])
 def create_patient():
     try:
-        # ✅ Upload Image
+        print(f"✅ Incoming request data: {request.form}") # Added print for all form data
+        print(f"✅ Incoming request files: {request.files}") # Added print for all files
+
         image = request.files.get('image')
         image_path = None
         if image:
             filename = secure_filename(image.filename)
             image_path = os.path.join(UPLOAD_FOLDER, filename)
             image.save(image_path)
+            print(f"🖼️ Image saved to: {image_path}") # Added print
+        else:
+            print("🚫 No image file received.") # Added print
 
-        # ✅ Extract form-data fields
         full_name = request.form.get('fullName')
         email = request.form.get('email')
         contact = request.form.get('contact')
@@ -33,64 +37,91 @@ def create_patient():
         gender = request.form.get('gender')
         allergies = request.form.get('allergies')
         address = request.form.get('address')
-        doctor_user_id = request.form.get('doctorUserId')  # new field
-        password = f'{full_name} 1234'
+        weight = request.form.get('weight')
+        height = request.form.get('height')
+        blood_pressure = request.form.get('bloodPressure')
+        pulse = request.form.get('pulse')
+        doctor_user_id = request.form.get('doctorUserId') # This should be a string at this point
+        password = f'{full_name} 1234' # Consider a more secure password generation in production
 
-        # ✅ Validation: Required fields
+        print(f"Received form values:") # Added print
+        print(f"  fullName: {full_name}")
+        print(f"  email: {email}")
+        print(f"  contact: {contact}")
+        print(f"  doctorUserId: {doctor_user_id} (Type: {type(doctor_user_id)})") # Added type check
+
         if not full_name or not email or not contact or not doctor_user_id:
-            return jsonify({'success': False, 'message': 'Name, email, contact & doctor ID are required.'}), 400
+            missing_fields = []
+            if not full_name: missing_fields.append('fullName')
+            if not email: missing_fields.append('email')
+            if not contact: missing_fields.append('contact')
+            if not doctor_user_id: missing_fields.append('doctorUserId')
+            print(f"🚫 Missing required fields: {missing_fields}") # Added print for missing fields
+            return jsonify({'success': False, 'message': f'Name, email, contact & doctor ID are required. Missing: {", ".join(missing_fields)}'}), 400
 
-        # ✅ Gender Validation
         allowed_genders = ['male', 'female', 'other']
         if gender and gender not in allowed_genders:
+            print(f"🚫 Invalid gender received: {gender}") # Added print
             return jsonify({'success': False, 'message': f"Invalid gender. Allowed: {allowed_genders}"}), 400
 
-        # ✅ Convert Date
         dob = datetime.fromisoformat(date_of_birth).date() if date_of_birth else None
 
-        # ✅ Get Doctor
-        doctor = Doctor.query.filter_by(user_id=int(doctor_user_id)).first()
+        # Convert doctor_user_id to int AFTER validation
+        try:
+            doctor_user_id_int = int(doctor_user_id)
+        except ValueError:
+            print(f"🚫 doctorUserId '{doctor_user_id}' is not a valid integer.") # Added print
+            return jsonify({'success': False, 'message': 'Doctor User ID must be a valid number.'}), 400
+
+        doctor = Doctor.query.filter_by(user_id=doctor_user_id_int).first()
         if not doctor:
+            print(f"🚫 Doctor with user_id {doctor_user_id_int} not found.") # Added print
             return jsonify({'success': False, 'message': 'Doctor not found.'}), 404
 
-        # ✅ Create User
         new_user = User(
             name=full_name,
             email=email,
             phone_number=contact,
             role='PATIENT',
-            password=password,
+            password=password, # In a real app, hash this password!
         )
         db.session.add(new_user)
-        db.session.flush()
+        db.session.flush() # Flush to get new_user.id
 
-        # ✅ Create Patient
         new_patient = Patient(
             user_id=new_user.id,
             date_of_birth=dob,
             gender=Gender(gender) if gender else None,
             allergies=allergies,
             address=address,
-            image_path=image_path 
+            weight=weight,
+            height=height,
+            blood_pressure=blood_pressure,
+            pulse=pulse,
+            image_path=image_path
         )
         db.session.add(new_patient)
-        db.session.flush()  # Get patient.id
+        db.session.flush() # Flush to get new_patient.id
 
-        # ✅ Associate Doctor ↔ Patient
         insert_stmt = doctor_patient.insert().values(
             doctor_id=doctor.id,
             patient_id=new_patient.id
         )
         db.session.execute(insert_stmt)
         db.session.commit()
+        print(f"🎉 Patient '{full_name}' added and linked to doctor '{doctor.user.name}'.") # Added print
 
         return jsonify({'success': True, 'message': 'Patient added and linked to doctor.'}), 201
 
     except Exception as e:
         db.session.rollback()
+        # Corrected: Removed exc_info=True as it's not valid for print()
         print(f'❌ Error in create_patient: {e}')
+        # If you still want a full traceback, you can import sys and use traceback.print_exc()
+        # import traceback
+        # traceback.print_exc() # This will print the full traceback to stderr
         return jsonify({'success': False, 'message': 'Internal server error.'}), 500
-
+    
 @patient_bp.route('/fetch_patients/<int:user_id>', methods=['GET'])
 def fetch_patients(user_id):
     try:
@@ -116,7 +147,12 @@ def fetch_patients(user_id):
                 'email': user.email,
                 'phoneNumber': user.phone_number,
                 'address': patient.address,
-                'gender': patient.gender.value if patient.gender else None,
+                'weight': patient.weight,
+                'height': patient.height,
+                'bloodPressure': patient.blood_pressure,
+                'pulse': patient.pulse,
+                'allergies': patient.allergies,
+                'gender': patient.gender if patient.gender else None,
                 'dateOfBirth': patient.date_of_birth.isoformat() if patient.date_of_birth else None,
                 'imagePath': getattr(patient, 'image_path', None),
             })
