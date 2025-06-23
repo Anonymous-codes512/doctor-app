@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/core/utils/toast_helper.dart';
 import 'package:doctor_app/data/models/appointment_model.dart';
 import 'package:doctor_app/data/models/notes_model.dart';
@@ -16,11 +17,16 @@ class DoctorProvider with ChangeNotifier {
 
   AppointmentModel? _appointment;
   AppointmentModel? get appointment => _appointment;
+
   TaskModel? _task;
   TaskModel? get task => _task;
 
   List<AppointmentModel> _appointments = [];
   List<AppointmentModel> get appointments => _appointments;
+
+  List<Note> _notes = []; // ✅ added
+  List<Note> get notes => _notes;
+
   List<TaskModel> _tasks = [];
   List<TaskModel> get tasks => _tasks;
 
@@ -36,6 +42,12 @@ class DoctorProvider with ChangeNotifier {
 
   void setAppointment(AppointmentModel appointment) {
     _appointment = appointment;
+    notifyListeners();
+  }
+
+  void setNotes(List<Note> notes) {
+    _notes = notes;
+    print(_notes);
     notifyListeners();
   }
 
@@ -149,35 +161,61 @@ class DoctorProvider with ChangeNotifier {
       if (userJson == null) return;
 
       final userMap = jsonDecode(userJson);
-      final doctorId = userMap['id'];
+      note.doctorUserId = userMap['id'];
 
-      final result = await _service.createNote(note, doctorId);
+      final result = await _service.createNote(note);
 
       if (result['success']) {
+        await fetchNotes(note.patientId!);
         ToastHelper.showSuccess(context, result['message']);
+
+        Navigator.popAndPushNamed(
+          context,
+          Routes.notesScreen,
+          arguments: _notes,
+        );
       } else {
         ToastHelper.showError(context, result['message']);
       }
     } catch (e) {
-      print("❌ Error in createNote (provider): $e");
+      print("❌ Error in createNote: $e");
     }
   }
 
   Future<void> updateNote(BuildContext context, Note note, int noteId) async {
     try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      final userJson = prefs.getString('user');
-      if (userJson == null) return;
-
       final result = await _service.updateNote(note, noteId);
 
       if (result['success']) {
+        await fetchNotes(note.patientId!);
         ToastHelper.showSuccess(context, result['message']);
+
+        Navigator.popAndPushNamed(
+          context,
+          Routes.notesScreen,
+          arguments: _notes,
+        );
       } else {
         ToastHelper.showError(context, result['message']);
       }
     } catch (e) {
-      print("❌ Error in updateNote (provider): $e");
+      print("❌ Error in updateNote: $e");
+    }
+  }
+
+  Future<void> fetchNotes(int patientId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('user');
+      if (userJson == null) return;
+
+      final userMap = jsonDecode(userJson);
+      final doctorUserId = userMap['id'];
+
+      final notes = await _service.fetchNotes(patientId, doctorUserId);
+      setNotes(notes);
+    } catch (e) {
+      print("❌ Error fetching notes: $e");
     }
   }
 }

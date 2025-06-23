@@ -1,10 +1,8 @@
 import os
 from flask import request, jsonify, Blueprint
 from werkzeug.utils import secure_filename
-from models.doctor import Doctor
 from extensions import db
-from models.user import User
-from models.patient import Patient
+from models import User , Patient, Doctor , Note
 from utils.enum import Gender
 from datetime import datetime
 from models.patient import doctor_patient  # Import the association table
@@ -125,12 +123,10 @@ def create_patient():
 @patient_bp.route('/fetch_patients/<int:user_id>', methods=['GET'])
 def fetch_patients(user_id):
     try:
-        # ✅ Step 1: Get Doctor by user_id
         doctor = Doctor.query.filter_by(user_id=user_id).first()
         if not doctor:
             return jsonify({'success': False, 'message': 'Doctor not found'}), 404
 
-        # ✅ Step 2: Get patients linked via doctor_patient table
         patients = (
             db.session.query(Patient)
             .join(doctor_patient, doctor_patient.c.patient_id == Patient.id)
@@ -141,6 +137,24 @@ def fetch_patients(user_id):
         patients_data = []
         for patient in patients:
             user = User.query.get(patient.user_id)
+
+            # ✅ Fetch notes for this doctor-patient pair
+            notes = Note.query.filter_by(
+                doctor_id=doctor.id,
+                patient_id=patient.id
+            ).all()
+
+            notes_data = []
+            for note in notes:
+                notes_data.append({
+                    'note_id': note.id,
+                    'doctor_user_id': doctor.user_id,  # use `user_id`, not `id`
+                    'patient_id': patient.id,
+                    'notes_title': note.notes_title,
+                    'notes_description': note.notes_description,
+                    'date': note.date.isoformat(),
+                })
+
             patients_data.append({
                 'id': patient.id,
                 'fullName': user.name,
@@ -155,6 +169,7 @@ def fetch_patients(user_id):
                 'gender': patient.gender if patient.gender else None,
                 'dateOfBirth': patient.date_of_birth.isoformat() if patient.date_of_birth else None,
                 'imagePath': getattr(patient, 'image_path', None),
+                'notes': notes_data  # ✅ Add notes here
             })
 
         return jsonify({'success': True, 'patients': patients_data}), 200
@@ -162,3 +177,4 @@ def fetch_patients(user_id):
     except Exception as e:
         print(f'❌ Error in fetch_patients: {e}')
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
+

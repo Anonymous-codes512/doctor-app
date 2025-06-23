@@ -7,3 +7,4 @@ from .password_reset_otp import PasswordResetOTP
 from .patient import Patient
 from .task import Task
 from .user import User
+from .note import Note

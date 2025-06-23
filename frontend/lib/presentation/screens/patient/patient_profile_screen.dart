@@ -142,7 +142,18 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                     icon: Icons.note_outlined,
                     title: 'Notes',
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.notesScreen);
+                      final patient = widget.patient;
+
+                      if (patient.notes != null) {
+                        for (var note in patient.notes!) {
+                          note.patientId = patient.id;
+                        }
+                      }
+                      Navigator.pushNamed(
+                        context,
+                        Routes.notesScreen,
+                        arguments: patient.notes,
+                      );
                     },
                   ),
                   const Divider(height: 1, indent: 56),
