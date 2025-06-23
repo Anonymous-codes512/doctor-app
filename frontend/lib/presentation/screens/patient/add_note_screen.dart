@@ -5,10 +5,12 @@ import 'package:doctor_app/presentation/widgets/outlined_custom_button.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
 import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class AddNoteScreen extends StatefulWidget {
-  const AddNoteScreen({super.key});
+  final int patientId;
+  const AddNoteScreen({super.key, required this.patientId});
 
   @override
   State<AddNoteScreen> createState() => _AddNoteScreen();
@@ -45,7 +47,7 @@ class _AddNoteScreen extends State<AddNoteScreen> {
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -55,13 +57,11 @@ class _AddNoteScreen extends State<AddNoteScreen> {
               controller: _titleController,
             ),
             const SizedBox(height: 16),
-            Expanded(
-              child: LabeledTextField(
-                label: 'Description',
-                hintText: 'Enter description here...',
-                controller: _descriptionController,
-                maxline: 15,
-              ),
+            LabeledTextField(
+              label: 'Description',
+              hintText: 'Enter description here...',
+              controller: _descriptionController,
+              maxline: 15,
             ),
             const SizedBox(height: 16),
             Row(
@@ -81,17 +81,16 @@ class _AddNoteScreen extends State<AddNoteScreen> {
                     text: 'Save Note',
                     onPressed: () async {
                       final note = Note(
+                        patientId: widget.patientId,
                         notesTitle: _titleController.text.trim(),
                         notesDescription: _descriptionController.text.trim(),
-                        date: DateTime.now().toIso8601String(),
+                        date: DateFormat('MMMM d, y').format(DateTime.now()),
                       );
 
                       await Provider.of<DoctorProvider>(
                         context,
                         listen: false,
                       ).createNote(context, note);
-
-                      Navigator.pop(context);
                     },
                   ),
                 ),

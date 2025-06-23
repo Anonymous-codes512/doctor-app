@@ -68,6 +68,7 @@ class AuthService {
         return {'success': false, 'message': body['message'] ?? 'Login failed'};
       }
     } catch (e) {
+      print('✅✅✅✅$e');
       return {'success': false, 'message': 'Network error. Please try again.'};
     }
   }

@@ -1,7 +1,7 @@
 class Note {
-  final int? noteId;
-  final int? doctorUserId;
-  final int? patientId;
+  int? noteId;
+  int? doctorUserId;
+  int? patientId;
   final String notesTitle;
   final String notesDescription;
   final String date;
@@ -37,6 +37,6 @@ class Note {
 
   @override
   String toString() {
-    return 'Note(title: $notesTitle, description: $notesDescription, date: $date)';
+    return 'Note(doctor_user_id: $doctorUserId, ,patient_id: $patientId, title: $notesTitle, description: $notesDescription, date: $date)';
   }
 }

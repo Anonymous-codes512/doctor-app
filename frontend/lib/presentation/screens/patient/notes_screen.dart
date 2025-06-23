@@ -6,7 +6,8 @@ import 'package:doctor_app/presentation/widgets/note_list_item.dart';
 import 'package:flutter/material.dart';
 
 class NotesScreen extends StatefulWidget {
-  const NotesScreen({Key? key}) : super(key: key);
+  final List<Note> notes;
+  const NotesScreen({super.key, required this.notes});
 
   @override
   State<NotesScreen> createState() => _NotesScreenState();
@@ -15,46 +16,16 @@ class NotesScreen extends StatefulWidget {
 class _NotesScreenState extends State<NotesScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  final List<Note> notes = [
-    Note(
-      notesTitle: 'Patient Follow-up Plan',
-      notesDescription:
-          'Patient shows significant improvement in mobility after physical therapy sessions. Recommended continuing with twice weekly sessions for another month and reassess progress.',
-      date: 'May 30, 2025',
-    ),
-    Note(
-      notesTitle: 'Medication Adjustment',
-      notesDescription:
-          'Reduced dosage of Lisinopril from 20mg to 10mg daily due to patient experiencing persistent dry cough. Will monitor blood pressure closely over the next two weeks.',
-      date: 'May 25, 2025',
-    ),
-    Note(
-      notesTitle: 'Lab Results Review',
-      notesDescription:
-          'CBC results show normal WBC count. Hemoglobin slightly low at 11.8 g/dL. Recommended iron supplement and dietary changes. Will recheck in 3 months.',
-      date: 'May 22, 2025',
-    ),
-    Note(
-      notesTitle: 'Treatment Plan Discussion',
-      notesDescription:
-          'Discussed treatment options for chronic lower back pain. Patient prefers non-surgical approach. Agreed on combination of physical therapy, NSAIDs, and muscle relaxants.',
-      date: 'May 17, 2025',
-    ),
-    Note(
-      notesTitle: 'Initial Consultation',
-      notesDescription:
-          'New patient with complaints of recurring headaches for past 3 months. No family history of migraines or related conditions.',
-      date: 'May 15, 2025',
-    ),
-  ];
-
   List<Note> filteredNotes = [];
   bool _isSearching = false;
-
+  int patientId = 0;
   @override
   void initState() {
     super.initState();
-    filteredNotes = List.from(notes);
+    filteredNotes = List.from(widget.notes);
+    if (widget.notes.isNotEmpty) {
+      patientId = widget.notes.first.patientId ?? 0;
+    }
   }
 
   @override
@@ -68,11 +39,11 @@ class _NotesScreenState extends State<NotesScreen> {
     setState(() {
       _isSearching = query.isNotEmpty;
       if (query.isEmpty) {
-        filteredNotes = List.from(notes);
+        filteredNotes = List.from(widget.notes);
       } else {
         final lowerCaseQuery = query.toLowerCase();
         filteredNotes =
-            notes.where((note) {
+            widget.notes.where((note) {
               final title = note.notesTitle.toLowerCase();
               return title.contains(lowerCaseQuery);
             }).toList();
@@ -108,7 +79,12 @@ class _NotesScreenState extends State<NotesScreen> {
             controller: _searchController,
             onChanged: _filterNotes, // Use _filterNotes here
             onAddPressed: () {
-              Navigator.pushNamed(context, Routes.addNoteScreen);
+              print(patientId);
+              Navigator.pushNamed(
+                context,
+                Routes.addNoteScreen,
+                arguments: patientId,
+              );
             },
             onTap: () {
               // Handle tap if needed, e.g., show a search overlay
@@ -138,6 +114,7 @@ class _NotesScreenState extends State<NotesScreen> {
                           title: note.notesTitle,
                           description: note.notesDescription,
                           date: note.date,
+
                           onTap: () {
                             Navigator.pushNamed(
                               context,

@@ -324,7 +324,10 @@ class Routes {
         }
 
       case notesScreen:
-        return MaterialPageRoute(builder: (_) => NotesScreen());
+        final args = settings.arguments;
+        if (args != null && args is List<Note>) {
+          return MaterialPageRoute(builder: (_) => NotesScreen(notes: args));
+        }
 
       case updateNoteScreen:
         final args = settings.arguments;
@@ -335,7 +338,10 @@ class Routes {
         }
 
       case addNoteScreen:
-        return MaterialPageRoute(builder: (_) => AddNoteScreen());
+        final int? patientId = settings.arguments as int?;
+        return MaterialPageRoute(
+          builder: (_) => AddNoteScreen(patientId: patientId ?? 0),
+        );
 
       case dictationScreen:
         return MaterialPageRoute(builder: (_) => DictationScreen());

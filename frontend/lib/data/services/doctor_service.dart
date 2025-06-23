@@ -130,10 +130,26 @@ class DoctorService {
     }
   }
 
-  Future<Map<String, dynamic>> createNote(Note note, int doctorId) async {
+  Future<List<Note>> fetchNotes(int patientId, int doctorUserId) async {
+    final url = Uri.parse(
+      '${ApiConstants.fetchNotes}?patient_id=$patientId&doctor_user_id=$doctorUserId',
+    );
+
+    final response = await http.get(url);
+    print('📥 Notes Response: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body)['notes'];
+      return data.map((json) => Note.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load notes');
+    }
+  }
+
+  Future<Map<String, dynamic>> createNote(Note note) async {
     try {
       final response = await http.post(
-        Uri.parse('${ApiConstants.createNote}/$doctorId'),
+        Uri.parse(ApiConstants.createNote),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(note.toJson()),
       );
@@ -156,6 +172,8 @@ class DoctorService {
 
   Future<Map<String, dynamic>> updateNote(Note note, int noteId) async {
     try {
+      print('✉️✉️✉️✉️✉️$note and $noteId');
+
       final response = await http.put(
         Uri.parse('${ApiConstants.updateNote}/$noteId'),
         headers: {'Content-Type': 'application/json'},

@@ -1,7 +1,9 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/presentation/widgets/custom_search_widget.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({Key? key}) : super(key: key);
@@ -35,7 +37,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize filtered list with all appointments when the screen loads
+    final apointments =
+        Provider.of<DoctorProvider>(context, listen: false).appointments;
+    print(apointments);
     _filteredAppointments = List.from(_allAppointments);
   }
 
