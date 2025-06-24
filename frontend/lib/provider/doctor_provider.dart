@@ -47,7 +47,6 @@ class DoctorProvider with ChangeNotifier {
 
   void setNotes(List<Note> notes) {
     _notes = notes;
-    print(_notes);
     notifyListeners();
   }
 
@@ -61,7 +60,6 @@ class DoctorProvider with ChangeNotifier {
       final headerData = await _service.getHomeHeaderData();
       userName = headerData['name']!;
       greeting = headerData['greeting']!;
-      print('✅✅hi✅✅');
 
       loadAppointments();
       loadtasks();
@@ -88,7 +86,9 @@ class DoctorProvider with ChangeNotifier {
       final result = await _service.createAppointment(_appointment!);
 
       if (result['success']) {
+        await loadAppointments();
         ToastHelper.showSuccess(context, result['message']);
+        Navigator.pop(context);
       } else {
         ToastHelper.showError(context, result['message']);
       }
@@ -128,6 +128,7 @@ class DoctorProvider with ChangeNotifier {
       final result = await _service.createTask(_task!);
 
       if (result['success']) {
+        await loadtasks();
         ToastHelper.showSuccess(context, result['message']);
       } else {
         ToastHelper.showError(context, result['message']);
@@ -150,8 +151,6 @@ class DoctorProvider with ChangeNotifier {
 
     final tasks = await _service.fetchTasks(userId);
     setTasks(tasks);
-
-    print(tasks);
   }
 
   Future<void> createNote(BuildContext context, Note note) async {

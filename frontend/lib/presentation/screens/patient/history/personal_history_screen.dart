@@ -1,9 +1,11 @@
+import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/gender_radio_group.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
 import 'package:flutter/material.dart';
 
 class PersonalHistoryScreen extends StatefulWidget {
-  const PersonalHistoryScreen({super.key});
+  final Patient patient;
+  const PersonalHistoryScreen({super.key, required this.patient});
 
   @override
   State<PersonalHistoryScreen> createState() => _PersonalHistoryScreenState();

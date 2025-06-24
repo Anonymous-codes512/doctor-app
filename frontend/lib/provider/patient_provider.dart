@@ -87,4 +87,25 @@ class PatientProvider with ChangeNotifier {
       _setLoading(false);
     }
   }
+
+  Future<void> updateHistoryField(
+    BuildContext context, {
+    required int patientId,
+    required Map<String, dynamic> data,
+  }) async {
+    try {
+      final result = await _service.updatePatientHistory(patientId, data);
+
+      if (result['success']) {
+        ToastHelper.showSuccess(context, result['message']);
+        await fetchPatients();
+        Navigator.pop(context);
+      } else {
+        ToastHelper.showError(context, result['message']);
+        print('❌ Failed to update: ${result['message']}');
+      }
+    } catch (e) {
+      print('🚨 Exception while updating history: $e');
+    }
+  }
 }

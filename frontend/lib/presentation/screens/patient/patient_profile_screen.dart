@@ -177,7 +177,11 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                     icon: Icons.calendar_today_outlined,
                     title: 'Appointments',
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.appointmentsScreen);
+                      Navigator.pushNamed(
+                        context,
+                        Routes.appointmentsScreen,
+                        arguments: widget.patient.id,
+                      );
                     },
                   ),
                   const Divider(height: 1, indent: 56),
@@ -193,7 +197,11 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                     icon: Icons.history,
                     title: 'History',
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.historyScreen);
+                      Navigator.pushNamed(
+                        context,
+                        Routes.historyScreen,
+                        arguments: widget.patient,
+                      );
                     },
                   ),
                   const Divider(height: 1, indent: 56),

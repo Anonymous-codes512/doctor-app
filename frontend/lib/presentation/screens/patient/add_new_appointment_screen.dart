@@ -1,4 +1,6 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/data/models/appointment_model.dart';
+import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/custom_date_picker.dart';
 import 'package:doctor_app/presentation/widgets/custom_time_picker.dart';
 import 'package:doctor_app/presentation/widgets/gender_radio_group.dart';
@@ -6,27 +8,39 @@ import 'package:doctor_app/presentation/widgets/labeled_dropdown.dart';
 import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:doctor_app/presentation/widgets/outlined_custom_button.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
+import 'package:doctor_app/provider/patient_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class AddNewAppointmentsScreen extends StatefulWidget {
-  const AddNewAppointmentsScreen({Key? key}) : super(key: key);
+  final AppointmentModel appointmentModel;
+  const AddNewAppointmentsScreen({super.key, required this.appointmentModel});
 
   @override
   State<AddNewAppointmentsScreen> createState() => _AppointmentsScreenState();
 }
 
 class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
-  final TextEditingController _appointmnetIDController =
-      TextEditingController();
-  final TextEditingController _patientNameController = TextEditingController();
+  List<Patient> _allPatients = [];
+  late Patient? matchedPatient;
+
+  @override
+  void initState() {
+    super.initState();
+    final patients =
+        Provider.of<PatientProvider>(context, listen: false).patients;
+    _allPatients = patients;
+    matchedPatient = patients.firstWhere(
+      (patient) => patient.id == widget.appointmentModel.patientId,
+    );
+  }
+
   final TextEditingController _appointmentDurationController =
       TextEditingController();
   final TextEditingController _appointmentFeeController =
       TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-
-  String? _selectedGender;
-  List<String> genderOptions = ['Male', 'Female', 'Others'];
 
   String? _selectedReason;
   List<String> reasonOptions = ['Follow-up', 'Checkup', 'Consultation'];
@@ -44,6 +58,26 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
 
   DateTime selectedDate = DateTime.now();
   TimeOfDay selectedTime = TimeOfDay.now();
+
+  void _saveAppointment(BuildContext context) async {
+    final appointment = AppointmentModel(
+      patientEmail: matchedPatient!.email!,
+      patientName: matchedPatient!.fullName,
+      duration: int.tryParse(_appointmentDurationController.text) ?? 0,
+      appointmentReason: _selectedReason,
+      appointmentMode: _selectedMode,
+      fee: double.tryParse(_appointmentFeeController.text.trim()) ?? 0.0,
+      paymentMode: _selectedPaymentMethod,
+      description: _descriptionController.text.trim(),
+      appointmentDate: selectedDate,
+      appointmentTime: selectedTime,
+    );
+
+    final provider = Provider.of<DoctorProvider>(context, listen: false);
+    provider.setAppointment(appointment);
+
+    await provider.saveAppointment(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,32 +107,27 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               LabeledTextField(
-                label: 'Appointmnent ID',
-                hintText: 'Enter appointment here...',
-                controller: _appointmnetIDController,
+                label: 'Patient Email',
+                hintText: '',
+                controller: TextEditingController(
+                  text: matchedPatient?.email ?? '',
+                ),
+                readOnly: true,
               ),
               const SizedBox(height: 16),
               LabeledTextField(
                 label: 'Patient Name',
-                hintText: 'Enter patient name here...',
-                controller: _patientNameController,
+                hintText: '',
+                controller: TextEditingController(
+                  text: matchedPatient?.fullName ?? '',
+                ),
+                readOnly: true,
               ),
               const SizedBox(height: 16),
               LabeledTextField(
                 label: 'Appointment Duration',
                 hintText: 'Enter appointment duration here...',
                 controller: _appointmentDurationController,
-              ),
-              const SizedBox(height: 16),
-              GenderRadioGroup(
-                label: 'Gender',
-                groupValue: _selectedGender,
-                options: genderOptions,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedGender = value;
-                  });
-                },
               ),
               const SizedBox(height: 16),
               GenderRadioGroup(
@@ -180,7 +209,10 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: PrimaryCustomButton(text: 'Save', onPressed: () {}),
+                    child: PrimaryCustomButton(
+                      text: 'Save',
+                      onPressed: () => _saveAppointment(context),
+                    ),
                   ),
                 ],
               ),

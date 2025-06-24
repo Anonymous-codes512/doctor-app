@@ -1,9 +1,11 @@
+import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/gender_radio_group.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
 import 'package:flutter/material.dart';
 
 class ActivitiesOfDailyLivingScreen extends StatefulWidget {
-  const ActivitiesOfDailyLivingScreen({super.key});
+  final Patient patient;
+  const ActivitiesOfDailyLivingScreen({super.key, required this.patient});
 
   @override
   State<ActivitiesOfDailyLivingScreen> createState() =>

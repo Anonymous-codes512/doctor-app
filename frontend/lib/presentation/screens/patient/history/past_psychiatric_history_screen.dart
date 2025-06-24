@@ -1,4 +1,5 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/gender_radio_group.dart';
 import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
@@ -6,7 +7,8 @@ import 'package:doctor_app/presentation/widgets/toggle_switch_widget.dart';
 import 'package:flutter/material.dart';
 
 class PastPsychiatricHistoryScreen extends StatefulWidget {
-  const PastPsychiatricHistoryScreen({super.key});
+  final Patient patient;
+  const PastPsychiatricHistoryScreen({super.key, required this.patient});
 
   @override
   State<PastPsychiatricHistoryScreen> createState() =>

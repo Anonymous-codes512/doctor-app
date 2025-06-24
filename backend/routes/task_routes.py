@@ -23,8 +23,8 @@ def create_task():
         print(f'📩 Incoming Task Data: {data}')
 
         required_fields = [
-            'user_id', 'patient_name', 'task_title', 'task_priority',
-            'task_category', 'task_due_date', 'task_due_time'
+            'user_id', 'patient_name', 'patient_email', 'task_title',
+            'task_priority', 'task_category', 'task_due_date', 'task_due_time'
         ]
         missing = [f for f in required_fields if f not in data or not data[f]]
         if missing:
@@ -41,23 +41,51 @@ def create_task():
             }), 404
 
         patient_name = data['patient_name'].strip()
-        if not patient_name:
-            return jsonify({'success': False, 'message': 'Patient name cannot be empty'}), 400
+        patient_email = data['patient_email'].strip().lower()
+        if not patient_name or not patient_email:
+            return jsonify({'success': False, 'message': 'Patient name and email cannot be empty'}), 400
 
-        patient = Patient.query.join(Patient.user).filter(User.name == patient_name).first()
+        # Check if user with this email exists
+        user = User.query.filter_by(email=patient_email).first()
+        if not user:
+            username = patient_name.replace(" ", "").lower()
+            user = User(
+                name=patient_name,
+                email=patient_email,
+                role='PATIENT',
+                password=f"{username}1234"
+            )
+            db.session.add(user)
+            db.session.flush()
 
-        # Date parsing, fallback to current date if fails
+            patient = Patient(user_id=user.id)
+            db.session.add(patient)
+            db.session.flush()
+
+            doctor.patients.append(patient)
+        else:
+            patient = Patient.query.filter_by(user_id=user.id).first()
+            if not patient:
+                patient = Patient(user_id=user.id)
+                db.session.add(patient)
+                db.session.flush()
+
+            if patient not in doctor.patients:
+                doctor.patients.append(patient)
+
+        # Parse due date
         try:
             due_date = datetime.strptime(data['task_due_date'], "%Y-%m-%d").date()
         except Exception:
             due_date = datetime.utcnow().date()
 
-        # Time parsing, fallback to current time if fails
+        # Parse due time
         try:
             due_time = datetime.strptime(data['task_due_time'], "%H:%M").time()
         except Exception:
             due_time = datetime.utcnow().time().replace(second=0, microsecond=0)
 
+        # Enum checks
         try:
             task_priority = get_enum_value(taskPriority, data['task_priority'], 'task_priority')
             task_category = get_enum_value(taskCategory, data['task_category'], 'task_category')
@@ -65,7 +93,7 @@ def create_task():
             return jsonify({'success': False, 'message': str(e)}), 400
 
         task = Task(
-            patient_id=patient.id if patient else 1,
+            patient_id=patient.id,
             doctor_id=doctor.id,
             task_title=data['task_title'],
             task_priority=task_priority,
@@ -82,15 +110,16 @@ def create_task():
 
     except Exception as e:
         print(f'❌ Exception while creating task: {e}')
+        db.session.rollback()
         return jsonify({
             'success': False,
             'message': 'Server error. Please try again later.'
         }), 500
+
         
 @task_bp.route('/fetch_tasks/<int:user_id>', methods=['GET'])
 def fetch_tasks(user_id):
     try:
-        # Validate user_id
         if user_id <= 0:
             return jsonify({'success': False, 'message': 'Invalid user_id provided'}), 400
 
@@ -103,13 +132,17 @@ def fetch_tasks(user_id):
         result = []
         for task in tasks:
             patient_name = ''
+            patient_email = ''
             if task.patient and task.patient.user:
                 patient_name = task.patient.user.name
+                patient_email = task.patient.user.email
 
             result.append({
                 'task_id': task.id,
                 'user_id': user_id,
+                'patient_id': task.patient_id,
                 'patient_name': patient_name,
+                'patient_email': patient_email,
                 'task_title': task.task_title,
                 'task_priority': task.task_priority,
                 'task_category': task.task_category,

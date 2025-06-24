@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 class AppointmentModel {
   int? doctorId;
+  int? patientId;
+  String patientEmail;
   String patientName;
   int duration; // in minutes
   String? appointmentReason;
@@ -14,6 +16,8 @@ class AppointmentModel {
 
   AppointmentModel({
     this.doctorId,
+    this.patientId,
+    required this.patientEmail,
     required this.patientName,
     required this.duration,
     this.appointmentReason,
@@ -28,6 +32,8 @@ class AppointmentModel {
   Map<String, dynamic> toJson() {
     return {
       'doctor_id': doctorId,
+      'patient_id': patientId,
+      'patient_email': patientEmail,
       'patient_name': patientName,
       'duration': duration,
       'reason': appointmentReason,
@@ -45,6 +51,8 @@ class AppointmentModel {
     final timeParts = (json['appointment_time'] as String).split(':');
     return AppointmentModel(
       doctorId: json['doctor_id'],
+      patientId: json['patient_id'],
+      patientEmail: json['patient_email'],
       patientName: json['patient_name'],
       duration: json['duration'],
       appointmentReason: json['reason'],
@@ -62,6 +70,6 @@ class AppointmentModel {
 
   @override
   String toString() {
-    return 'AppointmentModel(doctorId: $doctorId, patientName: $patientName, duration: $duration, reason: $appointmentReason, mode: $appointmentMode, fee: $fee, paymentMode: $paymentMode, description: $description, date: ${appointmentDate.toIso8601String()}, time: ${appointmentTime.hour.toString().padLeft(2, '0')}:${appointmentTime.minute.toString().padLeft(2, '0')})';
+    return 'AppointmentModel(doctorId: $doctorId, patientId: $patientId,patientEmail: $patientEmail, patientName: $patientName, duration: $duration, reason: $appointmentReason, mode: $appointmentMode, fee: $fee, paymentMode: $paymentMode, description: $description, date: ${appointmentDate.toIso8601String()}, time: ${appointmentTime.hour.toString().padLeft(2, '0')}:${appointmentTime.minute.toString().padLeft(2, '0')})';
   }
 }

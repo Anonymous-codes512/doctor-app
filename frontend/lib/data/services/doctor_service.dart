@@ -24,9 +24,6 @@ class DoctorService {
   Future<String> getUserName() async {
     final prefs = await SharedPreferences.getInstance();
 
-    print("🔍 Fetching SharedPreferences...");
-    print("📦 Raw JSON: ${prefs.getString('user')}");
-
     final userJson = prefs.getString('user');
     if (userJson == null) return 'User';
 
@@ -50,7 +47,6 @@ class DoctorService {
         body: jsonEncode(appointment.toJson()),
       );
       final body = jsonDecode(response.body);
-      print('🚨🚨$body🚨🚨');
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {
           'success': true,
@@ -94,7 +90,6 @@ class DoctorService {
         body: jsonEncode(task.toJson()),
       );
       final body = jsonDecode(response.body);
-      print('🚨🚨$body🚨🚨');
       if (response.statusCode == 200 || response.statusCode == 201) {
         return {
           'success': true,
@@ -136,7 +131,6 @@ class DoctorService {
     );
 
     final response = await http.get(url);
-    print('📥 Notes Response: ${response.body}');
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body)['notes'];
@@ -172,8 +166,6 @@ class DoctorService {
 
   Future<Map<String, dynamic>> updateNote(Note note, int noteId) async {
     try {
-      print('✉️✉️✉️✉️✉️$note and $noteId');
-
       final response = await http.put(
         Uri.parse('${ApiConstants.updateNote}/$noteId'),
         headers: {'Content-Type': 'application/json'},

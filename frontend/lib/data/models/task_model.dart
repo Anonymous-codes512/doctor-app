@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 class TaskModel {
   int? taskId;
   int? userId;
+  int? patientId;
+  String patientEmail;
   String patientName;
   String taskTitle;
   String taskPriority;
@@ -14,6 +16,8 @@ class TaskModel {
   TaskModel({
     this.taskId,
     this.userId,
+    this.patientId,
+    required this.patientEmail,
     required this.patientName,
     required this.taskTitle,
     required this.taskPriority,
@@ -27,6 +31,8 @@ class TaskModel {
     return {
       'task_id': taskId,
       'user_id': userId,
+      'patient_id': patientId,
+      'patient_email': patientEmail,
       'patient_name': patientName,
       'task_title': taskTitle,
       'task_priority': taskPriority,
@@ -43,6 +49,8 @@ class TaskModel {
     return TaskModel(
       taskId: json['task_id'],
       userId: json['user_id'],
+      patientId: json['patient_id'],
+      patientEmail: json['patient_email'],
       patientName: json['patient_name'],
       taskTitle: json['task_title'],
       taskPriority: json['task_priority'],
@@ -58,7 +66,7 @@ class TaskModel {
 
   @override
   String toString() {
-    return 'TaskModel(taskId: $taskId, userId: $userId, patientName: $patientName, taskTitle: $taskTitle, '
+    return 'TaskModel(taskId: $taskId, userId: $userId, patient_id: $patientId, patientEmail: $patientEmail, patientName: $patientName, taskTitle: $taskTitle, '
         'taskPriority: $taskPriority, taskCategory: $taskCategory, '
         'taskDueDate: ${taskDueDate.toIso8601String().split('T').first}, '
         'taskDueTime: ${taskDueTime.hour.toString().padLeft(2, '0')}:${taskDueTime.minute.toString().padLeft(2, '0')}, '
