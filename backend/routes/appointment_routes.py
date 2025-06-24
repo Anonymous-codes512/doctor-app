@@ -11,57 +11,75 @@ appointment_bp = Blueprint('appointment', __name__, url_prefix='/api')
 def createAppointment():
     data = request.get_json()
 
-    required_fields = ['doctor_id', 'patient_name', 'appointment_date', 'appointment_time', 'mode', 'reason', 'fee', 'payment_mode']
+    required_fields = ['doctor_id', 'patient_name', 'patient_email', 'appointment_date', 'appointment_time', 'mode', 'reason', 'fee', 'payment_mode', 'duration']
     missing_fields = [f for f in required_fields if f not in data]
     if missing_fields:
         return jsonify({'success': False, 'message': f'Missing required fields: {", ".join(missing_fields)}'}), 400
 
-    # Parse and validate date
     try:
         appointment_date = datetime.strptime(data['appointment_date'], '%Y-%m-%d').date()
-    except ValueError:
-        return jsonify({'success': False, 'message': 'Invalid appointment_date format, expected YYYY-MM-DD'}), 400
-
-    # Parse and validate time
-    try:
         appointment_time = datetime.strptime(data['appointment_time'], '%H:%M').time()
-    except ValueError:
-        return jsonify({'success': False, 'message': 'Invalid appointment_time format, expected HH:MM (24-hour)'}), 400
-
-    # Validate fee
-    try:
         fee = float(data['fee'])
         if fee < 0:
             raise ValueError()
-    except (ValueError, TypeError):
-        return jsonify({'success': False, 'message': 'Invalid fee, must be a positive number'}), 400
+    except ValueError:
+        return jsonify({'success': False, 'message': 'Invalid date, time, or fee format'}), 400
 
     patient_name = data['patient_name'].strip()
-    if not patient_name:
-        return jsonify({'success': False, 'message': 'Patient name cannot be empty'}), 400
+    patient_email = data['patient_email'].strip().lower()
+
+    if not patient_name or not patient_email:
+        return jsonify({'success': False, 'message': 'Patient name and email cannot be empty'}), 400
 
     doctor = Doctor.query.filter_by(user_id=data['doctor_id']).first()
     if not doctor:
         return jsonify({'success': False, 'message': f'Doctor with user ID {data["doctor_id"]} not found'}), 400
 
-    patient = Patient.query.join(Patient.user).filter(User.name == patient_name).first()
+    # Check if user already exists
+    user = User.query.filter_by(email=patient_email).first()
+    if not user:
+        username = patient_name.replace(" ", "").lower()
+        user = User(
+            name=patient_name,
+            email=patient_email,
+            role='PATIENT',
+            password=f"{username}1234"
+        )
+        db.session.add(user)
+        db.session.flush()
+
+        patient = Patient(user_id=user.id)
+        db.session.add(patient)
+        db.session.flush()
+
+        doctor.patients.append(patient)
+
+    else:
+        patient = Patient.query.filter_by(user_id=user.id).first()
+        if not patient:
+            patient = Patient(user_id=user.id)
+            db.session.add(patient)
+            db.session.flush()
+
+        if patient not in doctor.patients:
+            doctor.patients.append(patient)
+
     try:
         appointment_mode = get_enum_value(AppointmentMode, data['mode'])
         payment_mode = get_enum_value(PaymentMode, data['payment_mode'])
         reason = get_enum_value(AppointmentReason, data['reason'])
-        status = 'confirmed'
     except ValueError as e:
         return jsonify({'success': False, 'message': str(e)}), 400
 
     try:
         appointment = Appointment(
             doctor_id=doctor.id,
-            patient_id=patient.id if patient else 1,
+            patient_id=patient.id,
             appointment_date=appointment_date,
             appointment_time=appointment_time,
             appointment_mode=appointment_mode,
-            duration= data['duration'],
-            status=status,
+            duration=data['duration'],
+            status='confirmed',
             reason=reason,
             fee=fee,
             payment_mode=payment_mode,
@@ -83,27 +101,28 @@ def createAppointment():
 @appointment_bp.route('/doctor_appointments/<int:user_id>', methods=['GET'])
 def get_doctor_appointments(user_id):
     try:
-        # Step 1: Find Doctor by user_id
         doctor = Doctor.query.filter_by(user_id=user_id).first()
         if not doctor:
             return jsonify({'success': False, 'message': f'Doctor not found for user_id: {user_id}'}), 404
 
-        # Step 2: Fetch appointments for this doctor
         appointments = Appointment.query.filter_by(doctor_id=doctor.id).all()
         if not appointments:
             return jsonify({'success': True, 'appointments': [], 'message': 'No appointments found'}), 200
 
-        # Step 3: Prepare response list
         result = []
         for appt in appointments:
             patient_name = ''
+            patient_email = ''
             if appt.patient and appt.patient.user:
                 patient_name = appt.patient.user.name
+                patient_email = appt.patient.user.email
 
             result.append({
                 'id': appt.id,
                 'doctor_id': appt.doctor_id,
+                'patient_id': appt.patient_id,
                 'patient_name': patient_name,
+                'patient_email': patient_email,
                 'duration': appt.duration,
                 'reason': appt.reason,
                 'mode': appt.appointment_mode,
@@ -122,6 +141,7 @@ def get_doctor_appointments(user_id):
             'message': 'Internal server error',
             'error': str(e)
         }), 500
+
 
 
 def get_enum_value(enum_type, value):

@@ -1,12 +1,20 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:flutter/material.dart';
 
-class HistoryScreen extends StatelessWidget {
-  const HistoryScreen({Key? key}) : super(key: key);
+class HistoryScreen extends StatefulWidget {
+  final Patient patient;
+  const HistoryScreen({super.key, required this.patient});
 
   @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  @override
   Widget build(BuildContext context) {
+    print(widget.patient);
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
@@ -84,6 +92,7 @@ class HistoryScreen extends StatelessWidget {
                       Navigator.pushNamed(
                         context,
                         Routes.pastMedicalHistoryScreen,
+                        arguments: widget.patient,
                       );
                     },
                   ),
@@ -94,6 +103,7 @@ class HistoryScreen extends StatelessWidget {
                       Navigator.pushNamed(
                         context,
                         Routes.pastDrugHistoryScreen,
+                        arguments: widget.patient,
                       );
                     },
                   ),
@@ -104,6 +114,7 @@ class HistoryScreen extends StatelessWidget {
                       Navigator.pushNamed(
                         context,
                         Routes.pastPsychiatricHistoryScreen,
+                        arguments: widget.patient,
                       );
                     },
                   ),
@@ -114,6 +125,7 @@ class HistoryScreen extends StatelessWidget {
                       Navigator.pushNamed(
                         context,
                         Routes.personalHistoryScreen,
+                        arguments: widget.patient,
                       );
                     },
                   ),
@@ -121,7 +133,11 @@ class HistoryScreen extends StatelessWidget {
                   _buildHistoryItem(
                     'Family history',
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.familyHistoryScreen);
+                      Navigator.pushNamed(
+                        context,
+                        Routes.familyHistoryScreen,
+                        arguments: widget.patient,
+                      );
                     },
                   ),
                   const SizedBox(height: 8),
@@ -131,6 +147,7 @@ class HistoryScreen extends StatelessWidget {
                       Navigator.pushNamed(
                         context,
                         Routes.activitiesOfDailyLivingScreen,
+                        arguments: widget.patient,
                       );
                     },
                   ),
@@ -138,14 +155,22 @@ class HistoryScreen extends StatelessWidget {
                   _buildHistoryItem(
                     'Mood info',
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.moodInfoScreen);
+                      Navigator.pushNamed(
+                        context,
+                        Routes.moodInfoScreen,
+                        arguments: widget.patient,
+                      );
                     },
                   ),
                   const SizedBox(height: 8),
                   _buildHistoryItem(
                     'Mood assessment form',
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.moodAssessmentScreen);
+                      Navigator.pushNamed(
+                        context,
+                        Routes.moodAssessmentScreen,
+                        arguments: widget.patient,
+                      );
                     },
                   ),
                 ],

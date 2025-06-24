@@ -82,8 +82,8 @@ class _PersonalStatsScreenState extends State<PersonalStatsScreen> {
     ageController = TextEditingController(
       text:
           widget.patientData.dateOfBirth != null &&
-                  widget.patientData.dateOfBirth.isNotEmpty
-              ? '$_patientAge Years' // Use _patientAge here
+                  widget.patientData.dateOfBirth!.isNotEmpty
+              ? '$_patientAge Years'
               : 'Not set yet',
     );
     bmiController = TextEditingController(

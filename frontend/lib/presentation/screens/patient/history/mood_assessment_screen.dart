@@ -1,4 +1,5 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/custom_checkbox.dart';
 import 'package:doctor_app/presentation/widgets/gender_radio_group.dart';
 import 'package:doctor_app/presentation/widgets/labeled_dropdown.dart';
@@ -7,7 +8,8 @@ import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
 import 'package:flutter/material.dart';
 
 class MoodAssessmentScreen extends StatefulWidget {
-  const MoodAssessmentScreen({super.key});
+  final Patient patient;
+  const MoodAssessmentScreen({super.key, required this.patient});
 
   @override
   State<MoodAssessmentScreen> createState() => _MoodAssessmentScreenState();

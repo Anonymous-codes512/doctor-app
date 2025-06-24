@@ -108,8 +108,8 @@ class _MyPatientsScreenState extends State<MyPatientsScreen> {
         filteredPatients =
             allPatients.where((patient) {
               final name = patient.fullName.toLowerCase();
-              final contact = patient.contact.toLowerCase();
-              return name.contains(lowerQuery) || contact.contains(lowerQuery);
+              final contact = patient.contact?.toLowerCase();
+              return name.contains(lowerQuery) || contact!.contains(lowerQuery);
             }).toList();
       }
     });

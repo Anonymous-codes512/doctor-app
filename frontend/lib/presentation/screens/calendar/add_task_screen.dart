@@ -20,6 +20,7 @@ class AddTaskScreen extends StatefulWidget {
 
 class _AddTaskScreenState extends State<AddTaskScreen> {
   final TextEditingController _taskNameController = TextEditingController();
+  final TextEditingController _patientEmailController = TextEditingController();
   final TextEditingController _patientNameController = TextEditingController();
   final TextEditingController _dueDateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
@@ -57,6 +58,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   void _saveTask(BuildContext context) async {
     final task = TaskModel(
       taskTitle: _taskNameController.text.trim(),
+      patientEmail: _patientEmailController.text.trim(),
       patientName: _patientNameController.text.trim(),
       taskPriority: _selectedPriority!.toLowerCase(),
       taskCategory: _selectedCategory!.toLowerCase(),
@@ -74,6 +76,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   @override
   void dispose() {
     _taskNameController.dispose();
+    _patientEmailController.dispose();
     _dueDateController.dispose();
     _timeController.dispose();
     _descriptionController.dispose();
@@ -136,6 +139,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                         value; // No need to check for 'Select Category'
                   });
                 },
+              ),
+              const SizedBox(height: 16),
+              LabeledTextField(
+                label: 'Patient Email',
+                hintText: 'Patient email here',
+                controller: _patientEmailController,
               ),
               const SizedBox(height: 16),
               LabeledTextField(

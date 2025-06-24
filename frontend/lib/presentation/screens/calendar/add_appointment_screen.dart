@@ -19,7 +19,7 @@ class AddAppointmentScreen extends StatefulWidget {
 }
 
 class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
-  // final TextEditingController _appointmentController = TextEditingController();
+  final TextEditingController _patientEmailController = TextEditingController();
   final TextEditingController _patientNameController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
   final TextEditingController _feeController = TextEditingController();
@@ -50,7 +50,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   @override
   void dispose() {
-    // _appointmentController.dispose();
+    _patientEmailController.dispose();
     _patientNameController.dispose();
     _durationController.dispose();
     _feeController.dispose();
@@ -72,7 +72,7 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
 
   void _saveAppointment(BuildContext context) async {
     final appointment = AppointmentModel(
-      // appointmentId: _appointmentController.text.trim(),
+      patientEmail: _patientEmailController.text.trim(),
       patientName: _patientNameController.text.trim(),
       duration: int.tryParse(_durationController.text) ?? 0,
       appointmentReason: _selectedAppointmentReason,
@@ -122,13 +122,12 @@ class _AddAppointmentScreenState extends State<AddAppointmentScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              // LabeledTextField(
-              //   label: 'Appointment ID',
-              //   hintText: 'Enter Id Here',
-              //   controller: _appointmentController,
-              //   keyboardType: TextInputType.number,
-              // ),
-              // const SizedBox(height: 16),
+              LabeledTextField(
+                label: 'Patient Email',
+                hintText: 'Enter email here...',
+                controller: _patientEmailController,
+              ),
+              const SizedBox(height: 16),
               LabeledTextField(
                 label: 'Patient Name',
                 hintText: 'Enter Name Here',

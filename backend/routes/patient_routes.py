@@ -113,11 +113,7 @@ def create_patient():
 
     except Exception as e:
         db.session.rollback()
-        # Corrected: Removed exc_info=True as it's not valid for print()
         print(f'❌ Error in create_patient: {e}')
-        # If you still want a full traceback, you can import sys and use traceback.print_exc()
-        # import traceback
-        # traceback.print_exc() # This will print the full traceback to stderr
         return jsonify({'success': False, 'message': 'Internal server error.'}), 500
     
 @patient_bp.route('/fetch_patients/<int:user_id>', methods=['GET'])
@@ -138,38 +134,63 @@ def fetch_patients(user_id):
         for patient in patients:
             user = User.query.get(patient.user_id)
 
-            # ✅ Fetch notes for this doctor-patient pair
             notes = Note.query.filter_by(
                 doctor_id=doctor.id,
                 patient_id=patient.id
             ).all()
 
-            notes_data = []
-            for note in notes:
-                notes_data.append({
-                    'note_id': note.id,
-                    'doctor_user_id': doctor.user_id,  # use `user_id`, not `id`
-                    'patient_id': patient.id,
-                    'notes_title': note.notes_title,
-                    'notes_description': note.notes_description,
-                    'date': note.date.isoformat(),
-                })
+            notes_data = [{
+                'note_id': note.id,
+                'doctor_user_id': doctor.user_id,
+                'patient_id': patient.id,
+                'notes_title': note.notes_title,
+                'notes_description': note.notes_description,
+                'date': note.date.isoformat() if note.date else None,
+            } for note in notes]
 
             patients_data.append({
                 'id': patient.id,
-                'fullName': user.name,
-                'email': user.email,
-                'phoneNumber': user.phone_number,
+                'user_id': patient.user_id,
+                'fullName': user.name if user else None,
+                'email': user.email if user else None,
+                'phoneNumber': user.phone_number if user else None,
                 'address': patient.address,
                 'weight': patient.weight,
                 'height': patient.height,
                 'bloodPressure': patient.blood_pressure,
                 'pulse': patient.pulse,
                 'allergies': patient.allergies,
-                'gender': patient.gender if patient.gender else None,
+                'genderBornWith': patient.gender_born_with.name if patient.gender_born_with else None,
+                'genderIdentifiedWith': patient.gender_identified_with.name if patient.gender_identified_with else None,
+                'contact': patient.contact,
+                'kinRelation': patient.kin_relation,
+                'kinFullName': patient.kin_full_name,
+                'kinContactNumber': patient.kin_contact_number,
+                'gpDetails': patient.gp_details,
+                'preferredLanguage': patient.preferred_language,
+                'hasPhysicalDisabilities': patient.has_physical_disabilities,
+                'physicalDisabilitySpecify': patient.physical_disability_specify,
+                'requiresWheelchairAccess': patient.requires_wheelchair_access,
+                'wheelchairSpecify': patient.wheelchair_specify,
+                'needsSpecialCommunication': patient.needs_special_communication,
+                'communicationSpecify': patient.communication_specify,
+                'hasHearingImpairments': patient.has_hearing_impairments,
+                'hearingSpecify': patient.hearing_specify,
+                'hasVisualImpairments': patient.has_visual_impairments,
+                'visualSpecify': patient.visual_specify,
+                'environmentalFactors': patient.environmental_factors,
+                'otherAccessibilityNeeds': patient.other_accessibility_needs,
+                'hasHealthInsurance': patient.has_health_insurance,
+                'insuranceProvider': patient.insurance_provider,
+                'policyNumber': patient.policy_number,
+                'insuranceClaimContact': patient.insurance_claim_contact,
+                'linkedHospitals': patient.linked_hospitals,
+                'additionalHealthBenefits': patient.additional_health_benefits,
                 'dateOfBirth': patient.date_of_birth.isoformat() if patient.date_of_birth else None,
-                'imagePath': getattr(patient, 'image_path', None),
-                'notes': notes_data  # ✅ Add notes here
+                'imagePath': patient.image_path,
+                'createdAt': patient.created_at.isoformat() if patient.created_at else None,
+                'updatedAt': patient.updated_at.isoformat() if patient.updated_at else None,
+                'notes': notes_data,
             })
 
         return jsonify({'success': True, 'patients': patients_data}), 200
@@ -178,3 +199,34 @@ def fetch_patients(user_id):
         print(f'❌ Error in fetch_patients: {e}')
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
 
+
+@patient_bp.route('/update_patient_history/<int:patient_id>', methods=['PUT'])
+def update_patient_history(patient_id):
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+
+        patient = Patient.query.get(patient_id)
+        if not patient:
+            return jsonify({'success': False, 'message': 'Patient not found'}), 404
+
+        allowed_fields = {col.name for col in Patient.__table__.columns}
+        updated = False
+
+        for key, value in data.items():
+            if key in allowed_fields:
+                setattr(patient, key, value)
+                updated = True
+            else:
+                print(f"⚠️ Skipped invalid field: {key}")
+
+        if not updated:
+            return jsonify({'success': False, 'message': 'No valid fields to update'}), 400
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Patient history updated successfully'}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500

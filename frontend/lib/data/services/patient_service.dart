@@ -37,15 +37,15 @@ class PatientService {
 
       // Add form fields
       request.fields['fullName'] = patient.fullName;
-      request.fields['contact'] = patient.contact;
-      request.fields['email'] = patient.email;
-      request.fields['address'] = patient.address;
+      request.fields['contact'] = patient.contact!;
+      request.fields['email'] = patient.email!;
+      request.fields['address'] = patient.address!;
       request.fields['weight'] = patient.weight ?? '';
       request.fields['height'] = patient.height ?? '';
       request.fields['bloodPressure'] = patient.bloodPressure ?? '';
       request.fields['pulse'] = patient.pulse ?? '';
       request.fields['allergies'] = patient.allergies ?? '';
-      request.fields['dateOfBirth'] = patient.dateOfBirth;
+      request.fields['dateOfBirth'] = patient.dateOfBirth!;
       request.fields['doctorUserId'] = patient.doctorUserId.toString();
       print('Sending form fields:'); // Added print
       request.fields.forEach((key, value) {
@@ -75,7 +75,7 @@ class PatientService {
   Future<List<Patient>> getPatientsForDoctor(int userId) async {
     final url = Uri.parse('${ApiConstants.fetchPatients}/$userId');
     final response = await http.get(url);
-    print('🚨✅$response🚨✅');
+    print('🚨✅${response.body}🚨✅');
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body)['patients'];
       for (var patient in data) {
@@ -84,6 +84,34 @@ class PatientService {
       return data.map((json) => Patient.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load patients');
+    }
+  }
+
+  Future<Map<String, dynamic>> updatePatientHistory(
+    int patientId,
+    Map<String, dynamic> data,
+  ) async {
+    final url = Uri.parse('${ApiConstants.updatePatientHistory}/$patientId');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': responseData['message']};
+      } else {
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Unknown error occurred',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
     }
   }
 }

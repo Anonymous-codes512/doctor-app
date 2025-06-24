@@ -1,12 +1,14 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/data/models/appointment_model.dart';
 import 'package:doctor_app/presentation/widgets/custom_search_widget.dart';
 import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AppointmentsScreen extends StatefulWidget {
-  const AppointmentsScreen({Key? key}) : super(key: key);
+  final int patientId;
+  const AppointmentsScreen({super.key, required this.patientId});
 
   @override
   State<AppointmentsScreen> createState() => _AppointmentsScreenState();
@@ -15,60 +17,55 @@ class AppointmentsScreen extends StatefulWidget {
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  // The original full list of appointments
-  final List<Map<String, String>> _allAppointments = [
-    {'Date': '1 June 24', 'Id': '231', 'Time': '11:20 pm', 'Mode': 'Online'},
-    {'Date': '3 July 24', 'Id': '232', 'Time': '1:20 pm', 'Mode': 'Physical'},
-    {'Date': '15 Sep 24', 'Id': '233', 'Time': '10:15 pm', 'Mode': 'Online'},
-    {'Date': '21 Nov 24', 'Id': '234', 'Time': '8:00 pm', 'Mode': 'Online'},
-    {'Date': '20 Jan 25', 'Id': '235', 'Time': '6:30 pm', 'Mode': 'Physical'},
-    {'Date': '12 June 25', 'Id': '236', 'Time': '5:00 am', 'Mode': 'Online'},
-    {'Date': '1 July 25', 'Id': '237', 'Time': '9:00 am', 'Mode': 'Physical'},
-    {'Date': '10 July 25', 'Id': '238', 'Time': '3:00 pm', 'Mode': 'Online'},
-    {'Date': '18 July 25', 'Id': '239', 'Time': '7:00 pm', 'Mode': 'Physical'},
-    {'Date': '25 July 25', 'Id': '240', 'Time': '10:00 am', 'Mode': 'Online'},
-    {'Date': '1 Aug 25', 'Id': '241', 'Time': '1:00 pm', 'Mode': 'Physical'},
-    {'Date': '8 Aug 25', 'Id': '242', 'Time': '4:00 pm', 'Mode': 'Online'},
-  ];
+  // Store all appointments for this patient fetched from Provider
+  List<AppointmentModel> _allAppointments = [];
 
-  // The list that will be displayed, filtered based on search query
-  List<Map<String, String>> _filteredAppointments = [];
+  // Filtered list of appointments to display (still AppointmentModel for easier filtering)
+  List<AppointmentModel> _filteredAppointments = [];
 
   @override
   void initState() {
     super.initState();
-    final apointments =
+
+    final appointments =
         Provider.of<DoctorProvider>(context, listen: false).appointments;
-    print(apointments);
+
+    // Filter appointments for the given patientId
+    _allAppointments =
+        appointments
+            .where((appt) => appt.patientId == widget.patientId)
+            .toList();
+
     _filteredAppointments = List.from(_allAppointments);
+
+    print('Patient ID: ${widget.patientId}, Appointments: $_allAppointments');
   }
 
   void _filterAppointments(String query) {
     setState(() {
       if (query.isEmpty) {
-        // If query is empty, show all appointments
         _filteredAppointments = List.from(_allAppointments);
       } else {
-        // Filter appointments based on query (case-insensitive)
-        _filteredAppointments =
-            _allAppointments.where((appointment) {
-              final date = appointment['Date']?.toLowerCase() ?? '';
-              final id = appointment['Id']?.toLowerCase() ?? '';
-              final time = appointment['Time']?.toLowerCase() ?? '';
-              final mode = appointment['Mode']?.toLowerCase() ?? '';
-              final searchQuery = query.toLowerCase();
+        final lowerQuery = query.toLowerCase();
 
-              return date.contains(searchQuery) ||
-                  id.contains(searchQuery) ||
-                  time.contains(searchQuery) ||
-                  mode.contains(searchQuery);
+        _filteredAppointments =
+            _allAppointments.where((appt) {
+              // Check multiple fields for the search query
+              return appt.patientName.toLowerCase().contains(lowerQuery) ||
+                  appt.appointmentReason!.toLowerCase().contains(lowerQuery) ||
+                  appt.appointmentMode!.toLowerCase().contains(lowerQuery) ||
+                  appt.paymentMode!.toLowerCase().contains(lowerQuery) ||
+                  appt.description.toLowerCase().contains(lowerQuery) == true ||
+                  appt.fee.toString().contains(lowerQuery) ||
+                  appt.duration.toString().contains(lowerQuery) ||
+                  appt.appointmentDate.toString().contains(lowerQuery) ||
+                  appt.appointmentTime.toString().contains(lowerQuery);
             }).toList();
       }
     });
   }
 
   Widget _buildAppointmentsTable() {
-    // Check if there are any appointments to display
     if (_filteredAppointments.isEmpty) {
       return const Center(
         child: Padding(
@@ -88,6 +85,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         child: Column(
           children:
               _filteredAppointments.map((appointment) {
+                // Format date & time nicely
+                final timeStr =
+                    '${appointment.appointmentTime.hour.toString().padLeft(2, '0')}:${appointment.appointmentTime.minute.toString().padLeft(2, '0')}';
+
                 return Container(
                   margin: const EdgeInsets.symmetric(vertical: 8.0),
                   decoration: BoxDecoration(
@@ -99,18 +100,18 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Date and ID (use appointment id if available)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   const Icon(Icons.calendar_today_outlined),
                                   const SizedBox(width: 10),
                                   Flexible(
                                     child: Text(
-                                      'Date: ${appointment['Date'] ?? 'N/A'}',
+                                      'Date: ${appointment.appointmentDate.day.toString().padLeft(2, '0')}-${appointment.appointmentDate.month.toString().padLeft(2, '0')}-${appointment.appointmentDate.year.toString().substring(2)}',
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -125,13 +126,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                             const SizedBox(width: 20),
                             Expanded(
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   const Icon(Icons.credit_card_outlined),
                                   const SizedBox(width: 10),
                                   Flexible(
                                     child: Text(
-                                      'ID: ${appointment['Id'] ?? 'N/A'}',
+                                      'ID: ${appointment.patientId}',
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -146,18 +146,18 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
+                        // Time and Mode
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   const Icon(Icons.access_time_outlined),
                                   const SizedBox(width: 10),
                                   Flexible(
                                     child: Text(
-                                      'Time: ${appointment['Time'] ?? 'N/A'}',
+                                      'Time: $timeStr',
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -172,13 +172,12 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                             const SizedBox(width: 20),
                             Expanded(
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   const Icon(Icons.language_outlined),
                                   const SizedBox(width: 10),
                                   Flexible(
                                     child: Text(
-                                      'Mode: ${appointment['Mode'] ?? 'N/A'}',
+                                      'Mode: ${appointment.appointmentMode}',
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -192,6 +191,28 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                             ),
                           ],
                         ),
+                        // const SizedBox(height: 16),
+                        // Reason & Fee & Payment Mode
+                        // Text(
+                        //   'Reason: ${appointment.appointmentReason}',
+                        //   style: const TextStyle(fontWeight: FontWeight.w500),
+                        // ),
+                        // Text(
+                        //   'Fee: ${appointment.fee}',
+                        //   style: const TextStyle(fontWeight: FontWeight.w500),
+                        // ),
+                        // Text(
+                        //   'Payment Mode: ${appointment.paymentMode}',
+                        //   style: const TextStyle(fontWeight: FontWeight.w500),
+                        // ),
+                        // if (appointment.description != null &&
+                        //     appointment.description!.isNotEmpty) ...[
+                        //   const SizedBox(height: 8),
+                        //   Text(
+                        //     'Description: ${appointment.description}',
+                        //     style: const TextStyle(fontStyle: FontStyle.italic),
+                        //   ),
+                        // ],
                       ],
                     ),
                   ),
@@ -233,13 +254,23 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         children: [
           SearchBarWithAddButton(
             controller: _searchController,
-            onChanged:
-                _filterAppointments, // This will now trigger the actual filtering
+            onChanged: _filterAppointments,
             onAddPressed: () {
-              Navigator.pushNamed(context, Routes.addNewAppointmentsScreen);
-            },
-            onTap: () {
-              // Handle tap if needed, e.g., show a search overlay
+              if (_allAppointments.isNotEmpty) {
+                final latestAppointment = _allAppointments.last;
+
+                Navigator.pushNamed(
+                  context,
+                  Routes.addNewAppointmentsScreen,
+                  arguments: latestAppointment,
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('No previous appointment found'),
+                  ),
+                );
+              }
             },
           ),
           Padding(
@@ -249,7 +280,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               children: [
                 const SizedBox(height: 18),
                 Text(
-                  'This is a list of all [patient’s name] previous and current appointments.',
+                  'This is a list of all previous and current appointments for the patient.',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -276,10 +307,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           ),
           const Divider(height: 10),
           const SizedBox(height: 24),
-          Expanded(
-            // Ensures the scrollable table takes remaining space
-            child: _buildAppointmentsTable(),
-          ),
+          Expanded(child: _buildAppointmentsTable()),
         ],
       ),
     );
