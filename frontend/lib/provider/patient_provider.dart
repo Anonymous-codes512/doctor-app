@@ -88,24 +88,29 @@ class PatientProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateHistoryField(
+  // provider/patient_provider.dart
+
+  Future<void> updatePatientFields(
     BuildContext context, {
     required int patientId,
-    required Map<String, dynamic> data,
+    required Map<String, dynamic> updatedFields,
   }) async {
     try {
-      final result = await _service.updatePatientHistory(patientId, data);
+      final result = await _service.updatePatientFields(
+        patientId,
+        updatedFields,
+      );
 
       if (result['success']) {
         ToastHelper.showSuccess(context, result['message']);
-        await fetchPatients();
-        Navigator.pop(context);
+        await fetchPatients(); // refresh
       } else {
         ToastHelper.showError(context, result['message']);
-        print('❌ Failed to update: ${result['message']}');
+        print('❌ Failed to update fields: ${result['message']}');
       }
     } catch (e) {
-      print('🚨 Exception while updating history: $e');
+      print('🚨 Exception in updatePatientFields: $e');
+      ToastHelper.showError(context, 'Error while updating fields');
     }
   }
 }

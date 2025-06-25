@@ -87,17 +87,18 @@ class PatientService {
     }
   }
 
-  Future<Map<String, dynamic>> updatePatientHistory(
+  Future<Map<String, dynamic>> updatePatientFields(
     int patientId,
-    Map<String, dynamic> data,
+    Map<String, dynamic> updatedFields,
   ) async {
+    print('✅$updatedFields🚨');
     final url = Uri.parse('${ApiConstants.updatePatientHistory}/$patientId');
 
     try {
       final response = await http.put(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(data),
+        body: jsonEncode(updatedFields),
       );
 
       final responseData = jsonDecode(response.body);

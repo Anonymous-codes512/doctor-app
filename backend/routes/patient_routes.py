@@ -151,23 +151,25 @@ def fetch_patients(user_id):
             patients_data.append({
                 'id': patient.id,
                 'user_id': patient.user_id,
+                'doctorUserId': doctor.user_id,
                 'fullName': user.name if user else None,
                 'email': user.email if user else None,
-                'phoneNumber': user.phone_number if user else None,
+                'contact': patient.contact,
                 'address': patient.address,
+                'dateOfBirth': patient.date_of_birth.isoformat() if patient.date_of_birth else None,
+                'genderBornWith': patient.gender_born_with.name if patient.gender_born_with else None,
+                'genderIdentifiedWith': patient.gender_identified_with.name if patient.gender_identified_with else None,
                 'weight': patient.weight,
                 'height': patient.height,
                 'bloodPressure': patient.blood_pressure,
                 'pulse': patient.pulse,
                 'allergies': patient.allergies,
-                'genderBornWith': patient.gender_born_with.name if patient.gender_born_with else None,
-                'genderIdentifiedWith': patient.gender_identified_with.name if patient.gender_identified_with else None,
-                'contact': patient.contact,
                 'kinRelation': patient.kin_relation,
                 'kinFullName': patient.kin_full_name,
                 'kinContactNumber': patient.kin_contact_number,
                 'gpDetails': patient.gp_details,
                 'preferredLanguage': patient.preferred_language,
+                'notes': notes_data,
                 'hasPhysicalDisabilities': patient.has_physical_disabilities,
                 'physicalDisabilitySpecify': patient.physical_disability_specify,
                 'requiresWheelchairAccess': patient.requires_wheelchair_access,
@@ -186,11 +188,105 @@ def fetch_patients(user_id):
                 'insuranceClaimContact': patient.insurance_claim_contact,
                 'linkedHospitals': patient.linked_hospitals,
                 'additionalHealthBenefits': patient.additional_health_benefits,
-                'dateOfBirth': patient.date_of_birth.isoformat() if patient.date_of_birth else None,
+                
+                # ✅ Past medical history
+                'hasPastMedicalHistory': patient.has_past_medical_history,
+                'pastMedicalHistory': patient.past_medical_history,
+                'hasMedicationHistory': patient.has_medication_history,
+                'medicationHistory': patient.medication_history,
+                'hasFamilyHistory': patient.has_family_history,
+                'familyHistory': patient.family_history,
+                
+                # ✅ Past drug history
+                'hasAllergatic' : patient.has_allergies,
+                'hasMedicationAllergatic' : patient.has_medication_allergatic,
+                'medicationAllergatic' : patient.medication_allergatic,
+                'hasTakingMedication' : patient.has_taking_medication,
+                'takingMedication' : patient.taking_medication,
+                'hasMentalMedication' : patient.has_mental_medication,
+                'mentalMedication' : patient.mental_medication,
+
+                # ✅ Past psychiatric history
+                'isVisitedPsychiatrist' : patient.is_visited_psychiatrist,
+                'hasDiagnosisHistory' : patient.has_diagnosis_history,
+                'diagnosisHistory' : patient.diagnosis_history,
+                'isPsychiatricallyHospitalized' : patient.is_psychiatrically_hospitalized,
+                'is72HourMentallyDetentionOrder' : patient.is_72_hour_mentally_detention_order,
+                'hasDetainedMentalHealth' : patient.has_detained_mental_health,
+                'numberOfMentallyDetained' : patient.number_of_mentally_detained,
+                'detainedMentalHealthTreatment' : patient.detained_mental_health_treatment,
+                'hasSeekingHelp' : patient.has_seeking_help,
+                'seekingHelp' : patient.seeking_help,
+                
+                # ✅ Past personal history
+                'isPlannedPregnancy' : patient.is_planned_pregnancy,
+                'isMaternalSubstanceUseDuringPregnancy' : patient.is_maternal_substance_use_during_pregnancy,
+                'isBirthDelayed' : patient.is_birth_delayed,
+                'isBirthInduced' : patient.is_birth_induced,
+                'isBirthHypoxia' : patient.is_birth_hypoxia,
+                'isImmediatePostNatalComplications' : patient.is_immediate_post_natal_complications,
+                'isRequireOxygenOrIncubator' : patient.is_require_oxygen_or_incubator,
+                'isFeedWellAsNewborn' : patient.is_feed_well_as_newborn,
+                'isSleepWellAsNewborn' : patient.is_sleep_well_as_newborn,
+                
+                # ✅ Past family history
+                'hasFamilyMentalHealthHistory' : patient.has_family_mental_health_history,
+                'familyRelationshipDetails' : patient.family_relationship_details,
+                'familyMentalHealthCondition' : patient.family_mental_health_condition,
+                'hasBeenHospitalizedForMentalHealth' : patient.has_been_hospitalized_for_mental_health,
+                'numberOfAdmissions' : patient.number_of_admissions,
+                'duration' : patient.duration,
+                'outcome' : patient.outcome,
+                
+                'hasFamilyMentalHealthHistory': patient.has_family_history,
+                'hasADLDifficulty': patient.has_activities_of_daily_living,
+                'pastDrugHistory': patient.medication_history,  # assuming same as medication history
+                'pastPsychiatricHistory': None,  # not in model yet
+                'personalHistory': None,
+                'activitiesOfDailyLiving': None,
+                'depressiveIllness': None,
+                'feelLowFrequency': None,
+                'moodLevel': patient.mood_scale,
+                'selfEsteemLevel': None,
+                'cryToggle': None,
+                'cryFrequency': None,
+                'suicidalToggle': None,
+                'suicidalFrequency': None,
+                'notWantToBeHereToggle': None,
+                'notWantToBeHereFrequency': None,
+                'isWorthLiving': None,
+                'isEndingLife': None,
+                'isEndingThoughts': None,
+                'lifeEndingThoughts': None,
+                'isInjured': None,
+                'injuredDetails': None,
+                'admittedToHospital': None,
+                'admittedToHospitalDetails': None,
+                'selfHarmed': None,
+                'selfHarmedDetails': None,
+                'acquiredInjury': None,
+                'acquiredInjuryDetails': None,
+                'blameYourself': None,
+                'blameYourselfDetails': None,
+                'moodRelatedQuestions': None,
+                'endingYourLifeRelatedQuestions': None,
+                'abnormalBehaviorsRelatedQuestions': None,
+                'believesInSpecialPurposeRelatedQuestions': None,
+                'overlyHappy': None,
+                'selectedAngerLevel': None,
+                'selectedAgitatedLevel': None,
+                'selectedFeelLow': None,
+                'selectedFeelElated': None,
+                'selectedCategory': patient.selected_category,
+                'moodScale': patient.mood_scale,
+                'moodAffectLife': patient.mood_affect_life,
+                'extremeEnergy': patient.extreme_energy,
+                'recklessSpending': patient.reckless_spending,
+                'alcoholDrugUse': patient.alcohol_drug_use,
+                'medicalConditionMoodCause': patient.medical_condition_mood_cause,
                 'imagePath': patient.image_path,
                 'createdAt': patient.created_at.isoformat() if patient.created_at else None,
                 'updatedAt': patient.updated_at.isoformat() if patient.updated_at else None,
-                'notes': notes_data,
             })
 
         return jsonify({'success': True, 'patients': patients_data}), 200
@@ -202,31 +298,21 @@ def fetch_patients(user_id):
 
 @patient_bp.route('/update_patient_history/<int:patient_id>', methods=['PUT'])
 def update_patient_history(patient_id):
+    data = request.get_json()
+
+    patient = Patient.query.get_or_404(patient_id)
+
     try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'success': False, 'message': 'No data provided'}), 400
-
-        patient = Patient.query.get(patient_id)
-        if not patient:
-            return jsonify({'success': False, 'message': 'Patient not found'}), 404
-
-        allowed_fields = {col.name for col in Patient.__table__.columns}
-        updated = False
-
         for key, value in data.items():
-            if key in allowed_fields:
+            if hasattr(patient, key):
                 setattr(patient, key, value)
-                updated = True
             else:
-                print(f"⚠️ Skipped invalid field: {key}")
-
-        if not updated:
-            return jsonify({'success': False, 'message': 'No valid fields to update'}), 400
+                print(f"⚠️ Unknown field: {key} ignored")
 
         db.session.commit()
         return jsonify({'success': True, 'message': 'Patient history updated successfully'}), 200
 
     except Exception as e:
+        print(f"❌ Exception in updating patient history: {e}")
         db.session.rollback()
-        return jsonify({'success': False, 'message': f'Error: {str(e)}'}), 500
+        return jsonify({'success': False, 'message': f'Update failed: {str(e)}'}), 500

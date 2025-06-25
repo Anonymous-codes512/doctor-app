@@ -51,13 +51,63 @@ class Patient {
   String? linkedHospitals;
   String? additionalHealthBenefits;
 
+  // Past Medical History
+  bool? hasPastMedicalHistory;
   List<String>? pastMedicalHistory;
+  bool? hasFamilyHistory;
+  List<String>? familyHistory;
+  bool? hasMedicationHistory;
+  List<String>? medicationHistory;
+
+  // Past Drug History
+  bool? hasAllergatic;
+  bool? hasMedicationAllergatic;
+  String? medicationAllergatic;
+  bool? hasTakingMedication;
+  String? takingMedication;
+  bool? hasMentalMedication;
+  String? mentalMedication;
+
+  // Past Psychiatric History
+  String? isVisitedPsychiatrist;
+  bool? hasDiagnosisHistory;
+  List<String>? diagnosisHistory;
+  String? isPsychiatricallyHospitalized;
+  String? is72HourMentallyDetentionOrder;
+  bool? hasDetainedMentalHealth;
+  String? numberOfMentallyDetained;
+  String? detainedMentalHealthTreatment;
+  bool? hasSeekingHelp;
+  String? seekingHelp;
+
+  // Personal History
+  String? isPlannedPregnancy;
+  String? isMaternalSubstanceUseDuringPregnancy;
+  String? isBirthDelayed;
+  String? isBirthInduced;
+  String? isBirthHypoxia;
+  String? isImmediatePostNatalComplications;
+  String? isRequireOxygenOrIncubator;
+  String? isFeedWellAsNewborn;
+  String? isSleepWellAsNewborn;
+
+  // Family History
+  bool? hasFamilyMentalHealthHistory;
+  String? familyRelationshipDetails;
+  String? familyMentalHealthCondition;
+  bool? hasBeenHospitalizedForMentalHealth;
+  String? numberOfAdmissions;
+  String? duration;
+  String? outcome;
+
+  bool? hasADLDifficulty; // ActivitiesOfDailyLivingScreen
+
   List<String>? pastDrugHistory;
   List<String>? pastPsychiatricHistory;
   List<String>? personalHistory;
-  List<String>? familyHistory;
   List<String>? activitiesOfDailyLiving;
 
+  // Mood Assessment related fields
   bool? depressiveIllness;
   String? feelLowFrequency;
   double? moodLevel;
@@ -103,6 +153,15 @@ class Patient {
   String? selectedFeelLow;
   String? selectedFeelElated;
 
+  String? selectedCategory;
+  double? moodScale;
+  String? moodAffectLife;
+  String? extremeEnergy;
+  String? recklessSpending;
+  bool? takingMedications;
+  String? alcoholDrugUse;
+  String? medicalConditionMoodCause;
+
   String? imagePath;
 
   Patient({
@@ -144,11 +203,60 @@ class Patient {
     this.insuranceClaimContact,
     this.linkedHospitals,
     this.additionalHealthBenefits,
+
+    // Past Medical History
+    this.hasPastMedicalHistory,
     this.pastMedicalHistory,
+    this.hasFamilyHistory,
+    this.familyHistory,
+    this.hasMedicationHistory,
+    this.medicationHistory,
+
+    // Past Drug History
+    this.hasAllergatic,
+    this.hasMedicationAllergatic,
+    this.medicationAllergatic,
+    this.hasTakingMedication,
+    this.takingMedication,
+    this.hasMentalMedication,
+    this.mentalMedication,
+
+    // Past Psychiatric History
+    this.isVisitedPsychiatrist,
+    this.hasDiagnosisHistory,
+    this.diagnosisHistory,
+    this.isPsychiatricallyHospitalized,
+    this.is72HourMentallyDetentionOrder,
+    this.hasDetainedMentalHealth,
+    this.numberOfMentallyDetained,
+    this.detainedMentalHealthTreatment,
+    this.hasSeekingHelp,
+    this.seekingHelp,
+
+    // Personal History
+    this.isPlannedPregnancy,
+    this.isMaternalSubstanceUseDuringPregnancy,
+    this.isBirthDelayed,
+    this.isBirthInduced,
+    this.isBirthHypoxia,
+    this.isImmediatePostNatalComplications,
+    this.isRequireOxygenOrIncubator,
+    this.isFeedWellAsNewborn,
+    this.isSleepWellAsNewborn,
+
+    // Family History
+    this.hasFamilyMentalHealthHistory,
+    this.familyRelationshipDetails,
+    this.familyMentalHealthCondition,
+    this.hasBeenHospitalizedForMentalHealth,
+    this.numberOfAdmissions,
+    this.duration,
+    this.outcome,
+
+    this.hasADLDifficulty,
     this.pastDrugHistory,
     this.pastPsychiatricHistory,
     this.personalHistory,
-    this.familyHistory,
     this.activitiesOfDailyLiving,
     this.depressiveIllness,
     this.feelLowFrequency,
@@ -183,94 +291,16 @@ class Patient {
     this.selectedAgitatedLevel,
     this.selectedFeelLow,
     this.selectedFeelElated,
+    this.selectedCategory,
+    this.moodScale,
+    this.moodAffectLife,
+    this.extremeEnergy,
+    this.recklessSpending,
+    this.takingMedications,
+    this.alcoholDrugUse,
+    this.medicalConditionMoodCause,
     this.imagePath,
   });
-
-  // JSON helpers
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'doctorUserId': doctorUserId,
-      'fullName': fullName,
-      'email': email,
-      'contact': contact,
-      'address': address,
-      'dateOfBirth': dateOfBirth,
-      'genderBornWith': genderBornWith,
-      'genderIdentifiedWith': genderIdentifiedWith,
-      'weight': weight,
-      'height': height,
-      'bloodPressure': bloodPressure,
-      'pulse': pulse,
-      'allergies': allergies,
-      'kinRelation': kinRelation,
-      'kinFullName': kinFullName,
-      'gpDetails': gpDetails,
-      'preferredLanguage': preferredLanguage,
-      'kinContactNumber': kinContactNumber,
-      'notes': notes,
-      'hasPhysicalDisabilities': hasPhysicalDisabilities,
-      'physicalDisabilitySpecify': physicalDisabilitySpecify,
-      'requiresWheelchairAccess': requiresWheelchairAccess,
-      'wheelchairSpecify': wheelchairSpecify,
-      'needsSpecialCommunication': needsSpecialCommunication,
-      'communicationSpecify': communicationSpecify,
-      'hasHearingImpairments': hasHearingImpairments,
-      'hearingSpecify': hearingSpecify,
-      'hasVisualImpairments': hasVisualImpairments,
-      'visualSpecify': visualSpecify,
-      'environmentalFactors': environmentalFactors,
-      'otherAccessibilityNeeds': otherAccessibilityNeeds,
-      'hasHealthInsurance': hasHealthInsurance,
-      'insuranceProvider': insuranceProvider,
-      'policyNumber': policyNumber,
-      'insuranceClaimContact': insuranceClaimContact,
-      'linkedHospitals': linkedHospitals,
-      'additionalHealthBenefits': additionalHealthBenefits,
-      'pastMedicalHistory': pastMedicalHistory,
-      'pastDrugHistory': pastDrugHistory,
-      'pastPsychiatricHistory': pastPsychiatricHistory,
-      'personalHistory': personalHistory,
-      'familyHistory': familyHistory,
-      'activitiesOfDailyLiving': activitiesOfDailyLiving,
-      'depressiveIllness': depressiveIllness,
-      'feelLowFrequency': feelLowFrequency,
-      'moodLevel': moodLevel,
-      'selfEsteemLevel': selfEsteemLevel,
-      'cryToggle': cryToggle,
-      'cryFrequency': cryFrequency,
-      'suicidalToggle': suicidalToggle,
-      'suicidalFrequency': suicidalFrequency,
-      'notWantToBeHereToggle': notWantToBeHereToggle,
-      'notWantToBeHereFrequency': notWantToBeHereFrequency,
-      'isWorthLiving': isWorthLiving,
-      'isEndingLife': isEndingLife,
-      'isEndingThoughts': isEndingThoughts,
-      'lifeEndingThoughts': lifeEndingThoughts,
-      'isInjured': isInjured,
-      'injuredDetails': injuredDetails,
-      'admittedToHospital': admittedToHospital,
-      'admittedToHospitalDetails': admittedToHospitalDetails,
-      'selfHarmed': selfHarmed,
-      'selfHarmedDetails': selfHarmedDetails,
-      'acquiredInjury': acquiredInjury,
-      'acquiredInjuryDetails': acquiredInjuryDetails,
-      'blameYourself': blameYourself,
-      'blameYourselfDetails': blameYourselfDetails,
-      'moodRelatedQuestions': moodRelatedQuestions,
-      'endingYourLifeRelatedQuestions': endingYourLifeRelatedQuestions,
-      'abnormalBehaviorsRelatedQuestions': abnormalBehaviorsRelatedQuestions,
-      'believesInSpecialPurposeRelatedQuestions':
-          believesInSpecialPurposeRelatedQuestions,
-      'overlyHappy': overlyHappy,
-      'selectedAngerLevel': selectedAngerLevel,
-      'selectedAgitatedLevel': selectedAgitatedLevel,
-      'selectedFeelLow': selectedFeelLow,
-      'selectedFeelElated': selectedFeelElated,
-      'imagePath': imagePath,
-    };
-  }
-
   static Patient fromJson(Map<String, dynamic> json) {
     return Patient(
       id: json['id'],
@@ -294,9 +324,7 @@ class Patient {
       preferredLanguage: json['preferredLanguage'],
       notes:
           json['notes'] != null
-              ? List<Note>.from(
-                json['notes'].map((note) => Note.fromJson(note)),
-              )
+              ? List<Note>.from(json['notes'].map((x) => Note.fromJson(x)))
               : [],
       hasPhysicalDisabilities: json['hasPhysicalDisabilities'],
       physicalDisabilitySpecify: json['physicalDisabilitySpecify'],
@@ -316,10 +344,72 @@ class Patient {
       insuranceClaimContact: json['insuranceClaimContact'],
       linkedHospitals: json['linkedHospitals'],
       additionalHealthBenefits: json['additionalHealthBenefits'],
+
+      // Past Medical History
+      hasPastMedicalHistory: json['hasPastMedicalHistory'],
       pastMedicalHistory:
           json['pastMedicalHistory'] != null
               ? List<String>.from(json['pastMedicalHistory'])
               : null,
+      hasMedicationHistory: json['hasMedicationHistory'],
+      medicationHistory:
+          json['medicationHistory'] != null
+              ? List<String>.from(json['medicationHistory'])
+              : null,
+      hasFamilyHistory: json['hasFamilyHistory'],
+      familyHistory:
+          json['familyHistory'] != null
+              ? List<String>.from(json['familyHistory'])
+              : null,
+
+      // Past Drug History
+      hasAllergatic: json['hasAllergatic'],
+      hasMedicationAllergatic: json['hasMedicationAllergatic'],
+      medicationAllergatic: json['medicationAllergatic'],
+      hasTakingMedication: json['hasTakingMedication'],
+      takingMedication: json['takingMedication'],
+      hasMentalMedication: json['hasMentalMedication'],
+      mentalMedication: json['mentalMedication'],
+
+      // Past Psychiatric History
+      isVisitedPsychiatrist: json['isVisitedPsychiatrist'],
+      hasDiagnosisHistory: json['hasDiagnosisHistory'],
+      diagnosisHistory:
+          json['diagnosisHistory'] != null
+              ? List<String>.from(json['diagnosisHistory'])
+              : null,
+      isPsychiatricallyHospitalized: json['isPsychiatricallyHospitalized'],
+      is72HourMentallyDetentionOrder: json['is72HourMentallyDetentionOrder'],
+      hasDetainedMentalHealth: json['hasDetainedMentalHealth'],
+      numberOfMentallyDetained: json['numberOfMentallyDetained'],
+      detainedMentalHealthTreatment: json['detainedMentalHealthTreatment'],
+      hasSeekingHelp: json['hasSeekingHelp'],
+      seekingHelp: json['seekingHelp'],
+
+      // Personal History
+      isPlannedPregnancy: json['isPlannedPregnancy'],
+      isMaternalSubstanceUseDuringPregnancy:
+          json['isMaternalSubstanceUseDuringPregnancy'],
+      isBirthDelayed: json['isBirthDelayed'],
+      isBirthInduced: json['isBirthInduced'],
+      isBirthHypoxia: json['isBirthHypoxia'],
+      isImmediatePostNatalComplications:
+          json['isImmediatePostNatalComplications'],
+      isRequireOxygenOrIncubator: json['isRequireOxygenOrIncubator'],
+      isFeedWellAsNewborn: json['isFeedWellAsNewborn'],
+      isSleepWellAsNewborn: json['isSleepWellAsNewborn'],
+
+      // Family History
+      hasFamilyMentalHealthHistory: json['hasFamilyMentalHealthHistory'],
+      familyRelationshipDetails: json['familyRelationshipDetails'],
+      familyMentalHealthCondition: json['familyMentalHealthCondition'],
+      hasBeenHospitalizedForMentalHealth:
+          json['hasBeenHospitalizedForMentalHealth'],
+      numberOfAdmissions: json['numberOfAdmissions'],
+      duration: json['duration'],
+      outcome: json['outcome'],
+
+      hasADLDifficulty: json['hasADLDifficulty'],
       pastDrugHistory:
           json['pastDrugHistory'] != null
               ? List<String>.from(json['pastDrugHistory'])
@@ -331,10 +421,6 @@ class Patient {
       personalHistory:
           json['personalHistory'] != null
               ? List<String>.from(json['personalHistory'])
-              : null,
-      familyHistory:
-          json['familyHistory'] != null
-              ? List<String>.from(json['familyHistory'])
               : null,
       activitiesOfDailyLiving:
           json['activitiesOfDailyLiving'] != null
@@ -395,12 +481,165 @@ class Patient {
       selectedAgitatedLevel: json['selectedAgitatedLevel'],
       selectedFeelLow: json['selectedFeelLow'],
       selectedFeelElated: json['selectedFeelElated'],
+      selectedCategory: json['selectedCategory'],
+      moodScale:
+          json['moodScale'] != null
+              ? (json['moodScale'] as num).toDouble()
+              : null,
+      moodAffectLife: json['moodAffectLife'],
+      extremeEnergy: json['extremeEnergy'],
+      recklessSpending: json['recklessSpending'],
+      takingMedications: json['takingMedications'],
+      alcoholDrugUse: json['alcoholDrugUse'],
+      medicalConditionMoodCause: json['medicalConditionMoodCause'],
       imagePath: json['imagePath'],
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'doctorUserId': doctorUserId,
+      'fullName': fullName,
+      'email': email,
+      'contact': contact,
+      'address': address,
+      'dateOfBirth': dateOfBirth,
+      'genderBornWith': genderBornWith,
+      'genderIdentifiedWith': genderIdentifiedWith,
+      'weight': weight,
+      'height': height,
+      'bloodPressure': bloodPressure,
+      'pulse': pulse,
+      'allergies': allergies,
+      'kinRelation': kinRelation,
+      'kinFullName': kinFullName,
+      'kinContactNumber': kinContactNumber,
+      'gpDetails': gpDetails,
+      'preferredLanguage': preferredLanguage,
+      'notes': notes?.map((n) => n.toJson()).toList(),
+      'hasPhysicalDisabilities': hasPhysicalDisabilities,
+      'physicalDisabilitySpecify': physicalDisabilitySpecify,
+      'requiresWheelchairAccess': requiresWheelchairAccess,
+      'wheelchairSpecify': wheelchairSpecify,
+      'needsSpecialCommunication': needsSpecialCommunication,
+      'communicationSpecify': communicationSpecify,
+      'hasHearingImpairments': hasHearingImpairments,
+      'hearingSpecify': hearingSpecify,
+      'hasVisualImpairments': hasVisualImpairments,
+      'visualSpecify': visualSpecify,
+      'environmentalFactors': environmentalFactors,
+      'otherAccessibilityNeeds': otherAccessibilityNeeds,
+      'hasHealthInsurance': hasHealthInsurance,
+      'insuranceProvider': insuranceProvider,
+      'policyNumber': policyNumber,
+      'insuranceClaimContact': insuranceClaimContact,
+      'linkedHospitals': linkedHospitals,
+      'additionalHealthBenefits': additionalHealthBenefits,
+
+      // Past Medical History
+      'hasPastMedicalHistory': hasPastMedicalHistory,
+      'pastMedicalHistory': pastMedicalHistory,
+      'hasMedicationHistory': hasMedicationHistory,
+      'medicationHistory': medicationHistory,
+      'hasFamilyHistory': hasFamilyHistory,
+      'familyHistory': familyHistory,
+
+      // Past Drug History
+      'hasAllergatic': hasAllergatic,
+      'hasMedicationAllergatic': hasMedicationAllergatic,
+      'medicationAllergatic': medicationAllergatic,
+      'hasTakingMedication': hasTakingMedication,
+      'takingMedication': takingMedication,
+      'hasMentalMedication': hasMentalMedication,
+      'mentalMedication': mentalMedication,
+
+      // Past Psychiatric History
+      'isVisitedPsychiatrist': isVisitedPsychiatrist,
+      'hasDiagnosisHistory': hasDiagnosisHistory,
+      'diagnosisHistory': diagnosisHistory,
+      'isPsychiatricallyHospitalized': isPsychiatricallyHospitalized,
+      'is72HourMentallyDetentionOrder': is72HourMentallyDetentionOrder,
+      'hasDetainedMentalHealth': hasDetainedMentalHealth,
+      'numberOfMentallyDetained': numberOfMentallyDetained,
+      'detainedMentalHealthTreatment': detainedMentalHealthTreatment,
+      'hasSeekingHelp': hasSeekingHelp,
+      'seekingHelp': seekingHelp,
+
+      // Personal History
+      'isPlannedPregnancy': isPlannedPregnancy,
+      'isMaternalSubstanceUseDuringPregnancy':
+          isMaternalSubstanceUseDuringPregnancy,
+      'isBirthDelayed': isBirthDelayed,
+      'isBirthInduced': isBirthInduced,
+      'isBirthHypoxia': isBirthHypoxia,
+      'isImmediatePostNatalComplications': isImmediatePostNatalComplications,
+      'isRequireOxygenOrIncubator': isRequireOxygenOrIncubator,
+      'isFeedWellAsNewborn': isFeedWellAsNewborn,
+      'isSleepWellAsNewborn': isSleepWellAsNewborn,
+
+      // Family History
+      'hasFamilyMentalHealthHistory': hasFamilyMentalHealthHistory,
+      'familyRelationshipDetails': familyRelationshipDetails,
+      'familyMentalHealthCondition': familyMentalHealthCondition,
+      'hasBeenHospitalizedForMentalHealth': hasBeenHospitalizedForMentalHealth,
+      'numberOfAdmissions': numberOfAdmissions,
+      'duration': duration,
+      'outcome': outcome,
+
+      'hasADLDifficulty': hasADLDifficulty,
+      'pastDrugHistory': pastDrugHistory,
+      'pastPsychiatricHistory': pastPsychiatricHistory,
+      'personalHistory': personalHistory,
+      'activitiesOfDailyLiving': activitiesOfDailyLiving,
+      'depressiveIllness': depressiveIllness,
+      'feelLowFrequency': feelLowFrequency,
+      'moodLevel': moodLevel,
+      'selfEsteemLevel': selfEsteemLevel,
+      'cryToggle': cryToggle,
+      'cryFrequency': cryFrequency,
+      'suicidalToggle': suicidalToggle,
+      'suicidalFrequency': suicidalFrequency,
+      'notWantToBeHereToggle': notWantToBeHereToggle,
+      'notWantToBeHereFrequency': notWantToBeHereFrequency,
+      'isWorthLiving': isWorthLiving,
+      'isEndingLife': isEndingLife,
+      'isEndingThoughts': isEndingThoughts,
+      'lifeEndingThoughts': lifeEndingThoughts,
+      'isInjured': isInjured,
+      'injuredDetails': injuredDetails,
+      'admittedToHospital': admittedToHospital,
+      'admittedToHospitalDetails': admittedToHospitalDetails,
+      'selfHarmed': selfHarmed,
+      'selfHarmedDetails': selfHarmedDetails,
+      'acquiredInjury': acquiredInjury,
+      'acquiredInjuryDetails': acquiredInjuryDetails,
+      'blameYourself': blameYourself,
+      'blameYourselfDetails': blameYourselfDetails,
+      'moodRelatedQuestions': moodRelatedQuestions,
+      'endingYourLifeRelatedQuestions': endingYourLifeRelatedQuestions,
+      'abnormalBehaviorsRelatedQuestions': abnormalBehaviorsRelatedQuestions,
+      'believesInSpecialPurposeRelatedQuestions':
+          believesInSpecialPurposeRelatedQuestions,
+      'overlyHappy': overlyHappy,
+      'selectedAngerLevel': selectedAngerLevel,
+      'selectedAgitatedLevel': selectedAgitatedLevel,
+      'selectedFeelLow': selectedFeelLow,
+      'selectedFeelElated': selectedFeelElated,
+      'selectedCategory': selectedCategory,
+      'moodScale': moodScale,
+      'moodAffectLife': moodAffectLife,
+      'extremeEnergy': extremeEnergy,
+      'recklessSpending': recklessSpending,
+      'takingMedications': takingMedications,
+      'alcoholDrugUse': alcoholDrugUse,
+      'medicalConditionMoodCause': medicalConditionMoodCause,
+      'imagePath': imagePath,
+    };
+  }
+
   @override
   String toString() {
-    return 'Patient(id: $id, fullName: $fullName, email: $email, contact: $contact, dob: $dateOfBirth, genderBornWith: $genderBornWith, genderIdentifiedWith: $genderIdentifiedWith, weight: $weight, height: $height, bloodPressure: $bloodPressure, pulse: $pulse, allergies: $allergies, pastMedicalHistory: $pastMedicalHistory, moodLevel: $moodLevel, imagePath: $imagePath, notes : $notes ...)';
+    return 'Patient(id: $id, name: $fullName, email: $email, hasPastMedicalHistory: $hasPastMedicalHistory, hasFamilyHistory: $hasFamilyHistory, hasMedicationHistory: $hasMedicationHistory, pastMedicalHistory: $pastMedicalHistory, pastDrugHistory: $pastDrugHistory)';
   }
 }
