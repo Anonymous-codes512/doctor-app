@@ -379,68 +379,53 @@ class Routes {
         }
 
       case pastMedicalHistoryScreen:
-        final args = settings.arguments;
-        if (args != null && args is Patient) {
-          return MaterialPageRoute(
-            builder: (_) => PastMedicalHistoryScreen(patient: args),
-          );
-        }
+        final patientId = settings.arguments as int;
+        return MaterialPageRoute(
+          builder: (_) => PastMedicalHistoryScreen(patientId: patientId),
+        );
 
       case pastDrugHistoryScreen:
-        final args = settings.arguments;
-        if (args != null && args is Patient) {
-          return MaterialPageRoute(
-            builder: (_) => PastDrugHistoryScreen(patient: args),
-          );
-        }
+        final patientId = settings.arguments as int;
+        return MaterialPageRoute(
+          builder: (_) => PastDrugHistoryScreen(patientId: patientId),
+        );
 
       case pastPsychiatricHistoryScreen:
-        final args = settings.arguments;
-        if (args != null && args is Patient) {
-          return MaterialPageRoute(
-            builder: (_) => PastPsychiatricHistoryScreen(patient: args),
-          );
-        }
+        final patientId = settings.arguments as int;
+        return MaterialPageRoute(
+          builder: (_) => PastPsychiatricHistoryScreen(patientId: patientId),
+        );
 
       case personalHistoryScreen:
-        final args = settings.arguments;
-        if (args != null && args is Patient) {
-          return MaterialPageRoute(
-            builder: (_) => PersonalHistoryScreen(patient: args),
-          );
-        }
+        final patientId = settings.arguments as int;
+        return MaterialPageRoute(
+          builder: (_) => PersonalHistoryScreen(patientId: patientId),
+        );
 
       case moodAssessmentScreen:
-        final args = settings.arguments;
-        if (args != null && args is Patient) {
-          return MaterialPageRoute(
-            builder: (_) => MoodAssessmentScreen(patient: args),
-          );
-        }
+        final patientId = settings.arguments as int;
+        return MaterialPageRoute(
+          builder: (_) => MoodAssessmentScreen(patientId: patientId),
+        );
 
       case moodInfoScreen:
-        final args = settings.arguments;
-        if (args != null && args is Patient) {
-          return MaterialPageRoute(
-            builder: (_) => MoodInfoScreen(patient: args),
-          );
-        }
+        final patientId = settings.arguments as int;
+        return MaterialPageRoute(
+          builder: (_) => MoodInfoScreen(patientId: patientId),
+        );
 
       case activitiesOfDailyLivingScreen:
-        final args = settings.arguments;
-        if (args != null && args is Patient) {
-          return MaterialPageRoute(
-            builder: (_) => ActivitiesOfDailyLivingScreen(patient: args),
-          );
-        }
+        final patientId = settings.arguments as int;
+        return MaterialPageRoute(
+          builder: (_) => ActivitiesOfDailyLivingScreen(patientId: patientId),
+        );
 
       case familyHistoryScreen:
-        final args = settings.arguments;
-        if (args != null && args is Patient) {
-          return MaterialPageRoute(
-            builder: (_) => FamilyHistoryScreen(patient: args),
-          );
-        }
+        final patientId = settings.arguments as int;
+
+        return MaterialPageRoute(
+          builder: (_) => FamilyHistoryScreen(patientId: patientId),
+        );
 
       default:
         return MaterialPageRoute(

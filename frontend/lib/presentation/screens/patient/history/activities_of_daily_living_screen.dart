@@ -1,11 +1,13 @@
 import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/gender_radio_group.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
+import 'package:doctor_app/provider/patient_provider.dart' show PatientProvider;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ActivitiesOfDailyLivingScreen extends StatefulWidget {
-  final Patient patient;
-  const ActivitiesOfDailyLivingScreen({super.key, required this.patient});
+  final int patientId;
+  const ActivitiesOfDailyLivingScreen({super.key, required this.patientId});
 
   @override
   State<ActivitiesOfDailyLivingScreen> createState() =>
@@ -27,6 +29,16 @@ class _ActivitiesOfDailyLivingScreenState
   String? householdTasks;
   String? dailyAffairs;
   String? safetyMobility;
+  late Patient patient;
+  @override
+  void initState() {
+    super.initState();
+
+    final patients =
+        Provider.of<PatientProvider>(context, listen: false).patients;
+
+    patient = patients.firstWhere((patient) => patient.id == widget.patientId);
+  }
 
   @override
   Widget build(BuildContext context) {

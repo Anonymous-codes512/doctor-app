@@ -4,11 +4,13 @@ import 'package:doctor_app/presentation/widgets/gender_radio_group.dart';
 import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
 import 'package:doctor_app/presentation/widgets/toggle_switch_widget.dart';
+import 'package:doctor_app/provider/patient_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class PastPsychiatricHistoryScreen extends StatefulWidget {
-  final Patient patient;
-  const PastPsychiatricHistoryScreen({super.key, required this.patient});
+  final int patientId;
+  const PastPsychiatricHistoryScreen({super.key, required this.patientId});
 
   @override
   State<PastPsychiatricHistoryScreen> createState() =>
@@ -18,23 +20,50 @@ class PastPsychiatricHistoryScreen extends StatefulWidget {
 class _PastPsychiatricHistoryScreenState
     extends State<PastPsychiatricHistoryScreen> {
   TextEditingController _diagnosisHistoryController = TextEditingController();
-  TextEditingController _detainedMentalHealthController =
+  TextEditingController _numberOfMentallyDetainedController =
       TextEditingController();
-  TextEditingController _detainedMentalHealthtreatmentController =
+  TextEditingController _detainedMentalHealthTreatmentController =
       TextEditingController();
   TextEditingController _seekingHelpController = TextEditingController();
 
-  String? groupValue;
   List<String> options = ['Yes', 'No'];
-  void onChanged(String? value) {
-    setState(() {
-      groupValue = value;
-    });
-  }
 
-  bool diagnosisHistory = false;
-  bool isDetainedMentalHealth = false;
-  bool isSeekingHelp = false;
+  String? isVisitedPsychiatrist;
+  String? is72HourMentallyDetentionOrder;
+  String? isPsychiatricallyHospitalized;
+
+  bool hasDiagnosisHistory = false;
+  bool hasDetainedMentalHealth = false;
+  bool hasSeekingHelp = false;
+
+  late Patient patient;
+
+  @override
+  void initState() {
+    super.initState();
+    final patients =
+        Provider.of<PatientProvider>(context, listen: false).patients;
+
+    patient = patients.firstWhere((patient) => patient.id == widget.patientId);
+
+    isVisitedPsychiatrist = patient.isVisitedPsychiatrist;
+    hasDiagnosisHistory = patient.hasDiagnosisHistory ?? false;
+    _diagnosisHistoryController = TextEditingController(
+      text: patient.diagnosisHistory?.join(', ') ?? '',
+    );
+    isPsychiatricallyHospitalized = patient.isPsychiatricallyHospitalized;
+    is72HourMentallyDetentionOrder = patient.is72HourMentallyDetentionOrder;
+    hasDetainedMentalHealth = patient.hasDetainedMentalHealth ?? false;
+
+    _numberOfMentallyDetainedController = TextEditingController(
+      text: patient.numberOfMentallyDetained,
+    );
+    _detainedMentalHealthTreatmentController = TextEditingController(
+      text: patient.detainedMentalHealthTreatment,
+    );
+    hasSeekingHelp = patient.hasSeekingHelp ?? false;
+    _seekingHelpController = TextEditingController(text: patient.seekingHelp);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +100,14 @@ class _PastPsychiatricHistoryScreenState
               const SizedBox(height: 8.0),
               GenderRadioGroup(
                 label: 'Have you ever seen a psychiatrist before? ',
-                groupValue: groupValue,
+                groupValue: isVisitedPsychiatrist,
                 options: options,
-                onChanged: onChanged,
+                onChanged:
+                    (value) => {
+                      setState(() {
+                        isVisitedPsychiatrist = value;
+                      }),
+                    },
               ),
               const SizedBox(height: 16.0),
               Text(
@@ -84,14 +118,14 @@ class _PastPsychiatricHistoryScreenState
               ToggleSwitchWidget(
                 label:
                     'Have you ever been diagnosed with a psychiatric disorder?',
-                value: diagnosisHistory,
+                value: hasDiagnosisHistory,
                 onChanged: (value) {
                   setState(() {
-                    diagnosisHistory = value;
+                    hasDiagnosisHistory = value;
                   });
                 },
               ),
-              if (diagnosisHistory)
+              if (hasDiagnosisHistory)
                 LabeledTextField(
                   label: 'If yes, please list the diagnoses: ',
                   hintText: 'Conditions here...',
@@ -104,9 +138,14 @@ class _PastPsychiatricHistoryScreenState
               ),
               GenderRadioGroup(
                 label: 'Have you ever been admitted to a psychiatric ward?',
-                groupValue: groupValue,
+                groupValue: isPsychiatricallyHospitalized,
                 options: options,
-                onChanged: onChanged,
+                onChanged:
+                    (value) => {
+                      setState(() {
+                        isPsychiatricallyHospitalized = value;
+                      }),
+                    },
               ),
               const SizedBox(height: 16.0),
               Text(
@@ -116,9 +155,14 @@ class _PastPsychiatricHistoryScreenState
               GenderRadioGroup(
                 label:
                     'Have you ever been subjected to a 72-hour mental health detention order?',
-                groupValue: groupValue,
+                groupValue: is72HourMentallyDetentionOrder,
                 options: options,
-                onChanged: onChanged,
+                onChanged:
+                    (value) => {
+                      setState(() {
+                        is72HourMentallyDetentionOrder = value;
+                      }),
+                    },
               ),
               const SizedBox(height: 16.0),
               Text(
@@ -128,26 +172,26 @@ class _PastPsychiatricHistoryScreenState
               const SizedBox(height: 8.0),
               ToggleSwitchWidget(
                 label: 'Have you ever been detained for mental health reasons?',
-                value: isDetainedMentalHealth,
+                value: hasDetainedMentalHealth,
                 onChanged: (value) {
                   setState(() {
-                    isDetainedMentalHealth = value;
+                    hasDetainedMentalHealth = value;
                   });
                 },
               ),
-              if (isDetainedMentalHealth)
+              if (hasDetainedMentalHealth)
                 LabeledTextField(
                   label:
                       'If yes, how many times have you been detained and for how long?:',
                   hintText: 'Conditions here...',
-                  controller: _detainedMentalHealthController,
+                  controller: _numberOfMentallyDetainedController,
                 ),
-              if (isDetainedMentalHealth)
+              if (hasDetainedMentalHealth)
                 LabeledTextField(
                   label:
                       'What treatment was given for each hospital admission?:',
                   hintText: 'Conditions here...',
-                  controller: _detainedMentalHealthtreatmentController,
+                  controller: _detainedMentalHealthTreatmentController,
                 ),
               const SizedBox(height: 16.0),
               Text(
@@ -158,21 +202,62 @@ class _PastPsychiatricHistoryScreenState
               ToggleSwitchWidget(
                 label:
                     'Are you open to seeing a psychiatrist or mental health professional?',
-                value: isSeekingHelp,
+                value: hasSeekingHelp,
                 onChanged: (value) {
                   setState(() {
-                    isSeekingHelp = value;
+                    hasSeekingHelp = value;
                   });
                 },
               ),
-              if (isSeekingHelp)
+              if (hasSeekingHelp)
                 LabeledTextField(
                   label: 'If yes, who would you prefer to see and why?',
                   hintText: 'Conditions here...',
                   controller: _seekingHelpController,
                 ),
               const SizedBox(height: 16.0),
-              PrimaryCustomButton(text: 'Save', onPressed: () {}),
+              PrimaryCustomButton(
+                text: 'Save',
+                onPressed: () async {
+                  final provider = Provider.of<PatientProvider>(
+                    context,
+                    listen: false,
+                  );
+
+                  await provider.updatePatientFields(
+                    context,
+                    patientId: widget.patientId,
+                    updatedFields: {
+                      'is_visited_psychiatrist': isVisitedPsychiatrist,
+                      'has_diagnosis_history': hasDiagnosisHistory,
+                      if (hasDiagnosisHistory)
+                        'diagnosis_history':
+                            _diagnosisHistoryController.text
+                                .split(',')
+                                .map((e) => e.trim())
+                                .where((e) => e.isNotEmpty)
+                                .toList(),
+                      'is_psychiatrically_hospitalized':
+                          isPsychiatricallyHospitalized,
+                      'is_72_hour_mentally_detention_order':
+                          is72HourMentallyDetentionOrder,
+                      'has_detained_mental_health': hasDetainedMentalHealth,
+                      if (hasDetainedMentalHealth)
+                        'number_of_mentally_detained':
+                            _numberOfMentallyDetainedController.text.trim(),
+                      if (hasDetainedMentalHealth)
+                        'detained_mental_health_treatment':
+                            _detainedMentalHealthTreatmentController.text
+                                .trim(),
+                      'has_seeking_help': hasSeekingHelp,
+                      if (hasSeekingHelp)
+                        'seeking_help': _seekingHelpController.text.trim(),
+                    },
+                  );
+
+                  Navigator.pop(context);
+                },
+              ),
               const SizedBox(height: 24.0),
             ],
           ),

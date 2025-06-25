@@ -1,11 +1,13 @@
 import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/gender_radio_group.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
+import 'package:doctor_app/provider/patient_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class PersonalHistoryScreen extends StatefulWidget {
-  final Patient patient;
-  const PersonalHistoryScreen({super.key, required this.patient});
+  final int patientId;
+  const PersonalHistoryScreen({super.key, required this.patientId});
 
   @override
   State<PersonalHistoryScreen> createState() => _PersonalHistoryScreenState();
@@ -14,15 +16,39 @@ class PersonalHistoryScreen extends StatefulWidget {
 class _PersonalHistoryScreenState extends State<PersonalHistoryScreen> {
   final TextEditingController _searchController = TextEditingController();
 
-  String? plannedPregnancy;
-  String? alcoholDuringPregnancy;
-  String? birthTiming;
-  String? birthMethod;
-  String? oxygenLack;
-  String? birthComplications;
-  String? requiredOxygen;
-  String? fedWell;
-  String? sleptWell;
+  String? isPlannedPregnancy;
+  String? isMaternalSubstanceUseDuringPregnancy;
+  String? isBirthDelayed;
+  String? isBirthInduced;
+  String? isBirthHypoxia;
+  String? isImmediatePostNatalComplications;
+  String? isRequireOxygenOrIncubator;
+  String? isFeedWellAsNewborn;
+  String? isSleepWellAsNewborn;
+
+  late Patient patient;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final patients =
+        Provider.of<PatientProvider>(context, listen: false).patients;
+
+    patient = patients.firstWhere((patient) => patient.id == widget.patientId);
+
+    isPlannedPregnancy = patient.isPlannedPregnancy;
+    isMaternalSubstanceUseDuringPregnancy =
+        patient.isMaternalSubstanceUseDuringPregnancy;
+    isBirthDelayed = patient.isBirthDelayed;
+    isBirthInduced = patient.isBirthInduced;
+    isBirthHypoxia = patient.isBirthHypoxia;
+    isImmediatePostNatalComplications =
+        patient.isImmediatePostNatalComplications;
+    isRequireOxygenOrIncubator = patient.isRequireOxygenOrIncubator;
+    isFeedWellAsNewborn = patient.isFeedWellAsNewborn;
+    isSleepWellAsNewborn = patient.isSleepWellAsNewborn;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +88,10 @@ class _PersonalHistoryScreenState extends State<PersonalHistoryScreen> {
               // Questions
               GenderRadioGroup(
                 label: 'Was your birth a planned pregnancy?',
-                groupValue: plannedPregnancy,
+                groupValue: isPlannedPregnancy,
                 options: ['yes', 'no'],
-                onChanged: (value) => setState(() => plannedPregnancy = value),
+                onChanged:
+                    (value) => setState(() => isPlannedPregnancy = value),
               ),
 
               const SizedBox(height: 20),
@@ -72,10 +99,12 @@ class _PersonalHistoryScreenState extends State<PersonalHistoryScreen> {
               GenderRadioGroup(
                 label:
                     'Did your mother take alcohol or any other drug substances during pregnancy?',
-                groupValue: alcoholDuringPregnancy,
+                groupValue: isMaternalSubstanceUseDuringPregnancy,
                 options: ['yes', 'no'],
                 onChanged:
-                    (value) => setState(() => alcoholDuringPregnancy = value),
+                    (value) => setState(
+                      () => isMaternalSubstanceUseDuringPregnancy = value,
+                    ),
               ),
 
               const SizedBox(height: 20),
@@ -89,18 +118,18 @@ class _PersonalHistoryScreenState extends State<PersonalHistoryScreen> {
 
               GenderRadioGroup(
                 label: 'Was the birth delayed or on time?',
-                groupValue: birthTiming,
+                groupValue: isBirthDelayed,
                 options: ['on time', 'delayed'],
-                onChanged: (value) => setState(() => birthTiming = value),
+                onChanged: (value) => setState(() => isBirthDelayed = value),
               ),
 
               const SizedBox(height: 16),
 
               GenderRadioGroup(
                 label: 'Was the birth induced or a normal delivery?',
-                groupValue: birthMethod,
+                groupValue: isBirthInduced,
                 options: ['normal delivery', 'induced'],
-                onChanged: (value) => setState(() => birthMethod = value),
+                onChanged: (value) => setState(() => isBirthInduced = value),
               ),
 
               const SizedBox(height: 20),
@@ -114,9 +143,9 @@ class _PersonalHistoryScreenState extends State<PersonalHistoryScreen> {
 
               GenderRadioGroup(
                 label: 'Was there any lack of oxygen (e.g., cord around neck)?',
-                groupValue: oxygenLack,
+                groupValue: isBirthHypoxia,
                 options: ['yes', 'no'],
-                onChanged: (value) => setState(() => oxygenLack = value),
+                onChanged: (value) => setState(() => isBirthHypoxia = value),
               ),
 
               const SizedBox(height: 16),
@@ -124,37 +153,43 @@ class _PersonalHistoryScreenState extends State<PersonalHistoryScreen> {
               GenderRadioGroup(
                 label:
                     'Any complications immediately after birth (bleeding, infections, jaundice, etc.)?',
-                groupValue: birthComplications,
+                groupValue: isImmediatePostNatalComplications,
                 options: ['yes', 'no'],
                 onChanged:
-                    (value) => setState(() => birthComplications = value),
+                    (value) => setState(
+                      () => isImmediatePostNatalComplications = value,
+                    ),
               ),
 
               const SizedBox(height: 16),
 
               GenderRadioGroup(
                 label: 'Did you require oxygen or an incubator?',
-                groupValue: requiredOxygen,
+                groupValue: isRequireOxygenOrIncubator,
                 options: ['yes', 'no'],
-                onChanged: (value) => setState(() => requiredOxygen = value),
+                onChanged:
+                    (value) =>
+                        setState(() => isRequireOxygenOrIncubator = value),
               ),
 
               const SizedBox(height: 16),
 
               GenderRadioGroup(
                 label: 'Did you feed well as a newborn?',
-                groupValue: fedWell,
+                groupValue: isFeedWellAsNewborn,
                 options: ['yes', 'no'],
-                onChanged: (value) => setState(() => fedWell = value),
+                onChanged:
+                    (value) => setState(() => isFeedWellAsNewborn = value),
               ),
 
               const SizedBox(height: 16),
 
               GenderRadioGroup(
                 label: 'Did you sleep well as a newborn?',
-                groupValue: sleptWell,
+                groupValue: isSleepWellAsNewborn,
                 options: ['yes', 'no'],
-                onChanged: (value) => setState(() => sleptWell = value),
+                onChanged:
+                    (value) => setState(() => isSleepWellAsNewborn = value),
               ),
 
               const SizedBox(height: 32),
@@ -162,8 +197,30 @@ class _PersonalHistoryScreenState extends State<PersonalHistoryScreen> {
               // Save Button
               PrimaryCustomButton(
                 text: 'Save',
-                onPressed: () {
-                  // Handle save action
+                onPressed: () async {
+                  final provider = Provider.of<PatientProvider>(
+                    context,
+                    listen: false,
+                  );
+
+                  await provider.updatePatientFields(
+                    context,
+                    patientId: widget.patientId,
+                    updatedFields: {
+                      'is_planned_pregnancy': isPlannedPregnancy,
+                      'is_maternal_substance_use_during_pregnancy':
+                          isMaternalSubstanceUseDuringPregnancy,
+                      'is_birth_delayed': isBirthDelayed,
+                      'is_birth_induced': isBirthInduced,
+                      'is_birth_hypoxia': isBirthHypoxia,
+                      'is_immediate_post_natal_complications':
+                          isImmediatePostNatalComplications,
+                      'is_require_oxygen_or_incubator':
+                          isRequireOxygenOrIncubator,
+                      'is_feed_well_as_newborn': isFeedWellAsNewborn,
+                      'is_sleep_well_as_newborn': isSleepWellAsNewborn,
+                    },
+                  );
                   Navigator.pop(context);
                 },
               ),

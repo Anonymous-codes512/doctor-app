@@ -3,11 +3,14 @@ import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
 import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
 import 'package:doctor_app/presentation/widgets/toggle_switch_widget.dart';
+import 'package:doctor_app/provider/patient_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class FamilyHistoryScreen extends StatefulWidget {
-  final Patient patient;
-  const FamilyHistoryScreen({super.key, required this.patient});
+  final int patientId;
+
+  const FamilyHistoryScreen({super.key, required this.patientId});
 
   @override
   State<FamilyHistoryScreen> createState() => _FamilyHistoryScreenState();
@@ -25,6 +28,38 @@ class _FamilyHistoryScreenState extends State<FamilyHistoryScreen> {
 
   bool hasFamilyMentalHealthHistory = false;
   bool hasBeenHospitalizedForMentalHealth = false;
+
+  late Patient patient;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final patients =
+        Provider.of<PatientProvider>(context, listen: false).patients;
+
+    patient = patients.firstWhere((patient) => patient.id == widget.patientId);
+
+    hasFamilyMentalHealthHistory =
+        patient.hasFamilyMentalHealthHistory ?? false;
+
+    _familyRelationshipDetailsController = TextEditingController(
+      text: patient.familyRelationshipDetails,
+    );
+
+    _familyMentalHealthConditionController = TextEditingController(
+      text: patient.familyMentalHealthCondition,
+    );
+
+    hasBeenHospitalizedForMentalHealth =
+        patient.hasBeenHospitalizedForMentalHealth ?? false;
+
+    _numberOfAdmissionsController = TextEditingController(
+      text: patient.numberOfAdmissions,
+    );
+    _durationControllers = TextEditingController(text: patient.duration);
+    _outcomeControllers = TextEditingController(text: patient.outcome);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +153,41 @@ class _FamilyHistoryScreenState extends State<FamilyHistoryScreen> {
                   controller: _outcomeControllers,
                 ),
               const SizedBox(height: 16.0),
-              PrimaryCustomButton(text: 'Save', onPressed: () {}),
+              PrimaryCustomButton(
+                text: 'Save',
+                onPressed: () async {
+                  final provider = Provider.of<PatientProvider>(
+                    context,
+                    listen: false,
+                  );
+
+                  await provider.updatePatientFields(
+                    context,
+                    patientId: widget.patientId,
+                    updatedFields: {
+                      'has_family_mental_health_history':
+                          hasFamilyMentalHealthHistory,
+                      if (hasFamilyMentalHealthHistory)
+                        'family_relationship_details':
+                            _familyRelationshipDetailsController.text.trim(),
+                      if (hasFamilyMentalHealthHistory)
+                        'family_mental_health_condition':
+                            _familyMentalHealthConditionController.text.trim(),
+
+                      'has_been_hospitalized_for_mental_health':
+                          hasBeenHospitalizedForMentalHealth,
+                      if (hasBeenHospitalizedForMentalHealth)
+                        'number_of_admissions':
+                            _numberOfAdmissionsController.text.trim(),
+                      if (hasBeenHospitalizedForMentalHealth)
+                        'duration': _durationControllers.text.trim(),
+                      if (hasBeenHospitalizedForMentalHealth)
+                        'outcome': _outcomeControllers.text.trim(),
+                    },
+                  );
+                  Navigator.pop(context);
+                },
+              ),
               const SizedBox(height: 24.0),
             ],
           ),

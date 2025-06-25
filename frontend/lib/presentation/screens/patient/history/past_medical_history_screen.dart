@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class PastMedicalHistoryScreen extends StatefulWidget {
-  final Patient patient;
-  const PastMedicalHistoryScreen({super.key, required this.patient});
+  final int patientId;
+  const PastMedicalHistoryScreen({super.key, required this.patientId});
 
   @override
   State<PastMedicalHistoryScreen> createState() =>
@@ -25,28 +25,31 @@ class _PastMedicalHistoryScreenState extends State<PastMedicalHistoryScreen> {
   bool familyMedicalHistory = false;
   bool medicationHistory = false;
 
+  late Patient patient;
+
   @override
   void initState() {
     super.initState();
+    final patients =
+        Provider.of<PatientProvider>(context, listen: false).patients;
+
+    patient = patients.firstWhere((patient) => patient.id == widget.patientId);
+
+    /// Correct mapping of toggles based on actual `has_*` fields
+    pastMedicalHistory = patient.hasPastMedicalHistory ?? false;
+    familyMedicalHistory = patient.hasFamilyHistory ?? false;
+    medicationHistory = patient.hasMedicationHistory ?? false;
+
+    /// Correctly assign controllers based on values
     _pastMedicalHistoryController = TextEditingController(
-      text: widget.patient.pastMedicalHistory?.join(', ') ?? '',
+      text: patient.pastMedicalHistory?.join(', ') ?? '',
     );
     _familyMedicalHistoryController = TextEditingController(
-      text: widget.patient.familyHistory?.join(', ') ?? '',
+      text: patient.familyHistory?.join(', ') ?? '',
     );
     _medicationController = TextEditingController(
-      text: widget.patient.pastDrugHistory?.join(', ') ?? '',
+      text: patient.medicationHistory?.join(', ') ?? '',
     );
-
-    pastMedicalHistory =
-        widget.patient.familyHistory != null &&
-        widget.patient.familyHistory!.isNotEmpty;
-    familyMedicalHistory =
-        widget.patient.pastMedicalHistory != null &&
-        widget.patient.pastMedicalHistory!.isNotEmpty;
-    medicationHistory =
-        widget.patient.pastDrugHistory != null &&
-        widget.patient.pastDrugHistory!.isNotEmpty;
   }
 
   @override
@@ -71,108 +74,116 @@ class _PastMedicalHistoryScreenState extends State<PastMedicalHistoryScreen> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16.0),
-              Text(
-                '1. Past Medical Conditions',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// Section 1
+            const Text(
+              '1. Past Medical Conditions',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            ToggleSwitchWidget(
+              label:
+                  'Do you have a past medical history? (E.g., Head injuries, Diabetes, Epilepsy, etc.)',
+              value: pastMedicalHistory,
+              onChanged: (value) => setState(() => pastMedicalHistory = value),
+            ),
+            if (pastMedicalHistory)
+              LabeledTextField(
+                label: 'If yes, specify conditions:',
+                hintText: 'Conditions here...',
+                controller: _pastMedicalHistoryController,
               ),
-              const SizedBox(height: 8.0),
-              ToggleSwitchWidget(
-                label:
-                    'Do you have a past medical history? (E.g., Head injuries, Diabetes, Epilepsy, Asthma, Kidney disease, etc.)',
-                value: familyMedicalHistory,
-                onChanged:
-                    (value) => setState(() => familyMedicalHistory = value),
+
+            const SizedBox(height: 16.0),
+
+            /// Section 2
+            const Text(
+              '2. Family Medical History',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            ToggleSwitchWidget(
+              label: 'Any significant family medical history?',
+              value: familyMedicalHistory,
+              onChanged:
+                  (value) => setState(() => familyMedicalHistory = value),
+            ),
+            if (familyMedicalHistory)
+              LabeledTextField(
+                label: 'If yes, specify family members & conditions:',
+                hintText: 'Conditions here...',
+                controller: _familyMedicalHistoryController,
               ),
-              if (familyMedicalHistory)
-                LabeledTextField(
-                  label: 'If yes, please specify and explain each condition:',
-                  hintText: 'Conditions here...',
-                  controller: _pastMedicalHistoryController,
-                ),
-              const SizedBox(height: 16.0),
-              Text(
-                '2. Family Medical History',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+
+            const SizedBox(height: 16.0),
+
+            /// Section 3
+            const Text(
+              '3. Current Medications',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            ToggleSwitchWidget(
+              label:
+                  'Are you on any medication (prescribed/non-prescribed, etc.)?',
+              value: medicationHistory,
+              onChanged: (value) => setState(() => medicationHistory = value),
+            ),
+            if (medicationHistory)
+              LabeledTextField(
+                label: 'List medications with dose & duration:',
+                hintText: 'Medication here...',
+                controller: _medicationController,
               ),
-              const SizedBox(height: 8.0),
-              ToggleSwitchWidget(
-                label: 'Any significant family medical history?',
-                value: pastMedicalHistory,
-                onChanged:
-                    (value) => setState(() => pastMedicalHistory = value),
-              ),
-              if (pastMedicalHistory)
-                LabeledTextField(
-                  label:
-                      'If yes, please specify which family members and their conditions:',
-                  hintText: 'Conditions here...',
-                  controller: _familyMedicalHistoryController,
-                ),
-              const SizedBox(height: 16.0),
-              Text(
-                '3. Current Medications',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8.0),
-              ToggleSwitchWidget(
-                label:
-                    'Are you on any medication (prescribed, non-prescribed, supplements, vitamins, herbal remedies)?',
-                value: medicationHistory,
-                onChanged: (value) => setState(() => medicationHistory = value),
-              ),
-              if (medicationHistory)
-                LabeledTextField(
-                  label:
-                      'If yes, please specify each medication\'s name, dose, strength, and duration:',
-                  hintText: 'Medication here...',
-                  controller: _medicationController,
-                ),
-              const SizedBox(height: 16.0),
-              PrimaryCustomButton(
-                text: 'Save',
-                onPressed: () async {
-                  final provider = Provider.of<PatientProvider>(
-                    context,
-                    listen: false,
-                  );
-                  await provider.updateHistoryField(
-                    context,
-                    patientId: widget.patient.id!,
-                    data: {
-                      'pastMedicalHistory':
-                          familyMedicalHistory
-                              ? _pastMedicalHistoryController.text
-                                  .split(',')
-                                  .map((e) => e.trim())
-                                  .toList()
-                              : [],
-                      'familyHistory':
-                          pastMedicalHistory
-                              ? _familyMedicalHistoryController.text
-                                  .split(',')
-                                  .map((e) => e.trim())
-                                  .toList()
-                              : [],
-                      'pastDrugHistory':
-                          medicationHistory
-                              ? _medicationController.text
-                                  .split(',')
-                                  .map((e) => e.trim())
-                                  .toList()
-                              : [],
-                    },
-                  );
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
+
+            const SizedBox(height: 24.0),
+
+            /// Save Button
+            PrimaryCustomButton(
+              text: 'Save',
+              onPressed: () async {
+                final provider = Provider.of<PatientProvider>(
+                  context,
+                  listen: false,
+                );
+
+                await provider.updatePatientFields(
+                  context,
+                  patientId: widget.patientId,
+                  updatedFields: {
+                    'has_past_medical_history': pastMedicalHistory,
+                    if (pastMedicalHistory)
+                      'past_medical_history':
+                          _pastMedicalHistoryController.text
+                              .split(',')
+                              .map((e) => e.trim())
+                              .where((e) => e.isNotEmpty)
+                              .toList(),
+
+                    'has_family_history': familyMedicalHistory,
+                    if (familyMedicalHistory)
+                      'family_history':
+                          _familyMedicalHistoryController.text
+                              .split(',')
+                              .map((e) => e.trim())
+                              .where((e) => e.isNotEmpty)
+                              .toList(),
+
+                    'has_medication_history': medicationHistory,
+                    if (medicationHistory)
+                      'medication_history':
+                          _medicationController.text
+                              .split(',')
+                              .map((e) => e.trim())
+                              .where((e) => e.isNotEmpty)
+                              .toList(),
+                  },
+                );
+
+                Navigator.pop(context);
+              },
+            ),
+          ],
         ),
       ),
     );

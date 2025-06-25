@@ -92,7 +92,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Navigator.pushNamed(
                         context,
                         Routes.pastMedicalHistoryScreen,
-                        arguments: widget.patient,
+                        arguments: widget.patient.id,
                       );
                     },
                   ),
@@ -103,7 +103,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Navigator.pushNamed(
                         context,
                         Routes.pastDrugHistoryScreen,
-                        arguments: widget.patient,
+                        arguments: widget.patient.id,
                       );
                     },
                   ),
@@ -114,7 +114,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Navigator.pushNamed(
                         context,
                         Routes.pastPsychiatricHistoryScreen,
-                        arguments: widget.patient,
+                        arguments: widget.patient.id,
                       );
                     },
                   ),
@@ -125,7 +125,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Navigator.pushNamed(
                         context,
                         Routes.personalHistoryScreen,
-                        arguments: widget.patient,
+                        arguments: widget.patient.id,
                       );
                     },
                   ),
@@ -136,7 +136,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Navigator.pushNamed(
                         context,
                         Routes.familyHistoryScreen,
-                        arguments: widget.patient,
+                        arguments: widget.patient.id,
                       );
                     },
                   ),
@@ -147,7 +147,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Navigator.pushNamed(
                         context,
                         Routes.activitiesOfDailyLivingScreen,
-                        arguments: widget.patient,
+                        arguments: widget.patient.id,
                       );
                     },
                   ),
@@ -158,7 +158,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Navigator.pushNamed(
                         context,
                         Routes.moodInfoScreen,
-                        arguments: widget.patient,
+                        arguments: widget.patient.id,
                       );
                     },
                   ),
@@ -169,7 +169,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Navigator.pushNamed(
                         context,
                         Routes.moodAssessmentScreen,
-                        arguments: widget.patient,
+                        arguments: widget.patient.id,
                       );
                     },
                   ),
