@@ -100,67 +100,83 @@ class Patient {
   String? duration;
   String? outcome;
 
-  bool? hasADLDifficulty; // ActivitiesOfDailyLivingScreen
+  // Activities of daily living
+  String? showerAbility;
+  String? showerFrequency;
+  String? dressingAbility;
+  String? eatingAbility;
+  String? foodType;
+  String? toiletingAbility;
+  String? groomingAbility;
+  String? menstrualManagement;
+  String? householdTasks;
+  String? dailyAffairs;
+  String? safetyMobility;
 
-  List<String>? pastDrugHistory;
-  List<String>? pastPsychiatricHistory;
-  List<String>? personalHistory;
-  List<String>? activitiesOfDailyLiving;
-
-  // Mood Assessment related fields
-  bool? depressiveIllness;
-  String? feelLowFrequency;
+  // Mood info
+  bool? hasDepressiveIllness;
+  String? depressiveFrequency;
   double? moodLevel;
-  double? selfEsteemLevel;
-
-  bool? cryToggle;
+  bool? moodWorseInMorning;
+  bool? moodConstantlyLow;
+  bool? canSmile;
+  bool? canLaugh;
+  bool? hasNormalAppetiteAndEnjoyment;
+  String? enjoyment;
+  bool? hasCrying;
   String? cryFrequency;
-
-  bool? suicidalToggle;
+  bool? feelsLifeWorth;
+  bool? hasSuicidalThoughts;
   String? suicidalFrequency;
-
-  bool? notWantToBeHereToggle;
+  bool? feelsNotWantToBeHere;
   String? notWantToBeHereFrequency;
-
-  bool? isWorthLiving;
-  bool? isEndingLife;
-  bool? isEndingThoughts;
+  bool? wantToDie;
+  String? wantToDieFrequency;
+  bool? hasTriedEndingLife;
+  bool? hasEndingLifeThoughts;
   String? lifeEndingThoughts;
+  bool? hasInjuries;
+  String? injured;
+  bool? hasHospitalAdmission;
+  String? admittedToHospital;
+  bool? hasSelfHarmed;
+  String? selfHarmed;
+  bool? hasAcquiredInjury;
+  String? acquiredInjury;
+  bool? hasGuilt;
+  String? guiltYourself;
+  bool? bloodVesselDamage;
+  bool? nerveDamage;
+  bool? requiredStitches;
+  bool? requiredSurgery;
+  bool? permanentDamageFromSelfHarm;
+  bool? hasConfidenceAndSelfEsteem;
+  double? selfEsteemLevel;
+  String? overlyHappyFrequency;
+  bool? excessivelyFlirty;
+  bool? increasedSexDrive;
+  bool? recklessSpending;
+  bool? undressedInPublic;
+  bool? buysBeyondMeans;
+  bool? highRiskActivities;
+  bool? inflatedSelfEsteem;
+  bool? feelsSuperior;
+  bool? believesInPowers;
+  bool? feelsWealthyOrGenius;
+  String? angerLevel;
+  String? agitationLevel;
+  String? lowMoodDuration;
+  String? elatedMoodDuration;
 
-  bool? isInjured;
-  String? injuredDetails;
-
-  bool? admittedToHospital;
-  String? admittedToHospitalDetails;
-
-  bool? selfHarmed;
-  String? selfHarmedDetails;
-
-  bool? acquiredInjury;
-  String? acquiredInjuryDetails;
-
-  bool? blameYourself;
-  String? blameYourselfDetails;
-
-  Map<String, bool>? moodRelatedQuestions;
-  Map<String, bool>? endingYourLifeRelatedQuestions;
-  Map<String, bool>? abnormalBehaviorsRelatedQuestions;
-  Map<String, bool>? believesInSpecialPurposeRelatedQuestions;
-
-  String? overlyHappy;
-  String? selectedAngerLevel;
-  String? selectedAgitatedLevel;
-  String? selectedFeelLow;
-  String? selectedFeelElated;
-
-  String? selectedCategory;
-  double? moodScale;
+  // Mood assessment
+  String? selectedPhysicalSymptom;
+  double? moodLevels;
   String? moodAffectLife;
-  String? extremeEnergy;
-  String? recklessSpending;
-  bool? takingMedications;
-  String? alcoholDrugUse;
-  String? medicalConditionMoodCause;
+  String? extremeEnergyPeriods;
+  String? recklessSpendingFrequency;
+  bool? isTakingMedications;
+  String? alcoholDrugUseFrequency;
+  String? medicalConditions;
 
   String? imagePath;
 
@@ -253,52 +269,84 @@ class Patient {
     this.duration,
     this.outcome,
 
-    this.hasADLDifficulty,
-    this.pastDrugHistory,
-    this.pastPsychiatricHistory,
-    this.personalHistory,
-    this.activitiesOfDailyLiving,
-    this.depressiveIllness,
-    this.feelLowFrequency,
+    // Activities of daily living
+    this.showerAbility,
+    this.showerFrequency,
+    this.dressingAbility,
+    this.eatingAbility,
+    this.foodType,
+    this.toiletingAbility,
+    this.groomingAbility,
+    this.menstrualManagement,
+    this.householdTasks,
+    this.dailyAffairs,
+    this.safetyMobility,
+
+    //Mood info
+    this.hasDepressiveIllness,
+    this.depressiveFrequency,
     this.moodLevel,
-    this.selfEsteemLevel,
-    this.cryToggle,
+    this.moodWorseInMorning,
+    this.moodConstantlyLow,
+    this.canSmile,
+    this.canLaugh,
+    this.hasNormalAppetiteAndEnjoyment,
+    this.enjoyment,
+    this.hasCrying,
     this.cryFrequency,
-    this.suicidalToggle,
+    this.feelsLifeWorth,
+    this.hasSuicidalThoughts,
     this.suicidalFrequency,
-    this.notWantToBeHereToggle,
+    this.feelsNotWantToBeHere,
     this.notWantToBeHereFrequency,
-    this.isWorthLiving,
-    this.isEndingLife,
-    this.isEndingThoughts,
+    this.wantToDie,
+    this.wantToDieFrequency,
+    this.hasTriedEndingLife,
+    this.hasEndingLifeThoughts,
     this.lifeEndingThoughts,
-    this.isInjured,
-    this.injuredDetails,
+    this.hasInjuries,
+    this.injured,
+    this.hasHospitalAdmission,
     this.admittedToHospital,
-    this.admittedToHospitalDetails,
+    this.hasSelfHarmed,
     this.selfHarmed,
-    this.selfHarmedDetails,
+    this.hasAcquiredInjury,
     this.acquiredInjury,
-    this.acquiredInjuryDetails,
-    this.blameYourself,
-    this.blameYourselfDetails,
-    this.moodRelatedQuestions,
-    this.endingYourLifeRelatedQuestions,
-    this.abnormalBehaviorsRelatedQuestions,
-    this.believesInSpecialPurposeRelatedQuestions,
-    this.overlyHappy,
-    this.selectedAngerLevel,
-    this.selectedAgitatedLevel,
-    this.selectedFeelLow,
-    this.selectedFeelElated,
-    this.selectedCategory,
-    this.moodScale,
-    this.moodAffectLife,
-    this.extremeEnergy,
+    this.hasGuilt,
+    this.guiltYourself,
+    this.bloodVesselDamage,
+    this.nerveDamage,
+    this.requiredStitches,
+    this.requiredSurgery,
+    this.permanentDamageFromSelfHarm,
+    this.hasConfidenceAndSelfEsteem,
+    this.selfEsteemLevel,
+    this.overlyHappyFrequency,
+    this.excessivelyFlirty,
+    this.increasedSexDrive,
     this.recklessSpending,
-    this.takingMedications,
-    this.alcoholDrugUse,
-    this.medicalConditionMoodCause,
+    this.undressedInPublic,
+    this.buysBeyondMeans,
+    this.highRiskActivities,
+    this.inflatedSelfEsteem,
+    this.feelsSuperior,
+    this.believesInPowers,
+    this.feelsWealthyOrGenius,
+    this.angerLevel,
+    this.agitationLevel,
+    this.lowMoodDuration,
+    this.elatedMoodDuration,
+
+    // Mood assessment
+    this.selectedPhysicalSymptom,
+    this.moodLevels,
+    this.moodAffectLife,
+    this.extremeEnergyPeriods,
+    this.recklessSpendingFrequency,
+    this.isTakingMedications,
+    this.alcoholDrugUseFrequency,
+    this.medicalConditions,
+
     this.imagePath,
   });
   static Patient fromJson(Map<String, dynamic> json) {
@@ -409,89 +457,84 @@ class Patient {
       duration: json['duration'],
       outcome: json['outcome'],
 
-      hasADLDifficulty: json['hasADLDifficulty'],
-      pastDrugHistory:
-          json['pastDrugHistory'] != null
-              ? List<String>.from(json['pastDrugHistory'])
-              : null,
-      pastPsychiatricHistory:
-          json['pastPsychiatricHistory'] != null
-              ? List<String>.from(json['pastPsychiatricHistory'])
-              : null,
-      personalHistory:
-          json['personalHistory'] != null
-              ? List<String>.from(json['personalHistory'])
-              : null,
-      activitiesOfDailyLiving:
-          json['activitiesOfDailyLiving'] != null
-              ? List<String>.from(json['activitiesOfDailyLiving'])
-              : null,
-      depressiveIllness: json['depressiveIllness'],
-      feelLowFrequency: json['feelLowFrequency'],
-      moodLevel:
-          json['moodLevel'] != null
-              ? (json['moodLevel'] as num).toDouble()
-              : null,
-      selfEsteemLevel:
-          json['selfEsteemLevel'] != null
-              ? (json['selfEsteemLevel'] as num).toDouble()
-              : null,
-      cryToggle: json['cryToggle'],
+      // Activities of daily living
+      showerAbility: json['showerAbility'],
+      showerFrequency: json['showerFrequency'],
+      dressingAbility: json['dressingAbility'],
+      eatingAbility: json['eatingAbility'],
+      foodType: json['foodType'],
+      toiletingAbility: json['toiletingAbility'],
+      groomingAbility: json['groomingAbility'],
+      menstrualManagement: json['menstrualManagement'],
+      householdTasks: json['householdTasks'],
+      dailyAffairs: json['dailyAffairs'],
+      safetyMobility: json['safetyMobility'],
+
+      // Mood info
+      hasDepressiveIllness: json['hasDepressiveIllness'],
+      depressiveFrequency: json['depressiveFrequency'],
+      moodLevel: json['moodLevel'],
+      moodWorseInMorning: json['moodWorseInMorning'],
+      moodConstantlyLow: json['moodConstantlyLow'],
+      canSmile: json['canSmile'],
+      canLaugh: json['canLaugh'],
+      hasNormalAppetiteAndEnjoyment: json['hasNormalAppetiteAndEnjoyment'],
+      enjoyment: json['enjoyment'],
+      hasCrying: json['hasCrying'],
       cryFrequency: json['cryFrequency'],
-      suicidalToggle: json['suicidalToggle'],
+      feelsLifeWorth: json['feelsLifeWorth'],
+      hasSuicidalThoughts: json['hasSuicidalThoughts'],
       suicidalFrequency: json['suicidalFrequency'],
-      notWantToBeHereToggle: json['notWantToBeHereToggle'],
+      feelsNotWantToBeHere: json['feelsNotWantToBeHere'],
       notWantToBeHereFrequency: json['notWantToBeHereFrequency'],
-      isWorthLiving: json['isWorthLiving'],
-      isEndingLife: json['isEndingLife'],
-      isEndingThoughts: json['isEndingThoughts'],
+      wantToDie: json['wantToDie'],
+      wantToDieFrequency: json['wantToDieFrequency'],
+      hasTriedEndingLife: json['hasTriedEndingLife'],
+      hasEndingLifeThoughts: json['hasEndingLifeThoughts'],
       lifeEndingThoughts: json['lifeEndingThoughts'],
-      isInjured: json['isInjured'],
-      injuredDetails: json['injuredDetails'],
+      hasInjuries: json['hasInjuries'],
+      injured: json['injured'],
+      hasHospitalAdmission: json['hasHospitalAdmission'],
       admittedToHospital: json['admittedToHospital'],
-      admittedToHospitalDetails: json['admittedToHospitalDetails'],
+      hasSelfHarmed: json['hasSelfHarmed'],
       selfHarmed: json['selfHarmed'],
-      selfHarmedDetails: json['selfHarmedDetails'],
+      hasAcquiredInjury: json['hasAcquiredInjury'],
       acquiredInjury: json['acquiredInjury'],
-      acquiredInjuryDetails: json['acquiredInjuryDetails'],
-      blameYourself: json['blameYourself'],
-      blameYourselfDetails: json['blameYourselfDetails'],
-      moodRelatedQuestions:
-          json['moodRelatedQuestions'] != null
-              ? Map<String, bool>.from(json['moodRelatedQuestions'])
-              : null,
-      endingYourLifeRelatedQuestions:
-          json['endingYourLifeRelatedQuestions'] != null
-              ? Map<String, bool>.from(json['endingYourLifeRelatedQuestions'])
-              : null,
-      abnormalBehaviorsRelatedQuestions:
-          json['abnormalBehaviorsRelatedQuestions'] != null
-              ? Map<String, bool>.from(
-                json['abnormalBehaviorsRelatedQuestions'],
-              )
-              : null,
-      believesInSpecialPurposeRelatedQuestions:
-          json['believesInSpecialPurposeRelatedQuestions'] != null
-              ? Map<String, bool>.from(
-                json['believesInSpecialPurposeRelatedQuestions'],
-              )
-              : null,
-      overlyHappy: json['overlyHappy'],
-      selectedAngerLevel: json['selectedAngerLevel'],
-      selectedAgitatedLevel: json['selectedAgitatedLevel'],
-      selectedFeelLow: json['selectedFeelLow'],
-      selectedFeelElated: json['selectedFeelElated'],
-      selectedCategory: json['selectedCategory'],
-      moodScale:
-          json['moodScale'] != null
-              ? (json['moodScale'] as num).toDouble()
-              : null,
-      moodAffectLife: json['moodAffectLife'],
-      extremeEnergy: json['extremeEnergy'],
+      hasGuilt: json['hasGuilt'],
+      guiltYourself: json['guiltYourself'],
+      bloodVesselDamage: json['bloodVesselDamage'],
+      nerveDamage: json['nerveDamage'],
+      requiredStitches: json['requiredStitches'],
+      requiredSurgery: json['requiredSurgery'],
+      permanentDamageFromSelfHarm: json['permanentDamageFromSelfHarm'],
+      hasConfidenceAndSelfEsteem: json['hasConfidenceAndSelfEsteem'],
+      selfEsteemLevel: json['selfEsteemLevel'],
+      overlyHappyFrequency: json['overlyHappyFrequency'],
+      excessivelyFlirty: json['excessivelyFlirty'],
+      increasedSexDrive: json['increasedSexDrive'],
       recklessSpending: json['recklessSpending'],
-      takingMedications: json['takingMedications'],
-      alcoholDrugUse: json['alcoholDrugUse'],
-      medicalConditionMoodCause: json['medicalConditionMoodCause'],
+      undressedInPublic: json['undressedInPublic'],
+      buysBeyondMeans: json['buysBeyondMeans'],
+      highRiskActivities: json['highRiskActivities'],
+      inflatedSelfEsteem: json['inflatedSelfEsteem'],
+      feelsSuperior: json['feelsSuperior'],
+      believesInPowers: json['believesInPowers'],
+      feelsWealthyOrGenius: json['feelsWealthyOrGenius'],
+      angerLevel: json['angerLevel'],
+      agitationLevel: json['agitationLevel'],
+      lowMoodDuration: json['lowMoodDuration'],
+      elatedMoodDuration: json['elatedMoodDuration'],
+
+      // Mood assessment
+      selectedPhysicalSymptom: json['selectedPhysicalSymptom'],
+      moodLevels: json['moodLevels'],
+      moodAffectLife: json['moodAffectLife'],
+      extremeEnergyPeriods: json['extremeEnergyPeriods'],
+      recklessSpendingFrequency: json['recklessSpendingFrequency'],
+      isTakingMedications: json['isTakingMedications'],
+      alcoholDrugUseFrequency: json['alcoholDrugUseFrequency'],
+      medicalConditions: json['medicalConditions'],
+
       imagePath: json['imagePath'],
     );
   }
@@ -587,59 +630,241 @@ class Patient {
       'duration': duration,
       'outcome': outcome,
 
-      'hasADLDifficulty': hasADLDifficulty,
-      'pastDrugHistory': pastDrugHistory,
-      'pastPsychiatricHistory': pastPsychiatricHistory,
-      'personalHistory': personalHistory,
-      'activitiesOfDailyLiving': activitiesOfDailyLiving,
-      'depressiveIllness': depressiveIllness,
-      'feelLowFrequency': feelLowFrequency,
+      // Activities of daily living
+      'showerAbility': showerAbility,
+      'showerFrequency': showerFrequency,
+      'dressingAbility': dressingAbility,
+      'eatingAbility': eatingAbility,
+      'foodType': foodType,
+      'toiletingAbility': toiletingAbility,
+      'groomingAbility': groomingAbility,
+      'menstrualManagement': menstrualManagement,
+      'householdTasks': householdTasks,
+      'dailyAffairs': dailyAffairs,
+      'safetyMobility': safetyMobility,
+
+      // Mood info
+      'hasDepressiveIllness': hasDepressiveIllness,
+      'depressiveFrequency': depressiveFrequency,
       'moodLevel': moodLevel,
-      'selfEsteemLevel': selfEsteemLevel,
-      'cryToggle': cryToggle,
+      'moodWorseInMorning': moodWorseInMorning,
+      'moodConstantlyLow': moodConstantlyLow,
+      'canSmile': canSmile,
+      'canLaugh': canLaugh,
+      'hasNormalAppetiteAndEnjoyment': hasNormalAppetiteAndEnjoyment,
+      'enjoyment': enjoyment,
+      'hasCrying': hasCrying,
       'cryFrequency': cryFrequency,
-      'suicidalToggle': suicidalToggle,
+      'feelsLifeWorth': feelsLifeWorth,
+      'hasSuicidalThoughts': hasSuicidalThoughts,
       'suicidalFrequency': suicidalFrequency,
-      'notWantToBeHereToggle': notWantToBeHereToggle,
+      'feelsNotWantToBeHere': feelsNotWantToBeHere,
       'notWantToBeHereFrequency': notWantToBeHereFrequency,
-      'isWorthLiving': isWorthLiving,
-      'isEndingLife': isEndingLife,
-      'isEndingThoughts': isEndingThoughts,
+      'wantToDie': wantToDie,
+      'wantToDieFrequency': wantToDieFrequency,
+      'hasTriedEndingLife': hasTriedEndingLife,
+      'hasEndingLifeThoughts': hasEndingLifeThoughts,
       'lifeEndingThoughts': lifeEndingThoughts,
-      'isInjured': isInjured,
-      'injuredDetails': injuredDetails,
+      'hasInjuries': hasInjuries,
+      'injured': injured,
+      'hasHospitalAdmission': hasHospitalAdmission,
       'admittedToHospital': admittedToHospital,
-      'admittedToHospitalDetails': admittedToHospitalDetails,
+      'hasSelfHarmed': hasSelfHarmed,
       'selfHarmed': selfHarmed,
-      'selfHarmedDetails': selfHarmedDetails,
+      'hasAcquiredInjury': hasAcquiredInjury,
       'acquiredInjury': acquiredInjury,
-      'acquiredInjuryDetails': acquiredInjuryDetails,
-      'blameYourself': blameYourself,
-      'blameYourselfDetails': blameYourselfDetails,
-      'moodRelatedQuestions': moodRelatedQuestions,
-      'endingYourLifeRelatedQuestions': endingYourLifeRelatedQuestions,
-      'abnormalBehaviorsRelatedQuestions': abnormalBehaviorsRelatedQuestions,
-      'believesInSpecialPurposeRelatedQuestions':
-          believesInSpecialPurposeRelatedQuestions,
-      'overlyHappy': overlyHappy,
-      'selectedAngerLevel': selectedAngerLevel,
-      'selectedAgitatedLevel': selectedAgitatedLevel,
-      'selectedFeelLow': selectedFeelLow,
-      'selectedFeelElated': selectedFeelElated,
-      'selectedCategory': selectedCategory,
-      'moodScale': moodScale,
-      'moodAffectLife': moodAffectLife,
-      'extremeEnergy': extremeEnergy,
+      'hasGuilt': hasGuilt,
+      'guiltYourself': guiltYourself,
+      'bloodVesselDamage': bloodVesselDamage,
+      'nerveDamage': nerveDamage,
+      'requiredStitches': requiredStitches,
+      'requiredSurgery': requiredSurgery,
+      'permanentDamageFromSelfHarm': permanentDamageFromSelfHarm,
+      'hasConfidenceAndSelfEsteem': hasConfidenceAndSelfEsteem,
+      'selfEsteemLevel': selfEsteemLevel,
+      'overlyHappyFrequency': overlyHappyFrequency,
+      'excessivelyFlirty': excessivelyFlirty,
+      'increasedSexDrive': increasedSexDrive,
       'recklessSpending': recklessSpending,
-      'takingMedications': takingMedications,
-      'alcoholDrugUse': alcoholDrugUse,
-      'medicalConditionMoodCause': medicalConditionMoodCause,
+      'undressedInPublic': undressedInPublic,
+      'buysBeyondMeans': buysBeyondMeans,
+      'highRiskActivities': highRiskActivities,
+      'inflatedSelfEsteem': inflatedSelfEsteem,
+      'feelsSuperior': feelsSuperior,
+      'believesInPowers': believesInPowers,
+      'feelsWealthyOrGenius': feelsWealthyOrGenius,
+      'angerLevel': angerLevel,
+      'agitationLevel': agitationLevel,
+      'lowMoodDuration': lowMoodDuration,
+      'elatedMoodDuration': elatedMoodDuration,
+
+      // Mood assessment
+      'selectedPhysicalSymptom': selectedPhysicalSymptom,
+      'moodLevels': moodLevels,
+      'moodAffectLife': moodAffectLife,
+      'extremeEnergyPeriods': extremeEnergyPeriods,
+      'recklessSpendingFrequency': recklessSpendingFrequency,
+      'isTakingMedications': isTakingMedications,
+      'alcoholDrugUseFrequency': alcoholDrugUseFrequency,
+      'medicalConditions': medicalConditions,
+
       'imagePath': imagePath,
     };
   }
 
   @override
   String toString() {
-    return 'Patient(id: $id, name: $fullName, email: $email, hasPastMedicalHistory: $hasPastMedicalHistory, hasFamilyHistory: $hasFamilyHistory, hasMedicationHistory: $hasMedicationHistory, pastMedicalHistory: $pastMedicalHistory, pastDrugHistory: $pastDrugHistory)';
+    return 'Patient(\n'
+        'id: $id,\n'
+        'doctorUserId: $doctorUserId,\n'
+        'fullName: $fullName,\n'
+        'email: $email,\n'
+        'contact: $contact,\n'
+        'address: $address,\n'
+        'dateOfBirth: $dateOfBirth,\n'
+        'genderBornWith: $genderBornWith,\n'
+        'genderIdentifiedWith: $genderIdentifiedWith,\n'
+        'weight: $weight,\n'
+        'height: $height,\n'
+        'bloodPressure: $bloodPressure,\n'
+        'pulse: $pulse,\n'
+        'allergies: $allergies,\n'
+        'kinRelation: $kinRelation,\n'
+        'kinFullName: $kinFullName,\n'
+        'kinContactNumber: $kinContactNumber,\n'
+        'gpDetails: $gpDetails,\n'
+        'preferredLanguage: $preferredLanguage,\n'
+        'notes: ${notes?.map((n) => n.toString()).join(', ')},\n'
+        'hasPhysicalDisabilities: $hasPhysicalDisabilities,\n'
+        'physicalDisabilitySpecify: $physicalDisabilitySpecify,\n'
+        'requiresWheelchairAccess: $requiresWheelchairAccess,\n'
+        'wheelchairSpecify: $wheelchairSpecify,\n'
+        'needsSpecialCommunication: $needsSpecialCommunication,\n'
+        'communicationSpecify: $communicationSpecify,\n'
+        'hasHearingImpairments: $hasHearingImpairments,\n'
+        'hearingSpecify: $hearingSpecify,\n'
+        'hasVisualImpairments: $hasVisualImpairments,\n'
+        'visualSpecify: $visualSpecify,\n'
+        'environmentalFactors: $environmentalFactors,\n'
+        'otherAccessibilityNeeds: $otherAccessibilityNeeds,\n'
+        'hasHealthInsurance: $hasHealthInsurance,\n'
+        'insuranceProvider: $insuranceProvider,\n'
+        'policyNumber: $policyNumber,\n'
+        'insuranceClaimContact: $insuranceClaimContact,\n'
+        'linkedHospitals: $linkedHospitals,\n'
+        'additionalHealthBenefits: $additionalHealthBenefits,\n'
+        'hasPastMedicalHistory: $hasPastMedicalHistory,\n'
+        'pastMedicalHistory: $pastMedicalHistory,\n'
+        'hasFamilyHistory: $hasFamilyHistory,\n'
+        'familyHistory: $familyHistory,\n'
+        'hasMedicationHistory: $hasMedicationHistory,\n'
+        'medicationHistory: $medicationHistory,\n'
+        'hasAllergatic: $hasAllergatic,\n'
+        'hasMedicationAllergatic: $hasMedicationAllergatic,\n'
+        'medicationAllergatic: $medicationAllergatic,\n'
+        'hasTakingMedication: $hasTakingMedication,\n'
+        'takingMedication: $takingMedication,\n'
+        'hasMentalMedication: $hasMentalMedication,\n'
+        'mentalMedication: $mentalMedication,\n'
+        'isVisitedPsychiatrist: $isVisitedPsychiatrist,\n'
+        'hasDiagnosisHistory: $hasDiagnosisHistory,\n'
+        'diagnosisHistory: $diagnosisHistory,\n'
+        'isPsychiatricallyHospitalized: $isPsychiatricallyHospitalized,\n'
+        'is72HourMentallyDetentionOrder: $is72HourMentallyDetentionOrder,\n'
+        'hasDetainedMentalHealth: $hasDetainedMentalHealth,\n'
+        'numberOfMentallyDetained: $numberOfMentallyDetained,\n'
+        'detainedMentalHealthTreatment: $detainedMentalHealthTreatment,\n'
+        'hasSeekingHelp: $hasSeekingHelp,\n'
+        'seekingHelp: $seekingHelp,\n'
+        'isPlannedPregnancy: $isPlannedPregnancy,\n'
+        'isMaternalSubstanceUseDuringPregnancy: $isMaternalSubstanceUseDuringPregnancy,\n'
+        'isBirthDelayed: $isBirthDelayed,\n'
+        'isBirthInduced: $isBirthInduced,\n'
+        'isBirthHypoxia: $isBirthHypoxia,\n'
+        'isImmediatePostNatalComplications: $isImmediatePostNatalComplications,\n'
+        'isRequireOxygenOrIncubator: $isRequireOxygenOrIncubator,\n'
+        'isFeedWellAsNewborn: $isFeedWellAsNewborn,\n'
+        'isSleepWellAsNewborn: $isSleepWellAsNewborn,\n'
+        'hasFamilyMentalHealthHistory: $hasFamilyMentalHealthHistory,\n'
+        'familyRelationshipDetails: $familyRelationshipDetails,\n'
+        'familyMentalHealthCondition: $familyMentalHealthCondition,\n'
+        'hasBeenHospitalizedForMentalHealth: $hasBeenHospitalizedForMentalHealth,\n'
+        'numberOfAdmissions: $numberOfAdmissions,\n'
+        'duration: $duration,\n'
+        'outcome: $outcome,\n'
+        'showerAbility: $showerAbility,\n'
+        'showerFrequency: $showerFrequency,\n'
+        'dressingAbility: $dressingAbility,\n'
+        'eatingAbility: $eatingAbility,\n'
+        'foodType: $foodType,\n'
+        'toiletingAbility: $toiletingAbility,\n'
+        'groomingAbility: $groomingAbility,\n'
+        'menstrualManagement: $menstrualManagement,\n'
+        'householdTasks: $householdTasks,\n'
+        'dailyAffairs: $dailyAffairs,\n'
+        'safetyMobility: $safetyMobility,\n'
+        'hasDepressiveIllness: $hasDepressiveIllness,\n'
+        'depressiveFrequency: $depressiveFrequency,\n'
+        'moodLevel: $moodLevel,\n'
+        'moodWorseInMorning: $moodWorseInMorning,\n'
+        'moodConstantlyLow: $moodConstantlyLow,\n'
+        'canSmile: $canSmile,\n'
+        'canLaugh: $canLaugh,\n'
+        'hasNormalAppetiteAndEnjoyment: $hasNormalAppetiteAndEnjoyment,\n'
+        'enjoyment: $enjoyment,\n'
+        'hasCrying: $hasCrying,\n'
+        'cryFrequency: $cryFrequency,\n'
+        'feelsLifeWorth: $feelsLifeWorth,\n'
+        'hasSuicidalThoughts: $hasSuicidalThoughts,\n'
+        'suicidalFrequency: $suicidalFrequency,\n'
+        'feelsNotWantToBeHere: $feelsNotWantToBeHere,\n'
+        'notWantToBeHereFrequency: $notWantToBeHereFrequency,\n'
+        'wantToDie: $wantToDie,\n'
+        'wantToDieFrequency: $wantToDieFrequency,\n'
+        'hasTriedEndingLife: $hasTriedEndingLife,\n'
+        'hasEndingLifeThoughts: $hasEndingLifeThoughts,\n'
+        'lifeEndingThoughts: $lifeEndingThoughts,\n'
+        'hasInjuries: $hasInjuries,\n'
+        'injured: $injured,\n'
+        'hasHospitalAdmission: $hasHospitalAdmission,\n'
+        'admittedToHospital: $admittedToHospital,\n'
+        'hasSelfHarmed: $hasSelfHarmed,\n'
+        'selfHarmed: $selfHarmed,\n'
+        'hasAcquiredInjury: $hasAcquiredInjury,\n'
+        'acquiredInjury: $acquiredInjury,\n'
+        'hasGuilt: $hasGuilt,\n'
+        'guiltYourself: $guiltYourself,\n'
+        'bloodVesselDamage: $bloodVesselDamage,\n'
+        'nerveDamage: $nerveDamage,\n'
+        'requiredStitches: $requiredStitches,\n'
+        'requiredSurgery: $requiredSurgery,\n'
+        'permanentDamageFromSelfHarm: $permanentDamageFromSelfHarm,\n'
+        'hasConfidenceAndSelfEsteem: $hasConfidenceAndSelfEsteem,\n'
+        'selfEsteemLevel: $selfEsteemLevel,\n'
+        'overlyHappyFrequency: $overlyHappyFrequency,\n'
+        'excessivelyFlirty: $excessivelyFlirty,\n'
+        'increasedSexDrive: $increasedSexDrive,\n'
+        'recklessSpending: $recklessSpending,\n'
+        'undressedInPublic: $undressedInPublic,\n'
+        'buysBeyondMeans: $buysBeyondMeans,\n'
+        'highRiskActivities: $highRiskActivities,\n'
+        'inflatedSelfEsteem: $inflatedSelfEsteem,\n'
+        'feelsSuperior: $feelsSuperior,\n'
+        'believesInPowers: $believesInPowers,\n'
+        'feelsWealthyOrGenius: $feelsWealthyOrGenius,\n'
+        'angerLevel: $angerLevel,\n'
+        'agitationLevel: $agitationLevel,\n'
+        'lowMoodDuration: $lowMoodDuration,\n'
+        'elatedMoodDuration: $elatedMoodDuration,\n'
+        'selectedPhysicalSymptom: $selectedPhysicalSymptom,\n'
+        'moodLevels: $moodLevels,\n'
+        'moodAffectLife: $moodAffectLife,\n'
+        'extremeEnergyPeriods: $extremeEnergyPeriods,\n'
+        'recklessSpendingFrequency: $recklessSpendingFrequency,\n'
+        'isTakingMedications: $isTakingMedications,\n'
+        'alcoholDrugUseFrequency: $alcoholDrugUseFrequency,\n'
+        'medicalConditions: $medicalConditions,\n'
+        'imagePath: $imagePath\n'
+        ')';
   }
 }

@@ -19,16 +19,16 @@ class MoodAssessmentScreen extends StatefulWidget {
 
 class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _medicalConditionsController =
-      TextEditingController();
+  TextEditingController _medicalConditionsController = TextEditingController();
 
-  String selectedCategory = 'Select Category';
-  double moodScale = 1.0;
+  String selectedPhysicalSymptom = 'Select Category';
+  double moodLevels = 0;
   String? moodAffectLife;
-  String? extremeEnergy;
-  String? recklessSpending;
-  bool takingMedications = false;
-  String? alcoholDrugUse;
+  String? extremeEnergyPeriods;
+  String? recklessSpendingFrequency;
+  bool isTakingMedications = false;
+  String? alcoholDrugUseFrequency;
+
   late Patient patient;
 
   @override
@@ -37,8 +37,20 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
 
     final patients =
         Provider.of<PatientProvider>(context, listen: false).patients;
-
     patient = patients.firstWhere((patient) => patient.id == widget.patientId);
+
+    selectedPhysicalSymptom =
+        patient.selectedPhysicalSymptom ?? 'Select Category';
+    moodLevels = patient.moodLevels ?? 1.0;
+    moodAffectLife = patient.moodAffectLife ?? '';
+    extremeEnergyPeriods = patient.extremeEnergyPeriods ?? '';
+    recklessSpendingFrequency = patient.recklessSpendingFrequency ?? '';
+    isTakingMedications = patient.isTakingMedications ?? false;
+    alcoholDrugUseFrequency = patient.alcoholDrugUseFrequency ?? '';
+
+    _medicalConditionsController = TextEditingController(
+      text: patient.medicalConditions ?? '',
+    );
   }
 
   @override
@@ -77,10 +89,10 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
                   'Muscle Pain',
                   'Other',
                 ],
-                selectedValue: selectedCategory,
+                selectedValue: selectedPhysicalSymptom,
                 onChanged: (value) {
                   setState(() {
-                    selectedCategory = value!;
+                    selectedPhysicalSymptom = value!;
                   });
                 },
               ),
@@ -113,13 +125,13 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
                   ),
                 ),
                 child: Slider(
-                  value: moodScale,
+                  value: moodLevels,
                   min: 1,
                   max: 10,
                   divisions: 9,
                   onChanged: (double value) {
                     setState(() {
-                      moodScale = value;
+                      moodLevels = value;
                     });
                   },
                 ),
@@ -138,9 +150,10 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
               GenderRadioGroup(
                 label:
                     'Have you ever had periods of extreme energy with little sleep?',
-                groupValue: extremeEnergy,
+                groupValue: extremeEnergyPeriods,
                 options: ['no', 'sometimes', 'often'],
-                onChanged: (value) => setState(() => extremeEnergy = value),
+                onChanged:
+                    (value) => setState(() => extremeEnergyPeriods = value),
               ),
 
               const SizedBox(height: 16),
@@ -148,9 +161,11 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
               GenderRadioGroup(
                 label:
                     'Have you ever spent money recklessly or felt unusually confident?',
-                groupValue: recklessSpending,
+                groupValue: recklessSpendingFrequency,
                 options: ['no', 'sometimes', 'often'],
-                onChanged: (value) => setState(() => recklessSpending = value),
+                onChanged:
+                    (value) =>
+                        setState(() => recklessSpendingFrequency = value),
               ),
 
               const SizedBox(height: 16),
@@ -158,11 +173,11 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
               CustomCheckbox(
                 label:
                     'Are you currently taking any medications that affect your mood?',
-                value: takingMedications,
+                value: isTakingMedications,
                 onChanged: (value) {
                   // value is now bool?
                   setState(() {
-                    takingMedications =
+                    isTakingMedications =
                         value ?? false; // Safely handle null, default to false
                   });
                 },
@@ -172,9 +187,10 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
               GenderRadioGroup(
                 label:
                     'Have you recently used alcohol or drugs more than usual?',
-                groupValue: alcoholDrugUse,
+                groupValue: alcoholDrugUseFrequency,
                 options: ['no', 'sometimes', 'often'],
-                onChanged: (value) => setState(() => alcoholDrugUse = value),
+                onChanged:
+                    (value) => setState(() => alcoholDrugUseFrequency = value),
               ),
 
               const SizedBox(height: 16),
@@ -187,7 +203,32 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
               ),
 
               const SizedBox(height: 16),
-              PrimaryCustomButton(text: 'Save', onPressed: () {}),
+              PrimaryCustomButton(
+                text: 'Save',
+                onPressed: () async {
+                  final provider = Provider.of<PatientProvider>(
+                    context,
+                    listen: false,
+                  );
+
+                  await provider.updatePatientFields(
+                    context,
+                    patientId: widget.patientId,
+                    updatedFields: {
+                      'selected_physical_symptom': selectedPhysicalSymptom,
+                      'mood_levels': moodLevels,
+                      'mood_affect_life': moodAffectLife,
+                      'extreme_energy_periods': extremeEnergyPeriods,
+                      'reckless_spending_frequency': recklessSpendingFrequency,
+                      'is_taking_medications': isTakingMedications,
+                      'alcohol_drug_use_frequency': alcoholDrugUseFrequency,
+                      'medical_conditions':
+                          _medicalConditionsController.text.trim(),
+                    },
+                  );
+                  Navigator.pop(context);
+                },
+              ),
               const SizedBox(height: 24),
             ],
           ),

@@ -16,9 +16,13 @@ class PatientProfileScreen extends StatefulWidget {
 
 class _PatientProfileScreenState extends State<PatientProfileScreen> {
   num _calculateAge(dynamic dob) {
+    if (dob == null) return 0; // 👈 Null check
+
     if (dob is String) {
-      dob = DateTime.parse(dob);
+      dob = DateTime.tryParse(dob);
+      if (dob == null) return 0; // 👈 Safe parse check
     }
+
     final today = DateTime.now();
     num age = today.year - dob.year;
     if (today.month < dob.month ||

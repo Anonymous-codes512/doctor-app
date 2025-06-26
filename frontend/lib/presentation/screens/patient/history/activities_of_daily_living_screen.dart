@@ -29,15 +29,28 @@ class _ActivitiesOfDailyLivingScreenState
   String? householdTasks;
   String? dailyAffairs;
   String? safetyMobility;
+
   late Patient patient;
+
   @override
   void initState() {
     super.initState();
 
     final patients =
         Provider.of<PatientProvider>(context, listen: false).patients;
-
     patient = patients.firstWhere((patient) => patient.id == widget.patientId);
+
+    showerAbility = patient.showerAbility;
+    showerFrequency = patient.showerFrequency;
+    dressingAbility = patient.dressingAbility;
+    eatingAbility = patient.eatingAbility;
+    foodType = patient.foodType;
+    toiletingAbility = patient.toiletingAbility;
+    groomingAbility = patient.groomingAbility;
+    menstrualManagement = patient.menstrualManagement;
+    householdTasks = patient.householdTasks;
+    dailyAffairs = patient.dailyAffairs;
+    safetyMobility = patient.safetyMobility;
   }
 
   @override
@@ -247,7 +260,34 @@ class _ActivitiesOfDailyLivingScreenState
               ),
 
               const SizedBox(height: 12),
-              PrimaryCustomButton(text: 'Save', onPressed: () {}),
+              PrimaryCustomButton(
+                text: 'Save',
+                onPressed: () async {
+                  final provider = Provider.of<PatientProvider>(
+                    context,
+                    listen: false,
+                  );
+
+                  await provider.updatePatientFields(
+                    context,
+                    patientId: widget.patientId,
+                    updatedFields: {
+                      'shower_ability': showerAbility,
+                      'shower_frequency': showerFrequency,
+                      'dressing_ability': dressingAbility,
+                      'eating_ability': eatingAbility,
+                      'food_type': foodType,
+                      'toileting_ability': toiletingAbility,
+                      'grooming_ability': groomingAbility,
+                      'menstrual_management': menstrualManagement,
+                      'household_tasks': householdTasks,
+                      'daily_affairs': dailyAffairs,
+                      'safety_mobility': safetyMobility,
+                    },
+                  );
+                  Navigator.pop(context);
+                },
+              ),
               const SizedBox(height: 24),
             ],
           ),

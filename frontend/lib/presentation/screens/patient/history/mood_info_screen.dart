@@ -27,42 +27,69 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
   TextEditingController _acquiredInjuryController = TextEditingController();
   TextEditingController _blameYourselfController = TextEditingController();
   // State variables
-  bool depressiveIllness = false;
-  String feelLowFrequency = '';
-  double moodLevel = 5;
 
-  double selfEsteemLevel = 1;
+  bool hasDepressiveIllness = false;
+  String depressiveFrequency = '';
+  double? moodLevel;
 
-  bool cryToggle = false;
+  bool moodWorseInMorning = false;
+  bool moodConstantlyLow = false;
+  bool canSmile = false;
+  bool canLaugh = false;
+  bool hasNormalAppetiteAndEnjoyment = false;
+
+  bool hasCrying = false;
   String cryFrequency = '';
 
-  bool suicidalToggle = false;
+  bool feelsLifeWorth = false;
+
+  bool hasSuicidalThoughts = false;
   String suicidalFrequency = '';
 
-  bool notWantToBeHereToggle = false;
+  bool feelsNotWantToBeHere = false;
   String notWantToBeHereFrequency = '';
 
-  bool isWorthLiving = false;
-  bool isEndingLife = false;
-  bool isEndingThoughts = false;
-  bool isInjured = false;
-
-  bool _isAdmittedToHospital = false;
-  bool _isSelfHarmed = false;
-  bool _isAcquiredInjury = false;
-  bool _isBlameYourself = false;
-
-  String? overlyHappy;
-
-  bool wantToDieToggle = false;
+  bool wantToDie = false;
   String wantToDieFrequency = '';
 
-  String? selectedAngerLevel;
-  String? selectedagitatedLevel;
-  List<String> angerLevelOptions = ['no', 'sometimes', 'often'];
+  bool hasEndingLifeThoughts = false;
+  bool hasTriedEndingLife = false;
+  bool hasInjuries = false;
 
-  String? selectedFeelLow;
-  String? selectedFeelElated;
+  bool bloodVesselDamage = false;
+  bool nerveDamage = false;
+  bool requiredStitches = false;
+  bool requiredSurgery = false;
+  bool permanentDamageFromSelfHarm = false;
+  bool hasConfidenceAndSelfEsteem = false;
+
+  double selfEsteemLevel = 0;
+
+  bool hasHospitalAdmission = false;
+  bool hasSelfHarmed = false;
+  bool hasAcquiredInjury = false;
+  bool hasGuilt = false;
+
+  String? overlyHappyFrequency;
+
+  bool excessivelyFlirty = false;
+  bool increasedSexDrive = false;
+  bool recklessSpending = false;
+  bool undressedInPublic = false;
+  bool buysBeyondMeans = false;
+  bool highRiskActivities = false;
+  bool inflatedSelfEsteem = false;
+
+  bool feelsSuperior = false;
+  bool believesInPowers = false;
+  bool feelsWealthyOrGenius = false;
+
+  String? angerLevel;
+  String? agitationLevel;
+  String? lowMoodDuration;
+  String? elatedMoodDuration;
+
+  List<String> angerLevelOptions = ['no', 'sometimes', 'often'];
   List<String> durationOptions = [
     'A few hours',
     'Days',
@@ -114,6 +141,7 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
   ];
 
   late Patient patient;
+
   @override
   void initState() {
     super.initState();
@@ -122,6 +150,104 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
         Provider.of<PatientProvider>(context, listen: false).patients;
 
     patient = patients.firstWhere((patient) => patient.id == widget.patientId);
+
+    hasDepressiveIllness = patient.hasDepressiveIllness ?? false;
+    depressiveFrequency = patient.depressiveFrequency ?? '';
+    moodLevel = patient.moodLevel ?? 0;
+
+    _enjoymentController = TextEditingController(text: patient.enjoyment ?? '');
+
+    hasCrying = patient.hasCrying ?? false;
+    cryFrequency = patient.cryFrequency ?? '';
+
+    feelsLifeWorth = patient.feelsLifeWorth ?? false;
+    hasSuicidalThoughts = patient.hasSuicidalThoughts ?? false;
+    suicidalFrequency = patient.suicidalFrequency ?? '';
+
+    feelsNotWantToBeHere = patient.feelsNotWantToBeHere ?? false;
+    notWantToBeHereFrequency = patient.notWantToBeHereFrequency ?? '';
+
+    wantToDie = patient.wantToDie ?? false;
+    wantToDieFrequency = patient.wantToDieFrequency ?? '';
+
+    hasEndingLifeThoughts = patient.hasEndingLifeThoughts ?? false;
+    hasTriedEndingLife = patient.hasTriedEndingLife ?? false;
+    _lifeEndingThoughtsController = TextEditingController(
+      text: patient.lifeEndingThoughts ?? '',
+    );
+
+    hasInjuries = patient.hasInjuries ?? false;
+    _injuredController = TextEditingController(text: patient.injured ?? '');
+
+    hasHospitalAdmission = patient.hasHospitalAdmission ?? false;
+    _admittedToHospitalController = TextEditingController(
+      text: patient.admittedToHospital ?? '',
+    );
+
+    hasSelfHarmed = patient.hasSelfHarmed ?? false;
+    _selfHarmedController = TextEditingController(
+      text: patient.selfHarmed ?? '',
+    );
+
+    hasAcquiredInjury = patient.hasAcquiredInjury ?? false;
+    _acquiredInjuryController = TextEditingController(
+      text: patient.acquiredInjury ?? '',
+    );
+
+    hasGuilt = patient.hasGuilt ?? false;
+    _blameYourselfController = TextEditingController(
+      text: patient.guiltYourself ?? '',
+    );
+
+    selfEsteemLevel = patient.selfEsteemLevel ?? 0;
+    overlyHappyFrequency = patient.overlyHappyFrequency ?? '';
+
+    angerLevel = patient.angerLevel;
+    agitationLevel = patient.agitationLevel;
+    lowMoodDuration = patient.lowMoodDuration;
+    elatedMoodDuration = patient.elatedMoodDuration;
+
+    moodRelatedQuestions = {
+      "Do you feel your mood gets worse in the morning?":
+          patient.moodWorseInMorning ?? false,
+      "Does your mood stay constantly low?": patient.moodConstantlyLow ?? false,
+      "Are you able to smile?": patient.canSmile ?? false,
+      "Are you able to laugh?": patient.canLaugh ?? false,
+      "Can you have normal appetite and enjoy activities?":
+          patient.hasNormalAppetiteAndEnjoyment ?? false,
+    };
+
+    endingYourLifeRelatedQuestions = {
+      "Has there been any blood vessel damage?":
+          patient.bloodVesselDamage ?? false,
+      "Has there been any nerve damage?": patient.nerveDamage ?? false,
+      "Have you ever required stitches?": patient.requiredStitches ?? false,
+      "Have you ever required surgery?": patient.requiredSurgery ?? false,
+      "Any permanent damage of self harming?":
+          patient.permanentDamageFromSelfHarm ?? false,
+      "Do you have good confidence and self-esteem?":
+          patient.hasConfidenceAndSelfEsteem ?? false,
+    };
+
+    abnormalBehaviorsRelatedQuestions = {
+      "Excessively Flirty": patient.excessivelyFlirty ?? false,
+      "Increase in Sex Drive": patient.increasedSexDrive ?? false,
+      "Spending Money Recklessly": patient.recklessSpending ?? false,
+      "Being Undressed in Public": patient.undressedInPublic ?? false,
+      "Buying Things Beyond Your Means": patient.buysBeyondMeans ?? false,
+      "Engaging in High-Risk Activities (e.g.,Driving Fast, Drugs)":
+          patient.highRiskActivities ?? false,
+      "Increase in Self-Esteem and Confidence":
+          patient.inflatedSelfEsteem ?? false,
+    };
+
+    believesInSpecialPurposeRelatedQuestions = {
+      "Do you think you're better than others?": patient.feelsSuperior ?? false,
+      "Do you believe you have special powers (e.g., talking to God)?":
+          patient.believesInPowers ?? false,
+      "Do you think you are extremely wealthy or knowledgeable?":
+          patient.feelsWealthyOrGenius ?? false,
+    };
   }
 
   @override
@@ -140,23 +266,23 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
           children: [
             ToggleSwitchWidget(
               label: 'Do you suffer from a depressive illness?',
-              value: depressiveIllness,
-              onChanged: (val) => setState(() => depressiveIllness = val),
+              value: hasDepressiveIllness,
+              onChanged: (val) => setState(() => hasDepressiveIllness = val),
             ),
-            if (depressiveIllness)
+            if (hasDepressiveIllness)
               GenderRadioGroup(
                 label: "If yes, how often do you feel low?",
-                groupValue: feelLowFrequency,
+                groupValue: depressiveFrequency,
                 onChanged: (value) {
                   setState(() {
-                    feelLowFrequency = value!;
+                    depressiveFrequency = value!;
                   });
                 },
                 options: options,
               ),
             const SizedBox(height: 12),
             CustomSlider(
-              value: moodLevel,
+              value: moodLevel!,
               onChanged: (val) => setState(() => moodLevel = val),
               label: 'Pick a number to represent your mood',
             ),
@@ -186,10 +312,10 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             // Cry Section
             ToggleSwitchWidget(
               label: 'Do you cry?',
-              value: cryToggle,
-              onChanged: (val) => setState(() => cryToggle = val),
+              value: hasCrying,
+              onChanged: (val) => setState(() => hasCrying = val),
             ),
-            if (cryToggle)
+            if (hasCrying)
               GenderRadioGroup(
                 label: "If yes, how often do you cry?",
                 groupValue: cryFrequency,
@@ -203,20 +329,20 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             const SizedBox(height: 16),
             CustomCheckbox(
               label: 'Do you feel your life is worth living?',
-              value: isWorthLiving,
+              value: feelsLifeWorth,
               onChanged: (val) {
                 setState(() {
-                  isWorthLiving = val as bool;
+                  feelsLifeWorth = val as bool;
                 });
               },
             ),
             // Suicidal thoughts
             ToggleSwitchWidget(
               label: 'Do you have suicidal thoughts?',
-              value: suicidalToggle,
-              onChanged: (val) => setState(() => suicidalToggle = val),
+              value: hasSuicidalThoughts,
+              onChanged: (val) => setState(() => hasSuicidalThoughts = val),
             ),
-            if (suicidalToggle)
+            if (hasSuicidalThoughts)
               GenderRadioGroup(
                 label: "If yes, how often do you feel suicidal?",
                 groupValue: suicidalFrequency,
@@ -231,10 +357,10 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             // Don't want to be here
             ToggleSwitchWidget(
               label: "Do you feel you don't want to be here?",
-              value: notWantToBeHereToggle,
-              onChanged: (val) => setState(() => notWantToBeHereToggle = val),
+              value: feelsNotWantToBeHere,
+              onChanged: (val) => setState(() => feelsNotWantToBeHere = val),
             ),
-            if (notWantToBeHereToggle)
+            if (feelsNotWantToBeHere)
               GenderRadioGroup(
                 label:
                     "If yes, how often do you feel you don't want to be here?",
@@ -249,10 +375,10 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             const SizedBox(height: 16),
             ToggleSwitchWidget(
               label: "Do you have feelings you want to die?",
-              value: wantToDieToggle,
-              onChanged: (val) => setState(() => wantToDieToggle = val),
+              value: wantToDie,
+              onChanged: (val) => setState(() => wantToDie = val),
             ),
-            if (wantToDieToggle)
+            if (wantToDie)
               GenderRadioGroup(
                 label: "If yes, how often do you feel you want to die?",
                 groupValue: wantToDieFrequency,
@@ -266,24 +392,24 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             const SizedBox(height: 16),
             CustomCheckbox(
               label: 'Have you thought of any methods of ending your life?',
-              value: isEndingLife,
+              value: hasEndingLifeThoughts,
               onChanged: (val) {
                 setState(() {
-                  isEndingLife = val as bool;
+                  hasEndingLifeThoughts = val as bool;
                 });
               },
             ),
             const SizedBox(height: 8),
             ToggleSwitchWidget(
               label: 'Have you tried any of these thoughts?',
-              value: isEndingThoughts,
+              value: hasTriedEndingLife,
               onChanged: (val) {
                 setState(() {
-                  isEndingThoughts = val;
+                  hasTriedEndingLife = val;
                 });
               },
             ),
-            if (isEndingThoughts)
+            if (hasTriedEndingLife)
               LabeledTextField(
                 label: 'If yes, what methods and how often?',
                 hintText: 'Type here...',
@@ -293,14 +419,14 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             const SizedBox(height: 8),
             ToggleSwitchWidget(
               label: 'Has there been any injuries?',
-              value: isInjured,
+              value: hasInjuries,
               onChanged: (val) {
                 setState(() {
-                  isInjured = val;
+                  hasInjuries = val;
                 });
               },
             ),
-            if (isInjured)
+            if (hasInjuries)
               LabeledTextField(
                 label: 'If yes, please explain about that injuries',
                 hintText: 'Type here...',
@@ -309,14 +435,14 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             const SizedBox(height: 8),
             ToggleSwitchWidget(
               label: 'Have you ever had to be admitted to hospital?',
-              value: _isAdmittedToHospital,
+              value: hasHospitalAdmission,
               onChanged: (val) {
                 setState(() {
-                  _isAdmittedToHospital = val;
+                  hasHospitalAdmission = val;
                 });
               },
             ),
-            if (_isAdmittedToHospital)
+            if (hasHospitalAdmission)
               LabeledTextField(
                 label:
                     'If yes, please explain duration treatment and complications and outcome',
@@ -326,14 +452,14 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             const SizedBox(height: 8),
             ToggleSwitchWidget(
               label: 'Have you ever self harmed?',
-              value: _isSelfHarmed,
+              value: hasSelfHarmed,
               onChanged: (val) {
                 setState(() {
-                  _isSelfHarmed = val;
+                  hasSelfHarmed = val;
                 });
               },
             ),
-            if (_isSelfHarmed)
+            if (hasSelfHarmed)
               LabeledTextField(
                 label: 'If yes, what methods please specify and explain',
                 hintText: 'Type here...',
@@ -342,14 +468,14 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             const SizedBox(height: 8),
             ToggleSwitchWidget(
               label: 'Have you acquired any injuries?',
-              value: _isAcquiredInjury,
+              value: hasAcquiredInjury,
               onChanged: (val) {
                 setState(() {
-                  _isAcquiredInjury = val;
+                  hasAcquiredInjury = val;
                 });
               },
             ),
-            if (_isAcquiredInjury)
+            if (hasAcquiredInjury)
               LabeledTextField(
                 label: 'If yes, please explain',
                 hintText: 'Type here...',
@@ -359,14 +485,14 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             ToggleSwitchWidget(
               label:
                   'Do you blame yourself for your actions? And do you feel guilty?',
-              value: _isBlameYourself,
+              value: hasGuilt,
               onChanged: (val) {
                 setState(() {
-                  _isBlameYourself = val;
+                  hasGuilt = val;
                 });
               },
             ),
-            if (_isBlameYourself)
+            if (hasGuilt)
               LabeledTextField(
                 label: 'If yes, what do you feel guilty about?',
                 hintText: 'Type here...',
@@ -394,10 +520,10 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             const SizedBox(height: 12),
             GenderRadioGroup(
               label: "Do you feel excessively elated or overly happy?",
-              groupValue: overlyHappy,
+              groupValue: overlyHappyFrequency,
               onChanged: (value) {
                 setState(() {
-                  overlyHappy = value!;
+                  overlyHappyFrequency = value!;
                 });
               },
               options: options,
@@ -439,44 +565,44 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             const SizedBox(height: 12),
             GenderRadioGroup(
               label: 'Do you get easily angry?',
-              groupValue: selectedAngerLevel,
+              groupValue: angerLevel,
               options: angerLevelOptions,
               onChanged: (val) {
                 setState(() {
-                  selectedAngerLevel = val;
+                  angerLevel = val;
                 });
               },
             ),
             const SizedBox(height: 12),
             GenderRadioGroup(
               label: 'Do you get easily agitated?',
-              groupValue: selectedagitatedLevel,
+              groupValue: agitationLevel,
               options: angerLevelOptions,
               onChanged: (val) {
                 setState(() {
-                  selectedagitatedLevel = val;
+                  agitationLevel = val;
                 });
               },
             ),
             const SizedBox(height: 12),
             GenderRadioGroup(
               label: 'If you feel low, how long does it last?',
-              groupValue: selectedFeelLow,
+              groupValue: lowMoodDuration,
               options: durationOptions,
               onChanged: (val) {
                 setState(() {
-                  selectedFeelLow = val;
+                  lowMoodDuration = val;
                 });
               },
             ),
             const SizedBox(height: 12),
             GenderRadioGroup(
               label: 'If you feel elated, how long does it last?',
-              groupValue: selectedFeelElated,
+              groupValue: elatedMoodDuration,
               options: durationOptions,
               onChanged: (val) {
                 setState(() {
-                  selectedFeelElated = val;
+                  elatedMoodDuration = val;
                 });
               },
             ),
@@ -485,7 +611,143 @@ class _MoodInfoScreenState extends State<MoodInfoScreen> {
             PrimaryCustomButton(
               text: "Save",
               onPressed: () {
-                print("Saving form data...");
+                Provider.of<PatientProvider>(
+                  context,
+                  listen: false,
+                ).updatePatientFields(
+                  context,
+                  patientId: widget.patientId,
+                  updatedFields: {
+                    'has_depressive_illness': hasDepressiveIllness,
+                    'depressive_frequency': depressiveFrequency,
+                    'mood_level': moodLevel,
+
+                    'mood_worse_in_morning':
+                        moodRelatedQuestions["Do you feel your mood gets worse in the morning?"] ??
+                        false,
+                    'mood_constantly_low':
+                        moodRelatedQuestions["Does your mood stay constantly low?"] ??
+                        false,
+                    'can_smile':
+                        moodRelatedQuestions["Are you able to smile?"] ?? false,
+                    'can_laugh':
+                        moodRelatedQuestions["Are you able to laugh?"] ?? false,
+                    'has_normal_appetite_and_enjoyment':
+                        moodRelatedQuestions["Can you have normal appetite and enjoy activities?"] ??
+                        false,
+
+                    'enjoyment_activities_description':
+                        _enjoymentController.text.trim(),
+
+                    'has_crying': hasCrying,
+                    'cry_frequency': cryFrequency,
+                    'feels_life_worth': feelsLifeWorth,
+
+                    'has_suicidal_thoughts': hasSuicidalThoughts,
+                    'suicidal_frequency': suicidalFrequency,
+                    'feels_not_want_to_be_here': feelsNotWantToBeHere,
+                    'not_want_to_be_here_frequency': notWantToBeHereFrequency,
+                    'want_to_die': wantToDie,
+                    'want_to_die_frequency': wantToDieFrequency,
+
+                    'has_ending_life_thoughts': hasEndingLifeThoughts,
+                    'has_tried_ending_life': hasTriedEndingLife,
+                    'life_ending_methods_details':
+                        hasTriedEndingLife
+                            ? _lifeEndingThoughtsController.text.trim()
+                            : null,
+
+                    'has_injuries': hasInjuries,
+                    'injuries_description':
+                        hasInjuries ? _injuredController.text.trim() : null,
+
+                    'has_hospital_admission': hasHospitalAdmission,
+                    'hospital_admission_details':
+                        hasHospitalAdmission
+                            ? _admittedToHospitalController.text.trim()
+                            : null,
+
+                    'has_self_harmed': hasSelfHarmed,
+                    'self_harmed_methods':
+                        hasSelfHarmed
+                            ? _selfHarmedController.text.trim()
+                            : null,
+
+                    'has_acquired_injury': hasAcquiredInjury,
+                    'acquired_injury_description':
+                        hasAcquiredInjury
+                            ? _acquiredInjuryController.text.trim()
+                            : null,
+
+                    'has_guilt': hasGuilt,
+                    'guilt_reason':
+                        hasGuilt ? _blameYourselfController.text.trim() : null,
+
+                    // Ending life related
+                    'blood_vessel_damage':
+                        endingYourLifeRelatedQuestions["Has there been any blood vessel damage?"] ??
+                        false,
+                    'nerve_damage':
+                        endingYourLifeRelatedQuestions["Has there been any nerve damage?"] ??
+                        false,
+                    'required_stitches':
+                        endingYourLifeRelatedQuestions["Have you ever required stitches?"] ??
+                        false,
+                    'required_surgery':
+                        endingYourLifeRelatedQuestions["Have you ever required surgery?"] ??
+                        false,
+                    'permanent_damage_from_self_harm':
+                        endingYourLifeRelatedQuestions["Any permanent damage of self harming?"] ??
+                        false,
+                    'has_confidence_and_self_esteem':
+                        endingYourLifeRelatedQuestions["Do you have good confidence and self-esteem?"] ??
+                        false,
+
+                    'self_esteem_level': selfEsteemLevel,
+                    'overly_happy_frequency': overlyHappyFrequency,
+
+                    // Abnormal behaviors
+                    'excessively_flirty':
+                        abnormalBehaviorsRelatedQuestions["Excessively Flirty"] ??
+                        false,
+                    'increased_sex_drive':
+                        abnormalBehaviorsRelatedQuestions["Increase in Sex Drive"] ??
+                        false,
+                    'reckless_spending':
+                        abnormalBehaviorsRelatedQuestions["Spending Money Recklessly"] ??
+                        false,
+                    'undressed_in_public':
+                        abnormalBehaviorsRelatedQuestions["Being Undressed in Public"] ??
+                        false,
+                    'buys_beyond_means':
+                        abnormalBehaviorsRelatedQuestions["Buying Things Beyond Your Means"] ??
+                        false,
+                    'high_risk_activities':
+                        abnormalBehaviorsRelatedQuestions["Engaging in High-Risk Activities (e.g.,Driving Fast, Drugs)"] ??
+                        false,
+                    'inflated_self_esteem':
+                        abnormalBehaviorsRelatedQuestions["Increase in Self-Esteem and Confidence"] ??
+                        false,
+
+                    // Special beliefs
+                    'feels_superior':
+                        believesInSpecialPurposeRelatedQuestions["Do you think you're better than others?"] ??
+                        false,
+                    'believes_in_powers':
+                        believesInSpecialPurposeRelatedQuestions["Do you believe you have special powers (e.g., talking to God)?"] ??
+                        false,
+                    'feels_wealthy_or_genius':
+                        believesInSpecialPurposeRelatedQuestions["Do you think you are extremely wealthy or knowledgeable?"] ??
+                        false,
+
+                    // Mood duration and anger
+                    'anger_level': angerLevel,
+                    'agitation_level': agitationLevel,
+                    'low_mood_duration': lowMoodDuration,
+                    'elated_mood_duration': elatedMoodDuration,
+                  },
+                );
+                Navigator.pop(context);
               },
             ),
             const SizedBox(height: 32),
