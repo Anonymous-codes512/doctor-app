@@ -1,7 +1,12 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/data/models/appointment_model.dart';
+import 'package:doctor_app/data/models/task_model.dart';
 import 'package:doctor_app/presentation/screens/calendar/calendar_filter_popup.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -19,136 +24,117 @@ class _CalendarScreenState extends State<CalendarScreen> {
   CalendarFilter selectedFilter = CalendarFilter.day;
   String selectedTab = 'Appointments';
   DateTime? _selectedCalendarDay; // To hold the dynamically selected day
+  bool _isLoading = false; // Add this line
 
   static const double _buttonHeight = 50;
   static const double _horizontalPadding = 16;
   static const double _spacing = 16;
 
-  final List<Map<String, dynamic>> appointmentsData = [
-    {
-      'time': '09:00 am',
-      'patientName': 'Lisa Smith',
-      'status': 'Confirmed',
-      'statusColor': Colors.green,
-      'imageUrl': 'https://i.pravatar.cc/150?img=5',
-      'consultationNotes': '',
-      'day': 'Monday',
-      'date': DateTime(2024, 2, 1),
-    },
-    {
-      'time': '09:00 am',
-      'patientName': 'Lisa Smith',
-      'status': 'Cancelled',
-      'statusColor': Colors.red,
-      'imageUrl': 'https://i.pravatar.cc/150?img=5',
-      'consultationNotes': '',
-      'day': 'Monday',
-      'date': DateTime(2024, 2, 5),
-    },
-    {
-      'time': '09:00 am',
-      'patientName': 'John Doe',
-      'status': 'Confirmed',
-      'statusColor': Colors.green,
-      'imageUrl': 'https://i.pravatar.cc/150?img=3',
-      'consultationNotes': '',
-      'day': 'Monday',
-      'date': DateTime(2024, 2, 8),
-    },
-    {
-      'time': '09:00 am',
-      'patientName': 'John Doe',
-      'status': 'Confirmed',
-      'statusColor': Colors.green,
-      'imageUrl': 'https://i.pravatar.cc/150?img=3',
-      'consultationNotes': '',
-      'day': 'Monday',
-      'date': DateTime(2024, 2, 16),
-    },
-    {
-      'time': '09:00 am',
-      'patientName': 'John Doe',
-      'status': 'Cancelled',
-      'statusColor': Colors.red,
-      'imageUrl': 'https://i.pravatar.cc/150?img=3',
-      'consultationNotes': '',
-      'day': 'Monday',
-      'date': DateTime(2024, 1, 8),
-    },
-    {
-      'time': '09:00 am',
-      'patientName': 'John Doe',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'imageUrl': 'https://i.pravatar.cc/150?img=3',
-      'consultationNotes': '',
-      'day': 'Tuesday',
-      'date': DateTime(2024, 1, 16),
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    // Load appointments and tasks from provider
+    final doctorProvider = Provider.of<DoctorProvider>(context, listen: false);
+    doctorProvider.loadAppointments();
+    doctorProvider.loadTasks();
+    _selectedCalendarDay = DateTime.now(); // Initialize with today
+  }
 
-  final List<Map<String, dynamic>> tasksData = [
-    {
-      'time': '09:00 am',
-      'taskName': 'Morning Exercise',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'day': 'Monday',
-      'date': DateTime(2024, 2, 3),
-    },
-    {
-      'time': '09:00 am',
-      'taskName': 'Team Meeting',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'day': 'Monday',
-      'date': DateTime(2024, 2, 5),
-    },
-    {
-      'time': '09:00 am',
-      'taskName': 'Review Budget Proposal',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'day': 'Monday',
-      'date': DateTime(2024, 2, 16),
-    },
-    {
-      'time': '08:00 am',
-      'taskName': 'Reply to Emails',
-      'status': 'Completed',
-      'statusColor': Colors.green,
-      'day': 'Monday',
-      'date': DateTime(2024, 2, 29),
-    },
-    {
-      'time': '10:00 am',
-      'taskName': 'Prepare Presentation',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'day': 'Tuesday',
-      'date': DateTime(2024, 1, 3),
-    },
-  ];
+  // Get filtered appointments based on the selected filter
+  List<AppointmentModel> getFilteredAppointments() {
+    final doctorProvider = Provider.of<DoctorProvider>(context);
+    switch (selectedFilter) {
+      case CalendarFilter.day:
+        return doctorProvider.getAppointmentsForWeek();
+      case CalendarFilter.month:
+        return doctorProvider
+            .getAppointmentsForMonth(); // Already filters for current month
+      case CalendarFilter.year:
+        return doctorProvider
+            .getAppointmentsForYear(); // Already filters for current year
+      default:
+        return doctorProvider.appointments;
+    }
+  }
 
-  List<Map<String, dynamic>> get mondayAppointments =>
-      appointmentsData.where((app) => app['day'] == 'Monday').toList();
+  // Get filtered tasks based on the selected filter
+  List<TaskModel> getFilteredTasks() {
+    final doctorProvider = Provider.of<DoctorProvider>(context);
+    switch (selectedFilter) {
+      case CalendarFilter.day:
+        return doctorProvider.getTasksForWeek();
+      case CalendarFilter.month:
+        return doctorProvider
+            .getTasksForMonth(); // Already filters for current month
+      case CalendarFilter.year:
+        return doctorProvider
+            .getTasksForYear(); // Already filters for current year
+      default:
+        return doctorProvider.tasks;
+    }
+  }
 
-  List<Map<String, dynamic>> get tuesdayAppointments =>
-      appointmentsData.where((app) => app['day'] == 'Tuesday').toList();
+  // Get the current week range
+  List<DateTime> getWeekDays() {
+    DateTime now = DateTime.now();
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    return List.generate(7, (index) {
+      return startOfWeek.add(Duration(days: index));
+    });
+  }
 
-  List<Map<String, dynamic>> get mondayTasks =>
-      tasksData.where((task) => task['day'] == 'Monday').toList();
+  // Group appointments and tasks by the days of the current week
+  Map<String, List<dynamic>> getWeekAppointmentsAndTasks() {
+    final appointments = getFilteredAppointments();
+    final tasks = getFilteredTasks();
+    final weekDays = getWeekDays();
+    Map<String, List<dynamic>> weekData = {};
 
-  List<Map<String, dynamic>> get tuesdayTasks =>
-      tasksData.where((task) => task['day'] == 'Tuesday').toList();
+    // Initialize the map for each day of the week
+    for (var day in weekDays) {
+      String dayName = DateFormat(
+        'EEEE',
+      ).format(day); // Get the full day name (e.g., Monday)
+      weekData[dayName] = [];
+    }
 
-  void _onFilterChanged(CalendarFilter filter) {
+    // Group appointments by day
+    for (var appointment in appointments) {
+      String dayName = DateFormat(
+        'EEEE',
+      ).format(appointment.appointmentDate); // Get the day name
+      weekData[dayName]?.add(appointment);
+    }
+
+    // Group tasks by day
+    for (var task in tasks) {
+      String dayName = DateFormat(
+        'EEEE',
+      ).format(task.taskDueDate); // Get the day name
+      weekData[dayName]?.add(task);
+    }
+
+    return weekData;
+  }
+
+  void _onFilterChanged(CalendarFilter filter) async {
+    setState(() {
+      _isLoading = true; // Show loader
+    });
+    // Simulate a delay for data loading or complex UI updates
+    await Future.delayed(
+      const Duration(milliseconds: 2000),
+    ); // Adjust as needed
+
     setState(() {
       selectedFilter = filter;
       // Reset view type if switching to month/year
       if (filter == CalendarFilter.month || filter == CalendarFilter.year) {
-        currentView = ViewType.list;
+        currentView = ViewType.list; // Default to list for month/year view
       }
+      _selectedCalendarDay =
+          DateTime.now(); // Reset selected day to today when changing filter
+      _isLoading = false; // Hide loader
     });
 
     // Navigate to the new screens based on filter
@@ -160,12 +146,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // Task action methods
-  void _markTaskCompleted(Map<String, dynamic> task) {
+  void _markTaskCompleted(TaskModel task) {
+    // In a real app, you would update the task status in your data source (e.g., provider, backend)
     setState(() {
-      task['status'] = 'Completed';
-      task['statusColor'] = Colors.green;
+      // For demonstration, we'll just print
+      print('Task marked as completed: ${task.taskTitle}');
     });
-    // print('Task marked as completed: ${task['taskName']}'); // Removed debug print
   }
 
   void _onViewToggle(ViewType view) {
@@ -174,35 +160,44 @@ class _CalendarScreenState extends State<CalendarScreen> {
     });
   }
 
-  void _onTabChanged(String tab) {
+  void _onTabChanged(String tab) async {
+    // Make it async
+    setState(() {
+      _isLoading = true; // Show loader
+    });
+
+    // Simulate a delay
+    await Future.delayed(const Duration(milliseconds: 2000));
+
     setState(() {
       selectedTab = tab;
+      _isLoading = false; // Hide loader
     });
   }
 
-  void _rescheduleTask(Map<String, dynamic> task) {
-    // print('Reschedule task: ${task['taskName']}'); // Removed debug print
+  void _rescheduleTask(TaskModel task) {
+    print('Reschedule task: ${task.taskTitle}');
     // Add logic for rescheduling task
   }
 
-  void _cancelTask(Map<String, dynamic> task) {
-    // print('Cancel task: ${task['taskName']}'); // Removed debug print
+  void _cancelTask(TaskModel task) {
+    print('Cancel task: ${task.taskTitle}');
     // Add logic for canceling task
   }
 
   // Appointment action methods
-  void _showAppointmentDetails(Map<String, dynamic> appointment) {
-    // print('View details for ${appointment['patientName']}'); // Removed debug print
+  void _showAppointmentDetails(AppointmentModel appointment) {
+    print('View details for ${appointment.patientName}');
     // Add logic to navigate or show a detailed view
   }
 
-  void _rescheduleAppointment(Map<String, dynamic> appointment) {
-    // print('Reschedule appointment for ${appointment['patientName']}'); // Removed debug print
+  void _rescheduleAppointment(AppointmentModel appointment) {
+    print('Reschedule appointment for ${appointment.patientName}');
     // Add logic for rescheduling appointment
   }
 
-  void _cancelAppointment(Map<String, dynamic> appointment) {
-    // print('Cancel appointment for ${appointment['patientName']}'); // Removed debug print
+  void _cancelAppointment(AppointmentModel appointment) {
+    print('Cancel appointment for ${appointment.patientName}');
     // Add logic for canceling appointment
   }
 
@@ -410,6 +405,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'confirmed':
+        return AppColors.confirmedEventColor;
+      case 'cancelled':
+        return AppColors.cancelButtonColor;
+      case 'pending':
+        return AppColors.pendingEventColor;
+      case 'completed':
+        return AppColors.completedTaskColor;
+      default:
+        return Colors.grey;
+    }
+  }
+
   Widget _getStatusIcon(String status) {
     switch (status.toLowerCase()) {
       case 'confirmed':
@@ -427,19 +437,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   // Filtered Content Widget for the main calendar view
   Widget _buildContentList() {
+    final weekData =
+        getWeekAppointmentsAndTasks(); // Get grouped data for the week
+
     if (selectedFilter == CalendarFilter.day) {
-      return Column(
-        children: [
-          if (selectedTab == 'Appointments')
-            _buildDayViewContent(
-              mondayAppointments,
-              tuesdayAppointments,
-              _buildAppointmentCard,
-            ),
-          if (selectedTab == 'Tasks')
-            _buildDayViewContent(mondayTasks, tuesdayTasks, _buildTaskCard),
-        ],
-      );
+      return _buildDayViewContent(weekData);
     }
     if (selectedFilter == CalendarFilter.month) {
       return _buildMonthView();
@@ -449,16 +451,38 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return const SizedBox.shrink();
   }
 
-  Widget _buildDayViewContent(
-    List<Map<String, dynamic>> mondayData,
-    List<Map<String, dynamic>> tuesdayData,
-    Widget Function(Map<String, dynamic>) cardBuilder,
-  ) {
-    if (currentView == ViewType.list) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (mondayData.isNotEmpty) ...[
+  Widget _buildDayViewContent(Map<String, List<dynamic>> weekData) {
+    List<Widget> dayWidgets = [];
+
+    // Sort days of the week to ensure consistent order
+    List<String> sortedDayNames =
+        getWeekDays().map((day) => DateFormat('EEEE').format(day)).toList();
+
+    for (String dayName in sortedDayNames) {
+      List<dynamic> eventsForDay = weekData[dayName] ?? [];
+
+      List<AppointmentModel> appointmentsForDay = [];
+      List<TaskModel> tasksForDay = [];
+
+      for (var event in eventsForDay) {
+        if (event is AppointmentModel) {
+          appointmentsForDay.add(event);
+        } else if (event is TaskModel) {
+          tasksForDay.add(event);
+        }
+      }
+
+      // Filter based on selected tab
+      List<dynamic> displayList = [];
+      if (selectedTab == 'Appointments') {
+        displayList = appointmentsForDay;
+      } else {
+        displayList = tasksForDay;
+      }
+
+      if (displayList.isNotEmpty) {
+        if (currentView == ViewType.list) {
+          dayWidgets.add(
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -467,65 +491,52 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 border: Border.all(color: AppColors.infoColor),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildDayHeader('Monday'),
-                  ...mondayData.map(cardBuilder),
+                  _buildDayHeader(dayName),
+                  ...displayList.map((data) {
+                    if (data is AppointmentModel) {
+                      return _buildAppointmentCard(data);
+                    } else if (data is TaskModel) {
+                      return _buildTaskCard(data);
+                    }
+                    return const SizedBox.shrink();
+                  }),
                 ],
               ),
             ),
-            const SizedBox(height: _spacing),
-          ],
-          if (tuesdayData.isNotEmpty) ...[
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.infoColor),
-              ),
-              child: Column(
-                children: [
-                  _buildDayHeader('Tuesday'),
-                  ...tuesdayData.map(cardBuilder),
-                ],
-              ),
-            ),
-          ],
-        ],
-      );
-    } else {
-      // Grid view
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (mondayData.isNotEmpty) ...[
-            _buildDayHeader('Monday'),
-            selectedTab == 'Appointments'
-                ? _buildAppointmentTableHeader()
-                : _buildTaskTableHeader(),
-            ...mondayData.map(
-              (data) =>
-                  selectedTab == 'Appointments'
-                      ? _buildAppointmentTableRow(data)
-                      : _buildTaskTableRow(data),
-            ),
-            const SizedBox(height: 24),
-          ],
-          if (tuesdayData.isNotEmpty) ...[
-            _buildDayHeader('Tuesday'),
-            selectedTab == 'Appointments'
-                ? _buildAppointmentTableHeader()
-                : _buildTaskTableHeader(),
-            ...tuesdayData.map(
-              (data) =>
-                  selectedTab == 'Appointments'
-                      ? _buildAppointmentTableRow(data)
-                      : _buildTaskTableRow(data),
-            ),
-          ],
-        ],
+          );
+          dayWidgets.add(const SizedBox(height: _spacing));
+        } else {
+          // Grid view
+          dayWidgets.add(_buildDayHeader(dayName));
+          if (selectedTab == 'Appointments') {
+            dayWidgets.add(_buildAppointmentTableHeader());
+            dayWidgets.addAll(
+              appointmentsForDay.map((data) => _buildAppointmentTableRow(data)),
+            );
+          } else {
+            dayWidgets.add(_buildTaskTableHeader());
+            dayWidgets.addAll(
+              tasksForDay.map((data) => _buildTaskTableRow(data)),
+            );
+          }
+          dayWidgets.add(const SizedBox(height: 24));
+        }
+      }
+    }
+    if (dayWidgets.isEmpty) {
+      return Center(
+        child: Text(
+          'No ${selectedTab.toLowerCase()} for this week.',
+          style: TextStyle(fontSize: 16, color: AppColors.secondaryTextColor),
+        ),
       );
     }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: dayWidgets,
+    );
   }
 
   Widget _buildDayHeader(String day) {
@@ -620,16 +631,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   // Month View Calendar Widget
   Widget _buildMonthView() {
-    DateTime now = DateTime.now();
-    String monthName = _getMonthName(now.month);
+    // Use _selectedCalendarDay to determine which month to display
+    DateTime displayMonth = _selectedCalendarDay ?? DateTime.now();
+    String monthName = _getMonthName(displayMonth.month);
+    String year = displayMonth.year.toString();
+
+    final appointments =
+        Provider.of<DoctorProvider>(
+          context,
+        ).getAppointmentsForMonth(); // These are month-filtered
+    final tasks =
+        Provider.of<DoctorProvider>(
+          context,
+        ).getTasksForMonth(); // These are month-filtered
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           selectedTab == 'Appointments'
-              ? '$monthName appointments'
-              : '$monthName Tasks',
+              ? '$monthName $year Appointments'
+              : '$monthName $year Tasks',
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -637,23 +659,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
         const SizedBox(height: _spacing),
-        _buildCalendarGrid(now),
+        _buildCalendarGrid(displayMonth, appointments, tasks),
       ],
     );
   }
 
   // Year View Widget
   Widget _buildYearView() {
-    DateTime now = DateTime.now();
-    String currentYear = now.year.toString();
+    DateTime displayYear = _selectedCalendarDay ?? DateTime.now();
+    String currentYear = displayYear.year.toString();
+
+    final appointments =
+        Provider.of<DoctorProvider>(context).getAppointmentsForYear();
+    final tasks = Provider.of<DoctorProvider>(context).getTasksForYear();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           selectedTab == 'Appointments'
-              ? '$currentYear appointments' // Dynamically show current year
-              : '$currentYear Tasks', // Dynamically show current year
+              ? '$currentYear Appointments'
+              : '$currentYear Tasks',
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -661,22 +687,64 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ),
         const SizedBox(height: _spacing),
-        _buildCalendarGrid(
-          DateTime(now.year, 1, 1),
-        ), // Start from Jan 1st of current year
+        SingleChildScrollView(
+          child: Column(
+            children: List.generate(12, (index) {
+              // index is 0-11, so month is index + 1
+              DateTime monthDate = DateTime(displayYear.year, index + 1, 1);
+              String monthName = _getMonthName(monthDate.month);
+
+              return Padding(
+                padding: const EdgeInsets.only(
+                  bottom: _spacing,
+                ), // Add spacing between months
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      monthName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textColor,
+                      ),
+                    ),
+                    const SizedBox(height: _spacing / 2),
+                    _buildCalendarGrid(
+                      monthDate,
+                      appointments,
+                      tasks,
+                    ), // Pass year-filtered appointments/tasks
+                  ],
+                ),
+              );
+            }),
+          ),
+        ),
       ],
     );
   }
 
   // Calendar Grid Widget
-  Widget _buildCalendarGrid(DateTime currentMonth) {
+  Widget _buildCalendarGrid(
+    DateTime currentMonth,
+    List<AppointmentModel> appointments,
+    List<TaskModel> tasks,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
-        children: [_buildWeekDaysHeader(), _buildCalendarDays(currentMonth)],
+        children: [
+          _buildWeekDaysHeader(),
+          _buildCalendarDays(
+            currentMonth,
+            appointments,
+            tasks,
+          ), // Pass appointments and tasks here
+        ],
       ),
     );
   }
@@ -710,8 +778,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // Calendar Days Grid
-  Widget _buildCalendarDays(DateTime currentMonth) {
+  Widget _buildCalendarDays(
+    DateTime currentMonth,
+    List<AppointmentModel> allAppointments,
+    List<TaskModel> allTasks,
+  ) {
     List<Widget> dayWidgets = [];
+    // final doctorProvider = Provider.of<DoctorProvider>(context); // No longer needed directly here
 
     // Get first day of month and calculate starting position
     DateTime firstDayOfMonth = DateTime(
@@ -732,6 +805,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         _buildCalendarDay(
           firstDayOfMonth.subtract(Duration(days: startingWeekday - i)),
           false,
+          [], // Pass empty list for appointments
+          [], // Pass empty list for tasks
         ),
       );
     }
@@ -739,22 +814,55 @@ class _CalendarScreenState extends State<CalendarScreen> {
     // Add days of current month
     for (int day = 1; day <= daysInMonth; day++) {
       DateTime date = DateTime(currentMonth.year, currentMonth.month, day);
-      dayWidgets.add(_buildCalendarDay(date, true));
+      List<AppointmentModel> dayAppointments =
+          allAppointments // Use passed allAppointments
+              .where((apt) => DateUtils.isSameDay(apt.appointmentDate, date))
+              .toList();
+      List<TaskModel> dayTasks =
+          allTasks // Use passed allTasks
+              .where((task) => DateUtils.isSameDay(task.taskDueDate, date))
+              .toList();
+      dayWidgets.add(_buildCalendarDay(date, true, dayAppointments, dayTasks));
     }
 
     // Add empty cells to complete the grid
     while (dayWidgets.length % 7 != 0) {
+      // Get the last day added, which might be from the previous month's filler or current month
       DateTime lastDayInGrid =
-          dayWidgets.last.key != null
-              ? (dayWidgets.last.key as ValueKey<DateTime>).value
+          dayWidgets.isNotEmpty
+              ? (dayWidgets.last is Expanded &&
+                      (dayWidgets.last as Expanded).child is GestureDetector &&
+                      ((dayWidgets.last as Expanded).child as GestureDetector)
+                              .child
+                          is Container &&
+                      (((dayWidgets.last as Expanded).child as GestureDetector)
+                                      .child
+                                  as Container)
+                              .child
+                          is Column)
+                  ? DateTime(
+                    currentMonth.year,
+                    currentMonth.month,
+                    daysInMonth,
+                  ) // Approximation if key is not easily accessible
+                  : DateTime(
+                    currentMonth.year,
+                    currentMonth.month + 1,
+                    0,
+                  ) // Fallback for last day of current month
               : DateTime(
                 currentMonth.year,
                 currentMonth.month + 1,
                 0,
-              ); // Fallback
+              ); // Default if no days yet
 
       dayWidgets.add(
-        _buildCalendarDay(lastDayInGrid.add(const Duration(days: 1)), false),
+        _buildCalendarDay(
+          lastDayInGrid.add(const Duration(days: 1)),
+          false,
+          [],
+          [],
+        ), // Pass empty lists for appointments and tasks
       );
     }
 
@@ -768,26 +876,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // Individual Calendar Day Widget
-  Widget _buildCalendarDay(DateTime fullDate, bool isCurrentMonth) {
+  Widget _buildCalendarDay(
+    DateTime fullDate,
+    bool isCurrentMonth,
+    List<AppointmentModel> dayAppointments,
+    List<TaskModel> dayTasks,
+  ) {
     bool isToday = DateUtils.isSameDay(fullDate, DateTime.now());
-    bool isSelected = DateUtils.isSameDay(fullDate, _selectedCalendarDay);
+    bool isSelected =
+        _selectedCalendarDay != null &&
+        DateUtils.isSameDay(fullDate, _selectedCalendarDay!);
 
-    List<Map<String, dynamic>> dayEvents = [];
+    List<dynamic> dayEvents = [];
 
     if (isCurrentMonth) {
-      // Get events for this day
+      // Only fetch events if it's a day of the current displayed month
       if (selectedTab == 'Appointments') {
-        dayEvents =
-            appointmentsData.where((apt) {
-              DateTime aptDate = apt['date'];
-              return DateUtils.isSameDay(aptDate, fullDate);
-            }).toList();
+        dayEvents = dayAppointments;
       } else {
-        dayEvents =
-            tasksData.where((task) {
-              DateTime taskDate = task['date'];
-              return DateUtils.isSameDay(taskDate, fullDate);
-            }).toList();
+        dayEvents = dayTasks;
       }
     }
 
@@ -809,7 +916,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ? AppColors.primaryColor
                     : (isToday
                         ? AppColors.todayHighlightColor
-                        : Colors.transparent), // Centralized color
+                        : Colors.transparent),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Column(
@@ -826,43 +933,91 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           ? Colors.white
                           : (isCurrentMonth
                               ? AppColors.textColor
-                              : AppColors
-                                  .disabledTextColor), // Centralized color
+                              : AppColors.disabledTextColor),
                 ),
               ),
               const SizedBox(height: 4),
               if (dayEvents.isNotEmpty) ...[
-                Expanded(
-                  child: Column(
-                    children:
-                        dayEvents.take(3).map((event) {
-                          return Container(
-                            width: double.infinity,
-                            height: 12,
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 2,
-                              vertical: 1,
+                if (selectedTab == 'Appointments')
+                  // Display a single indicator for total appointments
+                  Container(
+                    width: double.infinity,
+                    height: 12,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 2,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          AppColors
+                              .primaryColor, // A general color for appointments
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${dayEvents.length} Appointments',
+                        style: const TextStyle(
+                          fontSize: 8,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  )
+                else if (selectedTab == 'Tasks')
+                  // Display up to 3 task titles
+                  ...dayEvents.take(3).map((event) {
+                    if (event is TaskModel) {
+                      return Container(
+                        width: double.infinity,
+                        height: 12,
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 2,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getEventColor(event),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                        child: Center(
+                          child: Text(
+                            event.taskTitle,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 8,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
-                            decoration: BoxDecoration(
-                              color: _getEventColor(event),
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                            child: Center(
-                              child: Text(
-                                selectedTab == 'Appointments'
-                                    ? _getStatusAbbreviation(event['status'])
-                                    : _getTaskAbbreviation(event['taskName']),
-                                style: const TextStyle(
-                                  fontSize: 8,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }),
+                if (selectedTab == 'Tasks' &&
+                    dayEvents.length > 3) // Add more indicator for tasks
+                  Container(
+                    width: double.infinity,
+                    height: 12,
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 2,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[400],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        '...',
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
               ],
             ],
           ),
@@ -871,51 +1026,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Color _getEventColor(Map<String, dynamic> event) {
-    if (selectedTab == 'Appointments') {
-      switch (event['status'].toLowerCase()) {
-        case 'confirmed':
-          return AppColors.confirmedEventColor;
-        case 'cancelled':
-          return AppColors.cancelledEventColor;
-        case 'pending':
-          return AppColors.pendingEventColor;
-        default:
-          return Colors.grey;
-      }
-    } else {
-      switch (event['status'].toLowerCase()) {
-        case 'completed':
-          return AppColors.completedTaskColor;
-        case 'pending':
-          return AppColors.pendingTaskColor;
-        default:
-          return Colors.grey;
-      }
+  Color _getEventColor(dynamic event) {
+    if (selectedTab == 'Appointments' && event is AppointmentModel) {
+      // Assuming AppointmentModel has a 'status' property, adjust if needed
+      // For now, using a placeholder logic.
+      String status =
+          'confirmed'; // Replace with actual status from AppointmentModel
+      return _getStatusColor(status);
+    } else if (selectedTab == 'Tasks' && event is TaskModel) {
+      // Assuming TaskModel has a 'status' property, adjust if needed
+      // For now, using a placeholder logic.
+      String status = 'pending'; // Replace with actual status from TaskModel
+      return _getStatusColor(status);
     }
-  }
-
-  String _getStatusAbbreviation(String status) {
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-        return 'C';
-      case 'cancelled':
-        return 'X';
-      case 'pending':
-        return 'P';
-      default:
-        return '?';
-    }
-  }
-
-  String _getTaskAbbreviation(String taskName) {
-    List<String> words = taskName.split(' ');
-    if (words.length >= 2) {
-      return '${words[0][0]}${words[1][0]}'.toUpperCase();
-    } else if (words.isNotEmpty) {
-      return words[0].substring(0, 2).toUpperCase();
-    }
-    return 'T';
+    return Colors.grey;
   }
 
   String _getMonthName(int month) {
@@ -937,7 +1061,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // Appointments Card Widget for List View
-  Widget _buildAppointmentCard(Map<String, dynamic> appointment) {
+  Widget _buildAppointmentCard(AppointmentModel appointment) {
+    // You'll need to define how you get imageUrl and status from AppointmentModel
+    // For demonstration, using dummy values
+    final String imageUrl =
+        'https://via.placeholder.com/150'; // Replace with actual image URL
+    final String status =
+        'Confirmed'; // Replace with actual status from AppointmentModel
+
     return Container(
       margin: const EdgeInsets.only(bottom: _spacing),
       padding: const EdgeInsets.all(_spacing),
@@ -947,17 +1078,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                radius: 25,
-                backgroundImage: NetworkImage(appointment['imageUrl']),
-              ),
+              CircleAvatar(radius: 25, backgroundImage: NetworkImage(imageUrl)),
               const SizedBox(width: _spacing),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      appointment['patientName'],
+                      appointment.patientName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -965,7 +1093,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      appointment['time'],
+                      DateFormat('hh:mm a').format(
+                        DateTime(
+                          appointment.appointmentDate.year,
+                          appointment.appointmentDate.month,
+                          appointment.appointmentDate.day,
+                          appointment.appointmentTime.hour,
+                          appointment.appointmentTime.minute,
+                        ),
+                      ),
                       style: TextStyle(
                         color:
                             AppColors.secondaryTextColor, // Centralized color
@@ -997,13 +1133,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: appointment['statusColor'].withOpacity(0.1),
+              color: _getStatusColor(status).withOpacity(0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              appointment['status'],
+              status,
               style: TextStyle(
-                color: appointment['statusColor'],
+                color: _getStatusColor(status),
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -1024,11 +1160,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Expanded(
                 child: _buildActionButtonCard(
                   'Reschedule',
-                  appointment['status'] == 'Cancelled'
+                  status == 'Cancelled'
                       ? AppColors.disabledButtonColor
                       : AppColors.tertiaryButtonColor, // Centralized color
                   Colors.white,
-                  appointment['status'] == 'Cancelled'
+                  status == 'Cancelled'
                       ? null
                       : () => _rescheduleAppointment(appointment),
                 ),
@@ -1037,11 +1173,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Expanded(
                 child: _buildActionButtonCard(
                   'Cancel',
-                  appointment['status'] == 'Cancelled'
+                  status == 'Cancelled'
                       ? AppColors.disabledButtonColor
                       : AppColors.cancelButtonColor, // Centralized color
                   Colors.white,
-                  appointment['status'] == 'Cancelled'
+                  status == 'Cancelled'
                       ? null
                       : () => _cancelAppointment(appointment),
                 ),
@@ -1064,7 +1200,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              'Add notes for this appointment here...',
+              appointment.description, // Display description from model
               style: TextStyle(
                 color: AppColors.disabledTextColor,
                 fontSize: 14,
@@ -1077,7 +1213,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // Task Card Widget for List View
-  Widget _buildTaskCard(Map<String, dynamic> task) {
+  Widget _buildTaskCard(TaskModel task) {
+    final String status =
+        'Pending'; // Placeholder status for tasks, adjust as needed
+
     return Container(
       margin: const EdgeInsets.only(bottom: _spacing),
       padding: const EdgeInsets.all(_spacing),
@@ -1092,7 +1231,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      task['taskName'],
+                      task.taskTitle,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -1100,7 +1239,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      task['time'],
+                      DateFormat('hh:mm a').format(
+                        DateTime(
+                          task.taskDueDate.year,
+                          task.taskDueDate.month,
+                          task.taskDueDate.day,
+                          task.taskDueTime.hour,
+                          task.taskDueTime.minute,
+                        ),
+                      ),
                       style: TextStyle(
                         color:
                             AppColors.secondaryTextColor, // Centralized color
@@ -1113,13 +1260,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: task['statusColor'].withOpacity(0.1),
+                  color: _getStatusColor(status).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  task['status'],
+                  status,
                   style: TextStyle(
-                    color: task['statusColor'],
+                    color: _getStatusColor(status),
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -1133,13 +1280,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
               Expanded(
                 child: _buildActionButtonCard(
                   'Mark Completed',
-                  task['status'] == 'Completed'
+                  status == 'Completed'
                       ? AppColors.disabledButtonColor
                       : AppColors.primaryColor,
                   Colors.white,
-                  task['status'] == 'Completed'
-                      ? null
-                      : () => _markTaskCompleted(task),
+                  status == 'Completed' ? null : () => _markTaskCompleted(task),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1189,7 +1334,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildAppointmentTableRow(Map<String, dynamic> appointment) {
+  Widget _buildAppointmentTableRow(AppointmentModel appointment) {
+    final String status =
+        'Confirmed'; // Placeholder status for appointments, adjust as needed
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: _horizontalPadding,
@@ -1205,14 +1353,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
           Expanded(
             flex: 2,
             child: Text(
-              appointment['time'],
+              DateFormat('hh:mm a').format(
+                DateTime(
+                  appointment.appointmentDate.year,
+                  appointment.appointmentDate.month,
+                  appointment.appointmentDate.day,
+                  appointment.appointmentTime.hour,
+                  appointment.appointmentTime.minute,
+                ),
+              ),
               style: const TextStyle(fontSize: 14, color: AppColors.textColor),
             ),
           ),
           Expanded(
             flex: 3,
             child: Text(
-              appointment['patientName'],
+              appointment.patientName,
               style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textColor,
@@ -1226,10 +1382,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
               width: 24,
               height: 24,
               decoration: BoxDecoration(
-                color: appointment['statusColor'],
+                color: _getStatusColor(status),
                 shape: BoxShape.circle,
               ),
-              child: _getStatusIcon(appointment['status']),
+              child: _getStatusIcon(status),
             ),
           ),
           Expanded(
@@ -1249,7 +1405,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildTaskTableRow(Map<String, dynamic> task) {
+  Widget _buildTaskTableRow(TaskModel task) {
+    // Placeholder status for tasks, adjust as needed
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: _horizontalPadding,
@@ -1265,7 +1422,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           Expanded(
             flex: 3,
             child: Text(
-              task['taskName'],
+              task.taskTitle,
               style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textColor,
@@ -1276,7 +1433,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
           Expanded(
             flex: 2,
             child: Text(
-              task['time'],
+              DateFormat('hh:mm a').format(
+                DateTime(
+                  task.taskDueDate.year,
+                  task.taskDueDate.month,
+                  task.taskDueDate.day,
+                  task.taskDueTime.hour,
+                  task.taskDueTime.minute,
+                ),
+              ),
               style: const TextStyle(fontSize: 14, color: AppColors.textColor),
             ),
           ),
@@ -1298,7 +1463,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // Action menu for appointment
-  void _showActionMenu(Map<String, dynamic> appointment) {
+  void _showActionMenu(AppointmentModel appointment) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -1339,7 +1504,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   // Action menu for task
-  void _showTaskActionMenu(Map<String, dynamic> task) {
+  void _showTaskActionMenu(TaskModel task) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -1436,7 +1601,16 @@ class _CalendarScreenState extends State<CalendarScreen> {
             const SizedBox(height: _spacing),
 
             // Content
-            Expanded(child: SingleChildScrollView(child: _buildContentList())),
+            Expanded(
+              child:
+                  _isLoading // Check the loading state
+                      ? const Center(
+                        child: CircularProgressIndicator(),
+                      ) // Show loader
+                      : SingleChildScrollView(
+                        child: _buildContentList(),
+                      ), // Show content
+            ),
             const SizedBox(height: 25), // Consider making this a constant
           ],
         ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:doctor_app/data/models/appointment_model.dart';
+import 'package:doctor_app/data/models/invoice_model.dart';
 import 'package:doctor_app/data/models/notes_model.dart';
 import 'package:doctor_app/data/models/task_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -78,6 +79,25 @@ class DoctorService {
       }
     } catch (e) {
       print('❌ Error fetching appointments: $e');
+      return [];
+    }
+  }
+
+  Future<List<InvoiceModel>> fetchInvoices(int doctorId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.fetchInvoices}/$doctorId'),
+      );
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 && body['success']) {
+        final List data = body['invoices'];
+        return data.map((e) => InvoiceModel.fromJson(e)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('❌ Error fetching invoices: $e');
       return [];
     }
   }

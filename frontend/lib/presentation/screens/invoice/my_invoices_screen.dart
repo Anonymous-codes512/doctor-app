@@ -1,7 +1,10 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/data/models/invoice_model.dart';
 import 'package:doctor_app/presentation/screens/invoice/invoice_filter_popup.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class MyInvoicesScreen extends StatefulWidget {
   const MyInvoicesScreen({Key? key}) : super(key: key);
@@ -12,37 +15,13 @@ class MyInvoicesScreen extends StatefulWidget {
 
 class _MyInvoicesScreenState extends State<MyInvoicesScreen> {
   String _selectedSort = 'Date';
-  final List<Map<String, dynamic>> _invoices = [
-    {
-      'invoiceNo': '#123456',
-      'patientName': 'Joe Doe',
-      'amountDue': 50,
-      'dueDate': DateTime(2025, 2, 12),
-      'status': 'Paid',
-      'issuedDate': DateTime(2025, 2, 11),
-    },
-    {
-      'invoiceNo': '#123457',
-      'patientName': 'Jane Smith',
-      'amountDue': 75,
-      'dueDate': DateTime(2025, 2, 15),
-      'status': 'Pending',
-      'issuedDate': DateTime(2025, 2, 10),
-    },
-    {
-      'invoiceNo': '#123458',
-      'patientName': 'Bob Johnson',
-      'amountDue': 30,
-      'dueDate': DateTime(2025, 2, 20),
-      'status': 'Overdue',
-      'issuedDate': DateTime(2025, 2, 8),
-    },
-  ];
-
+  late List<InvoiceModel> _invoices;
   @override
   void initState() {
     super.initState();
-    // Sort by date initially when the screen loads
+    final doctorProvider = Provider.of<DoctorProvider>(context, listen: false);
+    doctorProvider.loadInvoices();
+    _invoices = doctorProvider.invoices;
     _sortInvoices(_selectedSort);
   }
 
@@ -52,13 +31,15 @@ class _MyInvoicesScreenState extends State<MyInvoicesScreen> {
 
       switch (sortBy) {
         case 'Date':
-          _invoices.sort((a, b) => b['dueDate'].compareTo(a['dueDate']));
+          _invoices.sort((a, b) => b.dueDate!.compareTo(a.dueDate!));
           break;
         case 'Amount':
-          _invoices.sort((a, b) => b['amountDue'].compareTo(a['amountDue']));
+          _invoices.sort((a, b) => b.amountDue!.compareTo(a.amountDue!));
           break;
         case 'Status':
-          _invoices.sort((a, b) => a['status'].compareTo(b['status']));
+          _invoices.sort(
+            (a, b) => a.paymentStatus!.compareTo(b.paymentStatus!),
+          );
           break;
       }
     });
@@ -202,11 +183,11 @@ class _MyInvoicesScreenState extends State<MyInvoicesScreen> {
     );
   }
 
-  Widget _buildInvoiceCard(Map<String, dynamic> invoice) {
+  Widget _buildInvoiceCard(InvoiceModel invoice) {
     Color statusColor = AppColors.successColor;
-    if (invoice['status'] == 'Pending') {
+    if (invoice.paymentStatus == 'Pending') {
       statusColor = AppColors.warningColor;
-    } else if (invoice['status'] == 'Overdue') {
+    } else if (invoice.paymentStatus == 'Overdue') {
       statusColor = AppColors.errorColor;
     }
 
@@ -227,26 +208,26 @@ class _MyInvoicesScreenState extends State<MyInvoicesScreen> {
         ),
         child: Column(
           children: [
-            _buildInvoiceRow('Invoice no.', invoice['invoiceNo']),
+            _buildInvoiceRow('Invoice no.', invoice.invoiceNumber ?? ''),
             const SizedBox(height: 8),
-            _buildInvoiceRow('Patient name', invoice['patientName']),
+            _buildInvoiceRow('Patient name', invoice.patientName ?? ''),
             const SizedBox(height: 8),
-            _buildInvoiceRow('Amount due', '\$${invoice['amountDue']}'),
+            _buildInvoiceRow('Amount due', 'Rs. ${invoice.amountDue}'),
             const SizedBox(height: 8),
             _buildInvoiceRow(
               'Due date',
-              '${invoice['dueDate'].day.toString().padLeft(2, '0')}/${invoice['dueDate'].month.toString().padLeft(2, '0')}/${invoice['dueDate'].year}',
+              '${invoice.dueDate?.day.toString().padLeft(2, '0')}/${invoice.dueDate?.month.toString().padLeft(2, '0')}/${invoice.dueDate?.year}',
             ),
             const SizedBox(height: 8),
             _buildInvoiceRow(
               'Status',
-              invoice['status'],
+              invoice.paymentStatus ?? '',
               statusColor: statusColor,
             ),
             const SizedBox(height: 8),
             _buildInvoiceRow(
               'Issued date',
-              '${invoice['issuedDate'].day.toString().padLeft(2, '0')}/${invoice['issuedDate'].month.toString().padLeft(2, '0')}/${invoice['issuedDate'].year}',
+              '${invoice.dueDate?.day.toString().padLeft(2, '0')}/${invoice.dueDate?.month.toString().padLeft(2, '0')}/${invoice.dueDate?.year}',
             ),
           ],
         ),
