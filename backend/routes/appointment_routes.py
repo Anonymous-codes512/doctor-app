@@ -1,6 +1,6 @@
 from flask import request, jsonify, Blueprint
 from datetime import datetime
-from models import Appointment, Patient, User, Doctor
+from models import Appointment, Patient, User, Doctor, Invoice
 from extensions import db
 from sqlalchemy.exc import IntegrityError
 from utils.enum import AppointmentMode, AppointmentStatus, AppointmentReason, PaymentMode
@@ -35,7 +35,7 @@ def createAppointment():
     if not doctor:
         return jsonify({'success': False, 'message': f'Doctor with user ID {data["doctor_id"]} not found'}), 400
 
-    # Check if user already exists
+    # Check if user (patient) exists
     user = User.query.filter_by(email=patient_email).first()
     if not user:
         username = patient_name.replace(" ", "").lower()
@@ -53,7 +53,6 @@ def createAppointment():
         db.session.flush()
 
         doctor.patients.append(patient)
-
     else:
         patient = Patient.query.filter_by(user_id=user.id).first()
         if not patient:
@@ -72,6 +71,7 @@ def createAppointment():
         return jsonify({'success': False, 'message': str(e)}), 400
 
     try:
+        # Create appointment
         appointment = Appointment(
             doctor_id=doctor.id,
             patient_id=patient.id,
@@ -86,9 +86,33 @@ def createAppointment():
             description=data.get('description')
         )
         db.session.add(appointment)
+        db.session.flush()
+
+        # Fetch last global invoice and generate next invoice number
+        last_invoice = Invoice.query.order_by(Invoice.id.desc()).first()
+        if last_invoice and last_invoice.invoice_number.startswith("INV-"):
+            last_number = int(last_invoice.invoice_number.split('-')[1])
+            new_invoice_number = f"INV-{last_number + 1:03d}"
+        else:
+            new_invoice_number = "INV-001"
+
+        # Create invoice
+        invoice = Invoice(
+            patient_id=patient.id,
+            invoice_number=new_invoice_number,
+            amount_due=fee,
+            due_date=appointment_date,
+            payment_status='Pending'
+        )
+        db.session.add(invoice)
         db.session.commit()
 
-        return jsonify({'success': True, 'message': 'Appointment created successfully', 'appointment_id': appointment.id}), 201
+        return jsonify({
+            'success': True,
+            'message': 'Appointment and invoice created successfully',
+            'appointment_id': appointment.id,
+            'invoice_number': new_invoice_number
+        }), 201
 
     except IntegrityError as e:
         db.session.rollback()
@@ -141,8 +165,6 @@ def get_doctor_appointments(user_id):
             'message': 'Internal server error',
             'error': str(e)
         }), 500
-
-
 
 def get_enum_value(enum_type, value):
     try:

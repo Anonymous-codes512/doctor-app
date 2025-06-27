@@ -116,7 +116,8 @@ def update_note(note_id):
     except Exception as e:
         print(f'Unexpected Error: {e}')
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
-    
+
+
 @doctor_bp.route('/fetch_notes', methods=['GET'])
 def fetch_notes():
     try:

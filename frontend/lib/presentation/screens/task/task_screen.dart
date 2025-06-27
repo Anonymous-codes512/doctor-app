@@ -1,8 +1,11 @@
 import 'dart:math';
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/data/models/task_model.dart';
 import 'package:doctor_app/presentation/screens/task/task_filter_popup.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class TaskScreen extends StatefulWidget {
   const TaskScreen({super.key});
@@ -13,121 +16,52 @@ class TaskScreen extends StatefulWidget {
 
 enum ViewType { grid, list }
 
-enum CalendarFilter {
-  day,
-  week,
-  month,
-  year,
-  addTask,
-  addAppointment,
-} // Added 'week' to enum
+enum CalendarFilter { day, week, month, year, addTask, addAppointment }
 
 class _CalendarScreenState extends State<TaskScreen> {
   ViewType currentView = ViewType.list;
   CalendarFilter selectedFilter = CalendarFilter.day;
   DateTime? _selectedCalendarDay;
+  late DoctorProvider _doctorProvider;
+  bool _isLoading = false;
 
   static const double _buttonHeight = 50;
   static const double _horizontalPadding = 16;
   static const double _spacing = 16;
 
-  final List<Map<String, dynamic>> tasksData = [
-    {
-      'time': '09:00 am',
-      'taskName': 'Morning Exercise',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'day': 'Monday',
-      'date': DateTime(2025, 6, 5), // Example: Monday of current week
-    },
-    {
-      'time': '10:30 am',
-      'taskName': 'Review Documents',
-      'status': 'Completed',
-      'statusColor': Colors.green,
-      'day': 'Tuesday',
-      'date': DateTime(2025, 6, 6), // Example: Tuesday of current week
-    },
-    {
-      'time': '11:00 am',
-      'taskName': 'Team Meeting',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'day': 'Wednesday',
-      'date': DateTime(2025, 6, 4), // Example: Today
-    },
-    {
-      'time': '02:00 pm',
-      'taskName': 'Prepare Presentation',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'day': 'Wednesday',
-      'date': DateTime(2025, 6, 4), // Example: Today
-    },
-    {
-      'time': '03:30 pm',
-      'taskName': 'Client Call',
-      'status': 'Confirmed',
-      'statusColor':
-          Colors.blue, // Using blue for 'Confirmed' tasks (new status color)
-      'day': 'Thursday',
-      'date': DateTime(2025, 6, 5), // Example: Thursday of current week
-    },
-    {
-      'time': '08:00 am',
-      'taskName': 'Reply to Emails',
-      'status': 'Completed',
-      'statusColor': Colors.green,
-      'day': 'Friday',
-      'date': DateTime(2025, 6, 6), // Example: Friday of current week
-    },
-    {
-      'time': '09:00 am',
-      'taskName': 'Weekly Report',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'day': 'Saturday',
-      'date': DateTime(2025, 6, 7), // Example: Saturday of current week
-    },
-    {
-      'time': '09:00 am',
-      'taskName': 'Weekend Planning',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'day': 'Sunday',
-      'date': DateTime(2025, 6, 8), // Example: Sunday of current week
-    },
-    {
-      'time': '09:00 am',
-      'taskName': 'Monthly Review',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'day': 'Monday',
-      'date': DateTime(2025, 7, 14), // Example: Next month
-    },
-    {
-      'time': '10:00 am',
-      'taskName': 'Annual Audit Prep',
-      'status': 'Pending',
-      'statusColor': Colors.orange,
-      'day': 'Tuesday',
-      'date': DateTime(2026, 1, 15), // Example: Next year
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _doctorProvider = Provider.of<DoctorProvider>(context, listen: false);
+    _selectedCalendarDay = DateTime.now();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      setState(() {
+        _isLoading = true;
+      });
+      await _doctorProvider.loadTasks();
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
 
-  void _onFilterChanged(CalendarFilter filter) {
+  void _onFilterChanged(CalendarFilter filter) async {
     setState(() {
-      selectedFilter = filter;
-      // For month/year, force grid view. For day/week, allow toggling.
-      if (filter == CalendarFilter.month || filter == CalendarFilter.year) {
-        currentView = ViewType.grid; // Calendar view is always grid-like
-      } else {
-        currentView =
-            ViewType.list; // Default to list for day/week, user can toggle
-      }
+      _isLoading = true;
     });
 
-    // Navigate to the new screens based on filter
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    setState(() {
+      selectedFilter = filter;
+      if (filter == CalendarFilter.month || filter == CalendarFilter.year) {
+        currentView = ViewType.grid;
+      } else {
+        currentView = ViewType.list;
+      }
+      _isLoading = false;
+    });
+
     if (filter == CalendarFilter.addTask) {
       Navigator.pushNamed(context, Routes.addNewTaskScreen);
     } else if (filter == CalendarFilter.addAppointment) {
@@ -135,19 +69,15 @@ class _CalendarScreenState extends State<TaskScreen> {
     }
   }
 
-  // Helper method to get tasks for a specific day
-  List<Map<String, dynamic>> _getTasksForDay(DateTime day) {
-    return tasksData.where((task) {
-      DateTime taskDate = task['date'];
-      return DateUtils.isSameDay(taskDate, day);
+  List<TaskModel> _getTasksForDay(DateTime day, List<TaskModel> tasks) {
+    return tasks.where((task) {
+      return DateUtils.isSameDay(task.taskDueDate, day);
     }).toList();
   }
 
-  // Task action methods
-  void _markTaskCompleted(Map<String, dynamic> task) {
+  void _markTaskCompleted(TaskModel task) {
     setState(() {
-      task['status'] = 'Completed';
-      task['statusColor'] = Colors.green;
+      print('Task ${task.taskTitle} marked as Completed');
     });
   }
 
@@ -157,15 +87,14 @@ class _CalendarScreenState extends State<TaskScreen> {
     });
   }
 
-  void _rescheduleTask(Map<String, dynamic> task) {
-    // Add logic for rescheduling task
+  void _rescheduleTask(TaskModel task) {
+    print('Reschedule Task: ${task.taskTitle}');
   }
 
-  void _cancelTask(Map<String, dynamic> task) {
-    // Add logic for canceling task
+  void _cancelTask(TaskModel task) {
+    print('Cancel Task: ${task.taskTitle}');
   }
 
-  // Search Bar Widget
   Widget _buildSearchBar(BuildContext context) {
     return Row(
       children: [
@@ -203,9 +132,7 @@ class _CalendarScreenState extends State<TaskScreen> {
             onPressed: () {
               showDialog(
                 context: context,
-                builder:
-                    (context) =>
-                        const TaskFilterPopup(), // Ensure correct popup
+                builder: (context) => const TaskFilterPopup(),
               );
             },
           ),
@@ -214,20 +141,15 @@ class _CalendarScreenState extends State<TaskScreen> {
     );
   }
 
-  // Filter Buttons Widget
   Widget _buildFilterButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(child: _buildFilterButton('Today', CalendarFilter.day)),
         const SizedBox(width: 2),
-        Expanded(
-          child: _buildFilterButton('Week', CalendarFilter.week),
-        ), // Changed filter to CalendarFilter.week
+        Expanded(child: _buildFilterButton('Week', CalendarFilter.week)),
         const SizedBox(width: 2),
-        Expanded(
-          child: _buildFilterButton('Month', CalendarFilter.month),
-        ), // Corrected month filter
+        Expanded(child: _buildFilterButton('Month', CalendarFilter.month)),
         const SizedBox(width: 2),
         Expanded(child: _buildFilterButton('Year', CalendarFilter.year)),
         const SizedBox(width: 2),
@@ -279,9 +201,7 @@ class _CalendarScreenState extends State<TaskScreen> {
     );
   }
 
-  // Toggle Buttons for Grid/List View
   Widget _buildToggleButtons() {
-    // Hide toggle buttons for month and year views as they use a fixed calendar grid
     if (selectedFilter == CalendarFilter.month ||
         selectedFilter == CalendarFilter.year) {
       return const SizedBox.shrink();
@@ -310,11 +230,10 @@ class _CalendarScreenState extends State<TaskScreen> {
     );
   }
 
-  // Filtered Content Widget for the main calendar view
-  Widget _buildContentList() {
+  Widget _buildContentList(List<TaskModel> allTasks) {
     if (selectedFilter == CalendarFilter.day) {
       DateTime today = DateTime.now();
-      List<Map<String, dynamic>> todayTasks = _getTasksForDay(today);
+      List<TaskModel> todayTasks = _getTasksForDay(today, allTasks);
       if (todayTasks.isEmpty) {
         return _buildNoTasksMessage('No tasks for today.');
       }
@@ -324,16 +243,15 @@ class _CalendarScreenState extends State<TaskScreen> {
         cardBuilder: _buildTaskCard,
       );
     } else if (selectedFilter == CalendarFilter.week) {
-      return _buildWeekViewContent();
+      return _buildWeekViewContent(allTasks);
     } else if (selectedFilter == CalendarFilter.month) {
-      return _buildMonthView();
+      return _buildMonthView(allTasks);
     } else if (selectedFilter == CalendarFilter.year) {
-      return _buildYearView();
+      return _buildYearView(allTasks);
     }
     return const SizedBox.shrink();
   }
 
-  // New method for no tasks message
   Widget _buildNoTasksMessage(String message) {
     return Center(
       child: Text(
@@ -346,14 +264,13 @@ class _CalendarScreenState extends State<TaskScreen> {
     );
   }
 
-  // Refactored _buildDayViewContent to be generic for any list of tasks
   Widget _buildDayViewContent({
-    required List<Map<String, dynamic>> tasks,
+    required List<TaskModel> tasks,
     required String dayHeader,
-    required Widget Function(Map<String, dynamic>) cardBuilder,
+    required Widget Function(TaskModel) cardBuilder,
   }) {
     if (tasks.isEmpty) {
-      return const SizedBox.shrink(); // Don't show header if no tasks
+      return const SizedBox.shrink();
     }
 
     if (currentView == ViewType.list) {
@@ -370,7 +287,6 @@ class _CalendarScreenState extends State<TaskScreen> {
         ),
       );
     } else {
-      // Grid view
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -382,19 +298,16 @@ class _CalendarScreenState extends State<TaskScreen> {
     }
   }
 
-  // New method for building week view content
-  Widget _buildWeekViewContent() {
+  Widget _buildWeekViewContent(List<TaskModel> allTasks) {
     DateTime now = DateTime.now();
-    DateTime startOfWeek = now.subtract(
-      Duration(days: now.weekday - 1),
-    ); // Monday
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
 
     List<Widget> weekDayWidgets = [];
     bool hasTasksInWeek = false;
 
     for (int i = 0; i < 7; i++) {
       DateTime day = startOfWeek.add(Duration(days: i));
-      List<Map<String, dynamic>> dayTasks = _getTasksForDay(day);
+      List<TaskModel> dayTasks = _getTasksForDay(day, allTasks);
 
       if (dayTasks.isNotEmpty) {
         hasTasksInWeek = true;
@@ -406,7 +319,6 @@ class _CalendarScreenState extends State<TaskScreen> {
           ),
         );
         if (i < 6) {
-          // Add spacing between days, but not after the last day
           weekDayWidgets.add(const SizedBox(height: _spacing));
         }
       }
@@ -419,7 +331,6 @@ class _CalendarScreenState extends State<TaskScreen> {
     return Column(children: weekDayWidgets);
   }
 
-  // Helper to format day headers (reused from AppointmentScreen)
   String _formatDayHeader(DateTime date) {
     DateTime now = DateTime.now();
     if (DateUtils.isSameDay(date, now)) {
@@ -502,24 +413,22 @@ class _CalendarScreenState extends State<TaskScreen> {
     );
   }
 
-  // Month View Calendar Widget
-  Widget _buildMonthView() {
+  Widget _buildMonthView(List<TaskModel> allTasks) {
     DateTime now = DateTime.now();
     String monthName = _getMonthName(now.month);
     int currentYear = now.year;
 
-    // Filter tasks for the current month
-    List<Map<String, dynamic>> monthTasks =
-        tasksData.where((task) {
-          DateTime taskDate = task['date'];
-          return taskDate.year == currentYear && taskDate.month == now.month;
+    List<TaskModel> monthTasks =
+        allTasks.where((task) {
+          return task.taskDueDate.year == currentYear &&
+              task.taskDueDate.month == now.month;
         }).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$monthName $currentYear Tasks', // Updated header
+          '$monthName $currentYear Tasks',
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -527,47 +436,60 @@ class _CalendarScreenState extends State<TaskScreen> {
           ),
         ),
         const SizedBox(height: _spacing),
-        _buildCalendarGrid(now, monthTasks), // Pass filtered tasks
+        _buildCalendarGrid(now, monthTasks),
       ],
     );
   }
 
-  // Year View Widget
-  Widget _buildYearView() {
+  Widget _buildYearView(List<TaskModel> allTasks) {
     DateTime now = DateTime.now();
-    String currentYear = now.year.toString();
+    int currentYear = now.year;
 
-    // Filter tasks for the current year
-    List<Map<String, dynamic>> yearTasks =
-        tasksData.where((task) {
-          DateTime taskDate = task['date'];
-          return taskDate.year == now.year;
-        }).toList();
+    List<Widget> yearMonthsWidgets = [];
+    bool hasTasksInYear = false;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '$currentYear Tasks',
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textColor,
-          ),
+    for (int month = 1; month <= 12; month++) {
+      DateTime monthDateTime = DateTime(currentYear, month, 1);
+      List<TaskModel> monthTasks =
+          allTasks.where((task) {
+            return task.taskDueDate.year == currentYear &&
+                task.taskDueDate.month == month;
+          }).toList();
+
+      if (monthTasks.isNotEmpty) {
+        hasTasksInYear = true;
+      }
+
+      yearMonthsWidgets.add(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${_getMonthName(month)} $currentYear Tasks',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textColor,
+              ),
+            ),
+            const SizedBox(height: _spacing),
+            _buildCalendarGrid(monthDateTime, monthTasks),
+            const SizedBox(height: _spacing * 2), // Spacing between months
+          ],
         ),
-        const SizedBox(height: _spacing),
-        _buildCalendarGrid(
-          DateTime(now.year, 1, 1), // Start from Jan 1st of current year
-          yearTasks, // Pass filtered tasks for the year
-        ),
-      ],
-    );
+      );
+    }
+
+    if (!hasTasksInYear) {
+      return _buildNoTasksMessage('No tasks for this year.');
+    }
+
+    return Column(children: yearMonthsWidgets);
   }
 
-  // Calendar Grid Widget - now accepts tasks list
   Widget _buildCalendarGrid(
     DateTime currentMonth,
-    List<Map<String, dynamic>> filteredTasks,
+    List<TaskModel> filteredTasks,
   ) {
     return Container(
       decoration: BoxDecoration(
@@ -583,7 +505,6 @@ class _CalendarScreenState extends State<TaskScreen> {
     );
   }
 
-  // Week Days Header
   Widget _buildWeekDaysHeader() {
     final weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     return Container(
@@ -610,66 +531,52 @@ class _CalendarScreenState extends State<TaskScreen> {
     );
   }
 
-  // Calendar Days Grid - now uses filteredTasks
   Widget _buildCalendarDays(
     DateTime currentMonth,
-    List<Map<String, dynamic>> filteredTasks,
+    List<TaskModel> filteredTasks,
   ) {
     List<Widget> dayWidgets = [];
 
-    // Get first day of month and calculate starting position
     DateTime firstDayOfMonth = DateTime(
       currentMonth.year,
       currentMonth.month,
       1,
     );
-    // Adjust weekday to be 0-indexed where Monday is 0
     int startingWeekday = (firstDayOfMonth.weekday - 1 + 7) % 7;
 
-    // Get days in current month
     int daysInMonth =
         DateTime(currentMonth.year, currentMonth.month + 1, 0).day;
 
-    // Add empty cells for days before month starts
     for (int i = 0; i < startingWeekday; i++) {
       dayWidgets.add(
         _buildCalendarDay(
           firstDayOfMonth.subtract(Duration(days: startingWeekday - i)),
           false,
-          filteredTasks, // Pass filtered tasks
+          filteredTasks,
         ),
       );
     }
 
-    // Add days of current month
     for (int day = 1; day <= daysInMonth; day++) {
       DateTime date = DateTime(currentMonth.year, currentMonth.month, day);
-      dayWidgets.add(
-        _buildCalendarDay(date, true, filteredTasks),
-      ); // Pass filtered tasks
+      dayWidgets.add(_buildCalendarDay(date, true, filteredTasks));
     }
 
-    // Add empty cells to complete the grid
     while (dayWidgets.length % 7 != 0) {
       DateTime lastDayInGrid =
           dayWidgets.isNotEmpty && dayWidgets.last.key is ValueKey<DateTime>
               ? (dayWidgets.last.key as ValueKey<DateTime>).value
-              : DateTime(
-                currentMonth.year,
-                currentMonth.month + 1,
-                0,
-              ); // Fallback
+              : DateTime(currentMonth.year, currentMonth.month + 1, 0);
 
       dayWidgets.add(
         _buildCalendarDay(
           lastDayInGrid.add(const Duration(days: 1)),
           false,
           filteredTasks,
-        ), // Pass filtered tasks
+        ),
       );
     }
 
-    // Group days into weeks
     List<Widget> weeks = [];
     for (int i = 0; i < dayWidgets.length; i += 7) {
       weeks.add(Row(children: dayWidgets.sublist(i, i + 7)));
@@ -678,23 +585,20 @@ class _CalendarScreenState extends State<TaskScreen> {
     return Column(children: weeks);
   }
 
-  // Individual Calendar Day Widget - now uses filteredTasks
   Widget _buildCalendarDay(
     DateTime fullDate,
     bool isCurrentMonth,
-    List<Map<String, dynamic>> filteredTasks,
+    List<TaskModel> filteredTasks,
   ) {
     bool isToday = DateUtils.isSameDay(fullDate, DateTime.now());
     bool isSelected = DateUtils.isSameDay(fullDate, _selectedCalendarDay);
 
-    List<Map<String, dynamic>> dayEvents = [];
+    List<TaskModel> dayEvents = [];
 
     if (isCurrentMonth) {
       dayEvents =
           filteredTasks.where((task) {
-            // Use filteredTasks here
-            DateTime taskDate = task['date'];
-            return DateUtils.isSameDay(taskDate, fullDate);
+            return DateUtils.isSameDay(task.taskDueDate, fullDate);
           }).toList();
     }
 
@@ -708,7 +612,7 @@ class _CalendarScreenState extends State<TaskScreen> {
           }
         },
         child: Container(
-          key: ValueKey(fullDate), // Added a ValueKey
+          key: ValueKey(fullDate),
           height: 80,
           margin: const EdgeInsets.all(1),
           decoration: BoxDecoration(
@@ -756,7 +660,7 @@ class _CalendarScreenState extends State<TaskScreen> {
                             ),
                             child: Center(
                               child: Text(
-                                _getTaskAbbreviation(event['taskName']),
+                                _getTaskAbbreviation(event.taskTitle),
                                 style: const TextStyle(
                                   fontSize: 8,
                                   color: Colors.white,
@@ -776,14 +680,16 @@ class _CalendarScreenState extends State<TaskScreen> {
     );
   }
 
-  Color _getEventColor(Map<String, dynamic> event) {
-    switch (event['status'].toLowerCase()) {
+  Color _getEventColor(TaskModel task) {
+    switch (task.taskPriority.toLowerCase()) {
       case 'completed':
         return AppColors.completedTaskColor;
-      case 'pending':
+      case 'high':
         return AppColors.pendingTaskColor;
-      case 'confirmed': // Added confirmed status color for tasks
+      case 'medium':
         return AppColors.primaryColor;
+      case 'low':
+        return Colors.grey;
       default:
         return Colors.grey;
     }
@@ -794,9 +700,7 @@ class _CalendarScreenState extends State<TaskScreen> {
     if (words.length >= 2) {
       return '${words[0][0]}${words[1][0]}'.toUpperCase();
     } else if (words.isNotEmpty) {
-      return words[0]
-          .substring(0, min(2, words[0].length))
-          .toUpperCase(); // Handle shorter words
+      return words[0].substring(0, min(2, words[0].length)).toUpperCase();
     }
     return 'T';
   }
@@ -819,8 +723,7 @@ class _CalendarScreenState extends State<TaskScreen> {
     return months[month - 1];
   }
 
-  // Task Card Widget for List View
-  Widget _buildTaskCard(Map<String, dynamic> task) {
+  Widget _buildTaskCard(TaskModel task) {
     return Container(
       margin: const EdgeInsets.only(bottom: _spacing),
       padding: const EdgeInsets.all(_spacing),
@@ -835,7 +738,7 @@ class _CalendarScreenState extends State<TaskScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      task['taskName'],
+                      task.taskTitle,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -843,7 +746,7 @@ class _CalendarScreenState extends State<TaskScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      task['time'],
+                      '${task.taskDueTime.hour.toString().padLeft(2, '0')}:${task.taskDueTime.minute.toString().padLeft(2, '0')}',
                       style: const TextStyle(
                         color: AppColors.secondaryTextColor,
                         fontSize: 14,
@@ -855,13 +758,13 @@ class _CalendarScreenState extends State<TaskScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: task['statusColor'].withOpacity(0.1),
+                  color: _getEventColor(task).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  task['status'],
+                  task.taskPriority,
                   style: TextStyle(
-                    color: task['statusColor'],
+                    color: _getEventColor(task),
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                   ),
@@ -875,11 +778,11 @@ class _CalendarScreenState extends State<TaskScreen> {
               Expanded(
                 child: _buildActionButtonCard(
                   'Mark Completed',
-                  task['status'] == 'Completed'
+                  task.taskPriority.toLowerCase() == 'completed'
                       ? AppColors.disabledButtonColor
                       : AppColors.primaryColor,
                   Colors.white,
-                  task['status'] == 'Completed'
+                  task.taskPriority.toLowerCase() == 'completed'
                       ? null
                       : () => _markTaskCompleted(task),
                 ),
@@ -931,7 +834,7 @@ class _CalendarScreenState extends State<TaskScreen> {
     );
   }
 
-  Widget _buildTaskTableRow(Map<String, dynamic> task) {
+  Widget _buildTaskTableRow(TaskModel task) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: _horizontalPadding,
@@ -945,7 +848,7 @@ class _CalendarScreenState extends State<TaskScreen> {
           Expanded(
             flex: 3,
             child: Text(
-              task['taskName'],
+              task.taskTitle,
               style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.textColor,
@@ -956,7 +859,7 @@ class _CalendarScreenState extends State<TaskScreen> {
           Expanded(
             flex: 2,
             child: Text(
-              task['time'],
+              '${task.taskDueTime.hour.toString().padLeft(2, '0')}:${task.taskDueTime.minute.toString().padLeft(2, '0')}',
               style: const TextStyle(fontSize: 14, color: AppColors.textColor),
             ),
           ),
@@ -974,8 +877,7 @@ class _CalendarScreenState extends State<TaskScreen> {
     );
   }
 
-  // Action menu for task
-  void _showTaskActionMenu(Map<String, dynamic> task) {
+  void _showTaskActionMenu(TaskModel task) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
@@ -1048,20 +950,63 @@ class _CalendarScreenState extends State<TaskScreen> {
         padding: const EdgeInsets.all(_spacing),
         child: Column(
           children: [
-            // Search Bar
             _buildSearchBar(context),
             const SizedBox(height: _spacing),
-
-            // Filter Buttons
             _buildFilterButtons(),
             const SizedBox(height: _spacing),
-
-            // Tab Bar and View Toggle
             Row(children: [_buildToggleButtons()]),
             const SizedBox(height: _spacing),
+            Expanded(
+              child:
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : Consumer<DoctorProvider>(
+                        builder: (context, doctorProvider, child) {
+                          List<TaskModel> filteredTasks = [];
+                          if (selectedFilter == CalendarFilter.day) {
+                            filteredTasks =
+                                doctorProvider.tasks.where((task) {
+                                  return DateUtils.isSameDay(
+                                    task.taskDueDate,
+                                    _selectedCalendarDay ?? DateTime.now(),
+                                  );
+                                }).toList();
+                          } else if (selectedFilter == CalendarFilter.week) {
+                            filteredTasks = doctorProvider.getTasksForWeek();
+                          } else if (selectedFilter == CalendarFilter.month) {
+                            filteredTasks = doctorProvider.getTasksForMonth();
+                          } else if (selectedFilter == CalendarFilter.year) {
+                            filteredTasks = doctorProvider.getTasksForYear();
+                          }
 
-            // Content
-            Expanded(child: SingleChildScrollView(child: _buildContentList())),
+                          if (filteredTasks.isEmpty &&
+                              selectedFilter != CalendarFilter.year) {
+                            String message = '';
+                            if (selectedFilter == CalendarFilter.day) {
+                              message = 'No tasks for today.';
+                            } else if (selectedFilter == CalendarFilter.week) {
+                              message = 'No tasks for this week.';
+                            } else if (selectedFilter == CalendarFilter.month) {
+                              message = 'No tasks for this month.';
+                            } else if (selectedFilter == CalendarFilter.year) {
+                              // Message for year view is handled within _buildYearView
+                              message = 'No tasks for this year.';
+                            }
+                            return _buildNoTasksMessage(message);
+                          } else if (filteredTasks.isEmpty &&
+                              selectedFilter == CalendarFilter.year) {
+                            // For year view, we still want to show all 12 months even if no tasks
+                            return SingleChildScrollView(
+                              child: _buildYearView(filteredTasks),
+                            );
+                          }
+
+                          return SingleChildScrollView(
+                            child: _buildContentList(filteredTasks),
+                          );
+                        },
+                      ),
+            ),
             const SizedBox(height: 25),
           ],
         ),
