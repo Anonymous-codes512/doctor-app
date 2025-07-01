@@ -20,5 +20,8 @@ class User(db.Model):
     doctor = db.relationship('Doctor', back_populates='user', cascade='all, delete-orphan', uselist=False)
     patient = db.relationship('Patient', back_populates='user', cascade='all, delete-orphan', uselist=False)
 
+    sent_messages = db.relationship('Message', foreign_keys='Message.sender_id', back_populates='sender', cascade='all, delete-orphan')
+    received_messages = db.relationship('Message', foreign_keys='Message.receiver_id', back_populates='receiver', cascade='all, delete-orphan')
+
     def __repr__(self):
         return f'<User {self.email}>'

@@ -1,5 +1,6 @@
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/provider/auth_provider.dart';
+import 'package:doctor_app/provider/chat_provider.dart';
 import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:doctor_app/provider/patient_provider.dart';
 import 'package:flutter/material.dart';
@@ -10,11 +11,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final prefs = await SharedPreferences.getInstance();
-
-  // Check if it's the first launch
   final bool isFirstLaunch = prefs.getBool('isFirstTime') == null;
 
-  // If first time, set the flag
   if (isFirstLaunch) {
     await prefs.setBool('isFirstTime', false);
   }
@@ -55,6 +53,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => DoctorProvider()),
         ChangeNotifierProvider(create: (_) => PatientProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

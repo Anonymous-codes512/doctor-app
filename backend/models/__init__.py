@@ -8,3 +8,5 @@ from .patient import Patient
 from .task import Task
 from .user import User
 from .note import Note
+from .message import Message
+from .conversation import Conversation

@@ -1,6 +1,15 @@
+from datetime import timedelta
+
 class Config:
     SECRET_KEY = 'my-dev-secret-key'
-    JWT_SECRET_KEY = 'my-jwt-secret-key'  # 🔐 Used to sign JWT tokens
+    JWT_SECRET_KEY = 'my-jwt-secret-key'
+    
+    JWT_TOKEN_LOCATION = ['headers']
+    JWT_COOKIE_CSRF_PROTECT = False
+    JWT_COOKIE_SECURE = False
+    JWT_CSRF_IN_COOKIES = False
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=12)
+
     DEBUG = True
     HOST = '0.0.0.0'
     PORT = 5000

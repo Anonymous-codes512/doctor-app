@@ -1,4 +1,5 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:flutter/material.dart';
 
 class ChatItem extends StatelessWidget {
@@ -21,8 +22,42 @@ class ChatItem extends StatelessWidget {
     this.onTap,
   }) : super(key: key);
 
+  String _getInitials(String name) {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    } else if (parts.isNotEmpty) {
+      return parts[0][0].toUpperCase();
+    }
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
+    String? fixedImagePath;
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      fixedImagePath = avatarUrl.replaceAll(r'\', '/');
+    }
+    ImageProvider? avatarImage;
+    if (fixedImagePath != null && fixedImagePath.isNotEmpty) {
+      final fullUrl =
+          ApiConstants.imageBaseUrl.endsWith('/')
+              ? ApiConstants.imageBaseUrl.substring(
+                0,
+                ApiConstants.imageBaseUrl.length - 1,
+              )
+              : ApiConstants.imageBaseUrl;
+
+      final cleanedPath =
+          fixedImagePath.startsWith('/')
+              ? fixedImagePath.substring(1)
+              : fixedImagePath;
+
+      final imageUrl = '$fullUrl/$cleanedPath';
+
+      avatarImage = NetworkImage(imageUrl);
+    }
+
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -33,8 +68,18 @@ class ChatItem extends StatelessWidget {
             Stack(
               children: [
                 CircleAvatar(
-                  radius: 24,
-                  backgroundImage: NetworkImage(avatarUrl),
+                  backgroundImage: avatarImage,
+                  backgroundColor: AppColors.primaryColor.withOpacity(0.3),
+                  child:
+                      avatarImage == null
+                          ? Text(
+                            _getInitials(userName),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryColor,
+                            ),
+                          )
+                          : null,
                 ),
                 if (isOnline)
                   Positioned(
