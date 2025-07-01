@@ -208,4 +208,58 @@ class DoctorService {
       return {'success': false, 'message': 'Network error. Please try again.'};
     }
   }
+
+  Future<Map<String, dynamic>> deleteInvoice(String invoiceNo) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('${ApiConstants.deleteInvoice}/$invoiceNo'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'Invoice deleted successfully.',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': body['message'] ?? 'Failed to delete invoice.',
+        };
+      }
+    } catch (e) {
+      print('🚨🚨🚨🚨$e');
+      return {
+        'success': false,
+        'message': 'Unexpected error occur, please try again.',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> markAsPaid(String invoiceNo) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.changeInvoiceStatus}/$invoiceNo'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'Invoice marked as paid',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': body['message'] ?? 'Failed to change status',
+        };
+      }
+    } catch (e) {
+      print('🚨🚨🚨🚨$e');
+      return {
+        'success': false,
+        'message': 'Unexpected error occur, please try again.',
+      };
+    }
+  }
 }

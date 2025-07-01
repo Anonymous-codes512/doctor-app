@@ -1,29 +1,69 @@
+import 'package:doctor_app/core/utils/toast_helper.dart';
+import 'package:doctor_app/data/models/invoice_model.dart';
+import 'package:doctor_app/presentation/widgets/outlined_custom_button.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
+import 'package:doctor_app/provider/patient_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
-import 'dart:io';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:provider/provider.dart';
 
-class InvoiceDetailsScreen extends StatelessWidget {
-  final Map<String, dynamic> invoice;
-  const InvoiceDetailsScreen({Key? key, required this.invoice})
-    : super(key: key);
+class InvoiceDetailsScreen extends StatefulWidget {
+  final InvoiceModel invoice;
+  const InvoiceDetailsScreen({super.key, required this.invoice});
+
+  @override
+  State<InvoiceDetailsScreen> createState() => _InvoiceDetailsScreenState();
+}
+
+class _InvoiceDetailsScreenState extends State<InvoiceDetailsScreen> {
+  late String invoiceNo;
+  late String patientName;
+  late String patientEmail;
+  late String patientPhoneNumber;
+  late double amountDue;
+  late DateTime? dueDate;
+  late String status;
+  late DateTime? issuedDate;
+
+  late DoctorProvider doctorProvider;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // --- Start of Corrected Logic ---
+
+    doctorProvider = Provider.of<DoctorProvider>(context, listen: false);
+    final patientProvider = Provider.of<PatientProvider>(
+      context,
+      listen: false,
+    );
+    final invoice = widget.invoice;
+
+    // Initialize data from the invoice widget
+    invoiceNo = invoice.invoiceNumber ?? 'N/A';
+    patientName = invoice.patientName ?? 'N/A';
+    amountDue = (invoice.amountDue as num?)?.toDouble() ?? 0.0;
+    dueDate = invoice.dueDate;
+    status = invoice.paymentStatus ?? 'N/A';
+    issuedDate = widget.invoice.dueDate;
+
+    try {
+      final patient = patientProvider.patients.firstWhere(
+        (p) => p.id == invoice.patientId,
+      );
+      patientEmail = patient.email ?? 'N/A';
+      patientPhoneNumber = patient.contact ?? 'N/A';
+    } catch (e) {
+      print('Could not find patient details for $patientName. Error: $e');
+      patientEmail = 'N/A';
+      patientPhoneNumber = 'N/A';
+    }
+    // --- End of Corrected Logic ---
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Extracting data from the invoice map
-    final String invoiceNo = invoice['invoiceNo'] ?? 'N/A';
-    final String patientName = invoice['patientName'] ?? 'N/A';
-    final double amountDue = (invoice['amountDue'] as num?)?.toDouble() ?? 0.0;
-    final DateTime? dueDate = invoice['dueDate'];
-    final String status = invoice['status'] ?? 'N/A';
-    final DateTime? issuedDate = invoice['issuedDate'];
-
-    // Placeholder for actual data from breakdown (assuming static for this example)
-    // In a real app, this would also come from the 'invoice' map
     final List<Map<String, dynamic>> invoiceItems = [
       {'description': 'Lab test', 'quantity': 1, 'rate': 50.0, 'total': 50.0},
       {
@@ -34,7 +74,7 @@ class InvoiceDetailsScreen extends StatelessWidget {
       },
     ];
 
-    // Placeholder for summary calculations (these would be dynamic based on invoiceItems)
+    // Placeholder for summary calculations
     final double subTotal = invoiceItems.fold(
       0.0,
       (sum, item) => sum + item['total'],
@@ -77,7 +117,7 @@ class InvoiceDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Invoice Header (showing dynamic invoice number and status)
+            // Invoice Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -115,11 +155,11 @@ class InvoiceDetailsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Issued: ${issuedDate != null ? DateFormat('dd MMM yyyy').format(issuedDate) : 'N/A'}',
+              'Issued: ${issuedDate != null ? DateFormat('dd MMM yy').format(issuedDate!) : 'N/A'}',
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             Text(
-              'Due: ${dueDate != null ? DateFormat('dd MMM yyyy').format(dueDate) : 'N/A'}',
+              'Due: ${dueDate != null ? DateFormat('dd MMM yy').format(dueDate!) : 'N/A'}',
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 24),
@@ -131,7 +171,8 @@ class InvoiceDetailsScreen extends StatelessWidget {
                   child: _buildActionButton(
                     'Download',
                     const Color(0xFFEEE6F4),
-                    () => _downloadInvoice(context, invoice),
+                    () =>
+                        doctorProvider.downloadInvoice(context, widget.invoice),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -139,7 +180,7 @@ class InvoiceDetailsScreen extends StatelessWidget {
                   child: _buildActionButton(
                     'Print',
                     const Color(0xFFEEE6F4),
-                    () => _printInvoice(context, invoice),
+                    () => doctorProvider.printInvoice(context, widget.invoice),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -147,7 +188,7 @@ class InvoiceDetailsScreen extends StatelessWidget {
                   child: _buildActionButton(
                     'Share',
                     const Color(0xFFEEE6F4),
-                    () => _shareInvoice(context, invoice),
+                    () => doctorProvider.shareInvoice(context, widget.invoice),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -155,7 +196,10 @@ class InvoiceDetailsScreen extends StatelessWidget {
                   child: _buildActionButton(
                     'Delete',
                     const Color(0xFFEEE6F4),
-                    () => _deleteInvoice(context, invoice['invoiceNo']),
+                    () => doctorProvider.deleteInvoice(
+                      context,
+                      widget.invoice.invoiceNumber,
+                    ),
                   ),
                 ),
               ],
@@ -205,11 +249,8 @@ class InvoiceDetailsScreen extends StatelessWidget {
                   TableRow(
                     children: [
                       _TableCell(patientName, textAlign: TextAlign.left),
-                      const _TableCell('+12345678', textAlign: TextAlign.left),
-                      const _TableCell(
-                        'john@gmail.com',
-                        textAlign: TextAlign.left,
-                      ),
+                      _TableCell(patientPhoneNumber, textAlign: TextAlign.left),
+                      _TableCell(patientEmail, textAlign: TextAlign.left),
                     ],
                   ),
                 ],
@@ -373,29 +414,21 @@ class InvoiceDetailsScreen extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: OutlinedCustomButton(
+                    text: 'Mark as paid',
                     onPressed: () {
-                      _markAsPaid(context, invoice['invoiceNo']);
+                      if (status.toLowerCase() != "paid") {
+                        doctorProvider.markAsPaid(context, invoiceNo);
+                      } else {
+                        ToastHelper.showInfo(context, 'Already Paid');
+                      }
                     },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      side: BorderSide(color: Colors.grey.shade400),
-                    ),
-                    child: const Text(
-                      'Mark as paid',
-                      style: TextStyle(color: Colors.black),
-                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      _initiatePayment(context, grandTotal);
-                    },
+                    onPressed: () {},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF007BFF),
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -446,16 +479,18 @@ class InvoiceDetailsScreen extends StatelessWidget {
     double fontSize = 12,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 2.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
-              color: Colors.black87,
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: fontSize,
+                fontWeight: isBold ? FontWeight.w600 : FontWeight.normal,
+                color: Colors.black87,
+              ),
             ),
           ),
           Text(
@@ -470,264 +505,6 @@ class InvoiceDetailsScreen extends StatelessWidget {
       ),
     );
   }
-
-  Future<void> _downloadInvoice(
-    BuildContext context,
-    Map<String, dynamic> invoiceData,
-  ) async {
-    try {
-      final pdf = pw.Document();
-
-      // Simple PDF structure for testing
-      pdf.addPage(
-        pw.Page(
-          build: (pw.Context context) {
-            return pw.Center(
-              child: pw.Text(
-                'Invoice No: ${invoiceData['invoiceNo']}',
-                style: pw.TextStyle(fontSize: 24),
-              ),
-            );
-          },
-        ),
-      );
-
-      // Ask the user for the location where to save the file
-      String? filePath = await FilePicker.platform.saveFile(
-        dialogTitle: 'Save Invoice PDF',
-        fileName: 'invoice_${invoiceData['invoiceNo']}.pdf',
-        allowedExtensions: ['pdf'],
-      );
-
-      // Check if filePath is selected
-      if (filePath != null) {
-        final file = File(filePath);
-        await file.writeAsBytes(await pdf.save());
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invoice downloaded to ${file.path}')),
-        );
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Download cancelled.')));
-      }
-    } catch (e) {
-      print("Error: $e");
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to download invoice: $e')));
-    }
-  }
-
-  Future<void> _printInvoice(
-    BuildContext context,
-    Map<String, dynamic> invoiceData,
-  ) async {
-    try {
-      final pdf = pw.Document();
-
-      pdf.addPage(
-        pw.Page(
-          pageFormat: PdfPageFormat.a4,
-          build: (pw.Context context) {
-            return pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text(
-                  'Invoice Details',
-                  style: pw.TextStyle(
-                    fontSize: 24,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-                pw.SizedBox(height: 20),
-                pw.Text('Invoice No: ${invoiceData['invoiceNo']}'),
-                pw.Text('Patient Name: ${invoiceData['patientName']}'),
-                pw.Text(
-                  'Issued Date: ${DateFormat('dd MMM yyyy').format(invoiceData['issuedDate'])}',
-                ),
-                pw.Text(
-                  'Due Date: ${DateFormat('dd MMM yyyy').format(invoiceData['dueDate'])}',
-                ),
-                pw.SizedBox(height: 20),
-                pw.Text(
-                  'Items:',
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                ),
-                pw.Table.fromTextArray(
-                  headers: ['Description', 'Quantity', 'Rate', 'Total'],
-                  data: [
-                    for (var item
-                        in (invoiceData['invoiceItems'] as List? ?? []))
-                      [
-                        item['description'],
-                        item['quantity'].toString(),
-                        '\$${item['rate'].toStringAsFixed(2)}',
-                        '\$${item['total'].toStringAsFixed(2)}',
-                      ],
-                  ],
-                ),
-                pw.SizedBox(height: 20),
-                pw.Align(
-                  alignment: pw.Alignment.topRight,
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.end,
-                    children: [
-                      pw.Text(
-                        'Sub Total: \$${(invoiceData['subTotal'] as num).toStringAsFixed(2)}',
-                      ),
-                      pw.Text(
-                        'Tax: \$${(invoiceData['tax'] as num).toStringAsFixed(2)}',
-                      ),
-                      pw.Text(
-                        'Discount: -\$${(invoiceData['discount'] as num).toStringAsFixed(2)}',
-                      ),
-                      pw.Divider(),
-                      pw.Text(
-                        'Grand Total: \$${(invoiceData['grandTotal'] as num).toStringAsFixed(2)}',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                      pw.Text(
-                        'Amount Paid: \$${(invoiceData['amountPaid'] as num).toStringAsFixed(2)}',
-                      ),
-                      pw.Text(
-                        'Remaining Amount: \$${(invoiceData['amountDue'] as num).toStringAsFixed(2)}',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      );
-
-      await Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async => pdf.save(),
-      );
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Print dialog opened.')));
-    } catch (e) {
-      print('🚨🚨🚨🚨🚨🚨 $e');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to print invoice: $e')));
-    }
-  }
-
-  Future<void> _shareInvoice(
-    BuildContext context,
-    Map<String, dynamic> invoiceData,
-  ) async {
-    try {
-      final String invoiceSummary = '''
-Invoice Details:
-Invoice No: ${invoiceData['invoiceNo']}
-Patient Name: ${invoiceData['patientName']}
-Status: ${invoiceData['status']}
-Amount Due: \$${(invoiceData['amountDue'] as num).toStringAsFixed(2)}
-Issued Date: ${DateFormat('dd MMM yyyy').format(invoiceData['issuedDate'])}
-Due Date: ${DateFormat('dd MMM yyyy').format(invoiceData['dueDate'])}
-
-Items:
-${(invoiceData['invoiceItems'] as List? ?? []).map((item) => '- ${item['description']} (Qty: ${item['quantity']}, Rate: \$${item['rate'].toStringAsFixed(2)})').join('\n')}
-
-Summary:
-Sub Total: \$${(invoiceData['subTotal'] as num).toStringAsFixed(2)}
-Tax: \$${(invoiceData['tax'] as num).toStringAsFixed(2)}
-Discount: -\$${(invoiceData['discount'] as num).toStringAsFixed(2)}
-Grand Total: \$${(invoiceData['grandTotal'] as num).toStringAsFixed(2)}
-Amount Paid: \$${(invoiceData['amountPaid'] as num).toStringAsFixed(2)}
-Remaining Amount: \$${(invoiceData['amountDue'] as num).toStringAsFixed(2)}
-''';
-
-      await Share.share(
-        invoiceSummary,
-        subject: 'Invoice ${invoiceData['invoiceNo']}',
-      );
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Share sheet opened.')));
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to share invoice: $e')));
-    }
-  }
-
-  void _deleteInvoice(BuildContext context, String? invoiceNo) {
-    if (invoiceNo == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invoice number is missing.')),
-      );
-      return;
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: Text('Are you sure you want to delete invoice $invoiceNo?'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Delete'),
-              onPressed: () {
-                // In a real application, you would perform the actual deletion here.
-                // This might involve:
-                // 1. Calling an API endpoint.
-                // 2. Deleting from a local database.
-                print(
-                  'Deleting invoice $invoiceNo',
-                ); // Placeholder for actual delete logic
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Invoice $invoiceNo deleted successfully.'),
-                  ),
-                );
-                Navigator.of(context).pop(); // Close the dialog
-                Navigator.of(context).pop(); // Go back to the previous screen
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _markAsPaid(BuildContext context, String invoiceNo) {
-    // In a real app, you would update the status in your backend or local storage.
-    // For this example, we'll just show a confirmation.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Invoice $invoiceNo marked as paid.')),
-    );
-    // You might want to update the 'status' in the invoice object and rebuild the widget
-    // if this screen needs to reflect the change immediately without navigating back.
-  }
-
-  void _initiatePayment(BuildContext context, double amount) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Initiating payment for \$${amount.toStringAsFixed(2)}'),
-      ),
-    );
-    // Here you would integrate with a payment gateway.
-    // This could involve:
-    // 1. Opening a web view for a payment portal.
-    // 2. Using a native SDK for payment processing.
-    // 3. Making an API call to your backend to start the payment flow.
-  }
 }
 
 class _TableCell extends StatelessWidget {
@@ -738,7 +515,7 @@ class _TableCell extends StatelessWidget {
   const _TableCell(
     this.text, {
     this.isHeader = false,
-    this.textAlign = TextAlign.left, // Set a default value for textAlign
+    this.textAlign = TextAlign.left,
   });
 
   @override

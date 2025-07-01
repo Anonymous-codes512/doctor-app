@@ -5,6 +5,7 @@ import 'package:doctor_app/presentation/widgets/app_drawer.dart';
 import 'package:doctor_app/presentation/widgets/calendar_task_card.dart';
 import 'package:doctor_app/presentation/widgets/icon_item.dart';
 import 'package:doctor_app/provider/doctor_provider.dart';
+import 'package:doctor_app/provider/patient_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -27,9 +28,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      doctorProvider = Provider.of<DoctorProvider>(context, listen: false);
-      doctorProvider.getHomeData();
+    // Use WidgetsBinding to safely call providers in initState
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Get the global instances of your providers
+      final doctorProvider = Provider.of<DoctorProvider>(
+        context,
+        listen: false,
+      );
+      final patientProvider = Provider.of<PatientProvider>(
+        context,
+        listen: false,
+      );
+
+      // Call their respective data-fetching methods
+      await doctorProvider.getHomeData();
+      await patientProvider.fetchPatients();
     });
   }
 

@@ -154,7 +154,7 @@ def fetch_patients(user_id):
                 'doctorUserId': doctor.user_id,
                 'fullName': user.name if user else None,
                 'email': user.email if user else None,
-                'contact': patient.contact,
+                'contact': patient.user.phone_number,
                 'address': patient.address,
                 'dateOfBirth': patient.date_of_birth.isoformat() if patient.date_of_birth else None,
                 'genderBornWith': patient.gender_born_with.name if patient.gender_born_with else None,

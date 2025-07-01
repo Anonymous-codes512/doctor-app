@@ -11,14 +11,14 @@ class TaskScreen extends StatefulWidget {
   const TaskScreen({super.key});
 
   @override
-  State<TaskScreen> createState() => _CalendarScreenState();
+  State<TaskScreen> createState() => _TaskScreenState();
 }
 
 enum ViewType { grid, list }
 
 enum CalendarFilter { day, week, month, year, addTask, addAppointment }
 
-class _CalendarScreenState extends State<TaskScreen> {
+class _TaskScreenState extends State<TaskScreen> {
   ViewType currentView = ViewType.list;
   CalendarFilter selectedFilter = CalendarFilter.day;
   DateTime? _selectedCalendarDay;
@@ -64,8 +64,6 @@ class _CalendarScreenState extends State<TaskScreen> {
 
     if (filter == CalendarFilter.addTask) {
       Navigator.pushNamed(context, Routes.addNewTaskScreen);
-    } else if (filter == CalendarFilter.addAppointment) {
-      Navigator.pushNamed(context, Routes.addNewAppointmentScreen);
     }
   }
 
@@ -75,15 +73,15 @@ class _CalendarScreenState extends State<TaskScreen> {
     }).toList();
   }
 
-  void _markTaskCompleted(TaskModel task) {
-    setState(() {
-      print('Task ${task.taskTitle} marked as Completed');
-    });
-  }
-
   void _onViewToggle(ViewType view) {
     setState(() {
       currentView = view;
+    });
+  }
+
+  void _markTaskCompleted(TaskModel task) {
+    setState(() {
+      print('Task ${task.taskTitle} marked as Completed');
     });
   }
 

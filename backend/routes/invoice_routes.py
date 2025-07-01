@@ -56,3 +56,63 @@ def fetch_invoices(user_id):
             'message': 'An error occurred while fetching invoices.',
             'error': str(e)
         }), 500
+
+
+@invoice_bp.route('/delete_invoice/<string:invoice_number>', methods=['DELETE'])
+def delete_invoice(invoice_number):
+    """
+    Delete an invoice by its invoice_number.
+    """
+    try:
+        invoice = Invoice.query.filter_by(invoice_number=invoice_number).first()
+        if not invoice:
+            return jsonify({
+                'success': False,
+                'message': 'Invoice not found.'
+            }), 404
+
+        db.session.delete(invoice)
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'Invoice deleted successfully.'
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting invoice: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred while deleting the invoice.',
+            'error': str(e)
+        }), 500
+
+
+@invoice_bp.route('/change_invoice_status/<string:invoice_number>', methods=['GET'])
+def markAsPaid(invoice_number):
+    """
+    Mark an invoice as paid by its invoice_number.
+    """
+    try:
+        invoice = Invoice.query.filter_by(invoice_number=invoice_number).first()
+        if not invoice:
+            return jsonify({
+                'success': False,
+                'message': 'Invoice not found.'
+            }), 404
+
+        invoice.payment_status = 'paid'
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'message': 'Invoice marked as paid successfully.'
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error marking invoice as paid: {e}")
+        return jsonify({
+            'success': False,
+            'message': 'An error occurred while marking the invoice as paid.',
+            'error': str(e)
+        }), 500

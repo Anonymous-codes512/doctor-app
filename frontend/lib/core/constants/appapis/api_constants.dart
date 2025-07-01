@@ -8,6 +8,8 @@ class ApiConstants {
   static const String resetPassword = '$baseUrl/reset-password';
 
   static const String fetchInvoices = '$baseUrl/fetch_invoices';
+  static const String deleteInvoice = '$baseUrl/delete_invoice';
+  static const String changeInvoiceStatus = '$baseUrl/change_invoice_status';
 
   static const String fetchAppointment = '$baseUrl/doctor_appointments';
   static const String createAppointment = '$baseUrl/create_appointment';
