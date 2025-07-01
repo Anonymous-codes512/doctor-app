@@ -1,4 +1,5 @@
 import 'package:doctor_app/data/models/appointment_model.dart';
+import 'package:doctor_app/data/models/invoice_model.dart';
 import 'package:doctor_app/data/models/notes_model.dart';
 import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/screens/patient/add_new_appointment_screen.dart';
@@ -257,13 +258,11 @@ class Routes {
 
       case invoiceDetailScreen:
         final args = settings.arguments;
-        Map<String, dynamic> invoice = {};
-        if (args != null && args is Map<String, dynamic>) {
-          invoice = args;
+        if (args != null && args is InvoiceModel) {
+          return MaterialPageRoute(
+            builder: (_) => InvoiceDetailsScreen(invoice: args),
+          );
         }
-        return MaterialPageRoute(
-          builder: (_) => InvoiceDetailsScreen(invoice: invoice),
-        );
 
       case paymentsScreen:
         return MaterialPageRoute(builder: (_) => MyPaymentsScreen());
