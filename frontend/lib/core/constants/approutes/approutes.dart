@@ -2,6 +2,7 @@ import 'package:doctor_app/data/models/appointment_model.dart';
 import 'package:doctor_app/data/models/invoice_model.dart';
 import 'package:doctor_app/data/models/notes_model.dart';
 import 'package:doctor_app/data/models/patient_model.dart';
+import 'package:doctor_app/presentation/screens/messages/chat_list_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/add_new_appointment_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/add_new_group_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/add_new_patient_screen.dart';
@@ -55,7 +56,7 @@ import 'package:doctor_app/presentation/screens/health%20tracker%20screen/weight
 import 'package:doctor_app/presentation/screens/home/home_screen.dart';
 import 'package:doctor_app/presentation/screens/invoice/invoice_details_screen.dart';
 import 'package:doctor_app/presentation/screens/invoice/my_invoices_screen.dart';
-import 'package:doctor_app/presentation/screens/messages/all_message_screen.dart';
+import 'package:doctor_app/presentation/screens/messages/message_home_screen.dart';
 import 'package:doctor_app/presentation/screens/messages/chat_screen.dart';
 import 'package:doctor_app/presentation/screens/onboarding/onboarding_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/my_patients_screen.dart';
@@ -81,6 +82,7 @@ class Routes {
   static const String homeScreen = '/home_screen';
   static const String allmessageScreen = '/all_message_screen';
   static const String chatScreen = '/chat_screen';
+  static const String chatListScreen = '/chat_list_screen';
   static const String allVoiceCallsScreen = '/all_voice_screen';
   static const String voiceCallDetailScreen = '/voice_details_screen';
   static const String voiceCallScreen = '/voice_call_screen';
@@ -173,9 +175,17 @@ class Routes {
       case homeScreen:
         return MaterialPageRoute(builder: (_) => HomeScreen());
       case allmessageScreen:
-        return MaterialPageRoute(builder: (_) => AllMessageScreen());
+        return MaterialPageRoute(builder: (_) => MessageHomeScreen());
       case chatScreen:
-        return MaterialPageRoute(builder: (_) => ChatScreen());
+        final args = settings.arguments;
+        if (args != null && args is Map<String, dynamic>) {
+          return MaterialPageRoute(builder: (_) => ChatScreen(user: args));
+        }
+      case chatListScreen:
+        final args = settings.arguments;
+        if (args != null && args is List<Map<String, dynamic>>) {
+          return MaterialPageRoute(builder: (_) => ChatListScreen(users: args));
+        }
       case allVoiceCallsScreen:
         return MaterialPageRoute(builder: (_) => AllVoiceCallScreen());
       case voiceCallScreen:

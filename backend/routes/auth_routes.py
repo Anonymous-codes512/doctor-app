@@ -86,7 +86,7 @@ def login():
     if not user or not check_password_hash(user.password, password):
         return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
     
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=str(user.id))
 
     return jsonify({
         'success': True,

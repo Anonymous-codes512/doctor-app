@@ -1,8 +1,12 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/core/constants/appapis/api_constants.dart';
+import 'package:doctor_app/provider/chat_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final Map<String, dynamic> user;
+  const ChatScreen({super.key, required this.user});
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -11,6 +15,18 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   bool _isTyping = false;
+
+  late ChatProvider _chatProvider;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _chatProvider = Provider.of<ChatProvider>(context, listen: false);
+      await _chatProvider.selectUserForChat(widget.user['id']);
+    });
+  }
 
   final List<_ChatMessage> messages = [
     _ChatMessage(
@@ -34,9 +50,19 @@ class _ChatScreenState extends State<ChatScreen> {
       avatarUrl: "https://randomuser.me/api/portraits/men/75.jpg",
     ),
   ];
+  String _getInitials(String name) {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    } else if (parts.isNotEmpty) {
+      return parts[0][0].toUpperCase();
+    }
+    return '';
+  }
 
   @override
   Widget build(BuildContext context) {
+    print(widget.user);
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       body: SafeArea(
@@ -54,6 +80,30 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildTopBar() {
+    String? fixedImagePath;
+    if (widget.user['avatar'] != null && widget.user['avatar']!.isNotEmpty) {
+      fixedImagePath = widget.user['avatar']?.replaceAll(r'\', '/');
+    }
+    ImageProvider? avatarImage;
+    if (fixedImagePath != null && fixedImagePath.isNotEmpty) {
+      final fullUrl =
+          ApiConstants.imageBaseUrl.endsWith('/')
+              ? ApiConstants.imageBaseUrl.substring(
+                0,
+                ApiConstants.imageBaseUrl.length - 1,
+              )
+              : ApiConstants.imageBaseUrl;
+
+      final cleanedPath =
+          fixedImagePath.startsWith('/')
+              ? fixedImagePath.substring(1)
+              : fixedImagePath;
+
+      final imageUrl = '$fullUrl/$cleanedPath';
+
+      avatarImage = NetworkImage(imageUrl);
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
@@ -79,9 +129,26 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           const SizedBox(width: 12),
           CircleAvatar(
-            radius: 16,
-            backgroundImage: NetworkImage(
-              "https://randomuser.me/api/portraits/women/65.jpg",
+            radius: 12,
+            backgroundImage: avatarImage,
+            backgroundColor: AppColors.primaryColor.withOpacity(0.3),
+            child:
+                avatarImage == null
+                    ? Text(
+                      _getInitials(widget.user['name']),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryColor,
+                      ),
+                    )
+                    : null,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            widget.user['name'],
+            style: TextStyle(
+              color: AppColors.textColor,
+              fontWeight: FontWeight.bold,
             ),
           ),
           const Spacer(),
@@ -134,17 +201,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildMessageItem(_ChatMessage msg) {
     final borderRadiusMe = BorderRadius.only(
-      topLeft: const Radius.circular(16),
-      topRight: const Radius.circular(16),
-      bottomLeft: Radius.circular(msg.isMe ? 16 : 4),
-      bottomRight: Radius.circular(msg.isMe ? 4 : 16),
+      topLeft: const Radius.circular(12),
+      topRight: const Radius.circular(12),
+      bottomLeft: Radius.circular(msg.isMe ? 12 : 4),
+      bottomRight: Radius.circular(msg.isMe ? 4 : 12),
     );
 
     final borderRadiusOther = BorderRadius.only(
-      topLeft: const Radius.circular(16),
-      topRight: const Radius.circular(16),
-      bottomLeft: Radius.circular(msg.isMe ? 4 : 16),
-      bottomRight: Radius.circular(msg.isMe ? 16 : 4),
+      topLeft: const Radius.circular(12),
+      topRight: const Radius.circular(12),
+      bottomLeft: Radius.circular(msg.isMe ? 4 : 12),
+      bottomRight: Radius.circular(msg.isMe ? 12 : 4),
     );
 
     return Padding(
@@ -238,27 +305,28 @@ class _ChatScreenState extends State<ChatScreen> {
                       _isTyping = text.isNotEmpty;
                     });
                   },
+                  maxLines: 3,
                   decoration: InputDecoration(
                     hintText: 'Type your message',
                     hintStyle: TextStyle(
                       color: AppColors.textColor.withOpacity(0.5),
                     ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(6),
                       borderSide: const BorderSide(
                         color: Colors.black,
                         width: 1.5,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(6),
                       borderSide: const BorderSide(
                         color: Colors.black,
                         width: 1.5,
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(6),
                       borderSide: const BorderSide(
                         color: Colors.black,
                         width: 2,
@@ -273,6 +341,10 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             ),
+          ),
+          IconButton(
+            icon: Icon(Icons.send, color: AppColors.textColor.withOpacity(0.7)),
+            onPressed: () {},
           ),
           IconButton(
             icon: Icon(
