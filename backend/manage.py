@@ -1,5 +1,5 @@
 from flask.cli import FlaskGroup
-from app import app
+from main import app
 import click
 from flask.cli import with_appcontext
 from models.password_reset_otp import PasswordResetOTP

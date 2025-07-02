@@ -335,8 +335,12 @@ class Routes {
 
       case notesScreen:
         final args = settings.arguments;
-        if (args != null && args is List<Note>) {
-          return MaterialPageRoute(builder: (_) => NotesScreen(notes: args));
+        if (args != null && args is Map) {
+          final notes = args['notes'] as List<Note>;
+          final patientId = args['patientId'] as int;
+          return MaterialPageRoute(
+            builder: (_) => NotesScreen(notes: notes, patientId: patientId),
+          );
         }
 
       case updateNoteScreen:

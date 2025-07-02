@@ -40,7 +40,6 @@ class ChatService {
   Future<List<Map<String, dynamic>>> fetchUsersForChat() async {
     final token = await _getToken();
     int? userId = await _getUserId();
-    print('Token : $token');
     final response = await http.get(
       Uri.parse('${ApiConstants.getUsersForChat}/$userId'),
       headers: {'Authorization': 'Bearer $token'},
@@ -68,7 +67,6 @@ class ChatService {
       body: jsonEncode({'other_user_id': otherUserId, 'user_id': userId}),
     );
 
-    print('🚨 Body: ${response.body}');
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {
@@ -78,28 +76,65 @@ class ChatService {
 
   // ✅ Send encrypted message
   Future<bool> sendMessage(MessageModel message) async {
-    final token = await _getToken();
-    final response = await http.post(
-      Uri.parse(ApiConstants.sendMessage),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(message.toJson()),
-    );
+    try {
+      final token = await _getToken();
+      final userId = await _getUserId();
 
-    return response.statusCode == 201;
+      if (token == null) {
+        print('🔴 Error: Token not found');
+        return false;
+      }
+
+      if (userId == null) {
+        print('🔴 Error: User ID not found');
+        return false;
+      }
+
+      // 🔐 Embed senderId before sending
+      final updatedMessage = MessageModel(
+        conversationId: message.conversationId,
+        encryptedMessage: message.encryptedMessage,
+        messageType: message.messageType,
+        senderId: userId,
+        receiverId: message.receiverId,
+        senderImage: message.senderImage,
+        receiverImage: message.receiverImage,
+        isRead: message.isRead,
+        readAt: message.readAt,
+        timestamp: message.timestamp,
+        id: message.id,
+      );
+
+      final response = await http.post(
+        Uri.parse(ApiConstants.sendMessage),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(updatedMessage.toJson()),
+      );
+
+      if (response.statusCode == 201) {
+        print('✅ Message sent successfully');
+        return true;
+      } else {
+        print('🔴 Server Error [${response.statusCode}]: ${response.body}');
+        return false;
+      }
+    } catch (e, stackTrace) {
+      print('🔴 Exception sending message: $e');
+      print('🔍 StackTrace: $stackTrace');
+      return false;
+    }
   }
 
   // ✅ Fetch messages for a conversation
   Future<List<MessageModel>> fetchMessages(int conversationId) async {
-    print(conversationId);
     final token = await _getToken();
     final response = await http.get(
       Uri.parse('${ApiConstants.getMessages}/$conversationId'),
       headers: {'Authorization': 'Bearer $token'},
     );
-    print('🚨 Body: ${response.body}');
 
     if (response.statusCode == 200) {
       final messages = jsonDecode(response.body)['messages'];

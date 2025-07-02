@@ -7,7 +7,8 @@ import 'package:flutter/material.dart';
 
 class NotesScreen extends StatefulWidget {
   final List<Note> notes;
-  const NotesScreen({super.key, required this.notes});
+  final int patientId;
+  const NotesScreen({super.key, required this.notes, required this.patientId});
 
   @override
   State<NotesScreen> createState() => _NotesScreenState();
@@ -18,14 +19,13 @@ class _NotesScreenState extends State<NotesScreen> {
 
   List<Note> filteredNotes = [];
   bool _isSearching = false;
-  int patientId = 0;
+  late int patientId;
+
   @override
   void initState() {
     super.initState();
     filteredNotes = List.from(widget.notes);
-    if (widget.notes.isNotEmpty) {
-      patientId = widget.notes.first.patientId ?? 0;
-    }
+    patientId = widget.patientId;
   }
 
   @override

@@ -12,7 +12,8 @@ class Doctor(db.Model):
     date_of_birth = db.Column(db.Date, nullable=True)
     gender = db.Column(Gender, nullable=True)
     address = db.Column(db.String(200), nullable=True)
-    
+    image_path = db.Column(db.String(200), nullable=True)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

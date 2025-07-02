@@ -32,7 +32,7 @@ def create_patient():
         email = request.form.get('email')
         contact = request.form.get('contact')
         date_of_birth = request.form.get('dateOfBirth')
-        gender = request.form.get('gender')
+        # gender = request.form.get('gender')
         allergies = request.form.get('allergies')
         address = request.form.get('address')
         weight = request.form.get('weight')
@@ -57,10 +57,10 @@ def create_patient():
             print(f"🚫 Missing required fields: {missing_fields}") # Added print for missing fields
             return jsonify({'success': False, 'message': f'Name, email, contact & doctor ID are required. Missing: {", ".join(missing_fields)}'}), 400
 
-        allowed_genders = ['male', 'female', 'other']
-        if gender and gender not in allowed_genders:
-            print(f"🚫 Invalid gender received: {gender}") # Added print
-            return jsonify({'success': False, 'message': f"Invalid gender. Allowed: {allowed_genders}"}), 400
+        # allowed_genders = ['male', 'female', 'other']
+        # if gender and gender not in allowed_genders:
+        #     print(f"🚫 Invalid gender received: {gender}") # Added print
+        #     return jsonify({'success': False, 'message': f"Invalid gender. Allowed: {allowed_genders}"}), 400
 
         dob = datetime.fromisoformat(date_of_birth).date() if date_of_birth else None
 
@@ -89,7 +89,7 @@ def create_patient():
         new_patient = Patient(
             user_id=new_user.id,
             date_of_birth=dob,
-            gender=Gender(gender) if gender else None,
+            # gender=Gender(gender) if gender else None,
             allergies=allergies,
             address=address,
             weight=weight,

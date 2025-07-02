@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:doctor_app/provider/chat_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatScreen extends StatefulWidget {
   final Map<String, dynamic> user;
@@ -21,35 +24,12 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-
+    _chatProvider = Provider.of<ChatProvider>(context, listen: false);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _chatProvider = Provider.of<ChatProvider>(context, listen: false);
-      await _chatProvider.selectUserForChat(widget.user['id']);
+      await _chatProvider.selectUserForChat(widget.user['user_id']);
     });
   }
 
-  final List<_ChatMessage> messages = [
-    _ChatMessage(
-      text: "Hi, Mandy",
-      isMe: true,
-      avatarUrl: "https://randomuser.me/api/portraits/men/75.jpg",
-    ),
-    _ChatMessage(
-      text: "I've tried the app",
-      isMe: true,
-      avatarUrl: "https://randomuser.me/api/portraits/men/75.jpg",
-    ),
-    _ChatMessage(
-      text: "Really?",
-      isMe: false,
-      avatarUrl: "https://randomuser.me/api/portraits/women/65.jpg",
-    ),
-    _ChatMessage(
-      text: "Yeah, It's really good!",
-      isMe: true,
-      avatarUrl: "https://randomuser.me/api/portraits/men/75.jpg",
-    ),
-  ];
   String _getInitials(String name) {
     final parts = name.trim().split(' ');
     if (parts.length >= 2) {
@@ -60,9 +40,19 @@ class _ChatScreenState extends State<ChatScreen> {
     return '';
   }
 
+  Future<int?> _getCurrentUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final user = prefs.getString('user');
+    if (user != null) {
+      return jsonDecode(user)['id'];
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    print(widget.user);
+    _chatProvider = Provider.of<ChatProvider>(context);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       body: SafeArea(
@@ -82,7 +72,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildTopBar() {
     String? fixedImagePath;
     if (widget.user['avatar'] != null && widget.user['avatar']!.isNotEmpty) {
-      fixedImagePath = widget.user['avatar']?.replaceAll(r'\', '/');
+      fixedImagePath = widget.user['avatar']?.replaceAll(r'\\', '/');
     }
     ImageProvider? avatarImage;
     if (fixedImagePath != null && fixedImagePath.isNotEmpty) {
@@ -93,14 +83,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 ApiConstants.imageBaseUrl.length - 1,
               )
               : ApiConstants.imageBaseUrl;
-
       final cleanedPath =
           fixedImagePath.startsWith('/')
               ? fixedImagePath.substring(1)
               : fixedImagePath;
-
       final imageUrl = '$fullUrl/$cleanedPath';
-
       avatarImage = NetworkImage(imageUrl);
     }
 
@@ -108,24 +95,13 @@ class _ChatScreenState extends State<ChatScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          Container(
-            height: 35,
-            width: 35,
-            decoration: BoxDecoration(
-              color: AppColors.backgroundColor,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.textColor.withOpacity(0.3)),
+          IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              size: 15,
+              color: AppColors.primaryColor,
             ),
-            child: Center(
-              child: IconButton(
-                icon: Icon(
-                  Icons.arrow_back_ios_new,
-                  size: 15,
-                  color: AppColors.primaryColor,
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
+            onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 12),
           CircleAvatar(
@@ -152,19 +128,13 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           const Spacer(),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.backgroundColor,
-              borderRadius: BorderRadius.circular(14),
+          IconButton(
+            icon: Icon(
+              Icons.person_add_alt_1_outlined,
+              size: 22,
+              color: AppColors.primaryColor,
             ),
-            child: IconButton(
-              icon: Icon(
-                Icons.person_add_alt_1_outlined,
-                size: 22,
-                color: AppColors.primaryColor,
-              ),
-              onPressed: () {},
-            ),
+            onPressed: () {},
           ),
         ],
       ),
@@ -172,46 +142,44 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildMessageList() {
-    return ListView.builder(
-      reverse: true,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      itemCount: messages.length + 1,
-      itemBuilder: (context, index) {
-        if (index == messages.length) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Center(
-              child: Text(
-                '09:41 AM',
-                style: TextStyle(
-                  color: AppColors.backgroundColor.withOpacity(0.6),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          );
+    return FutureBuilder<int?>(
+      future: _getCurrentUserId(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
         }
+        final userId = snapshot.data;
 
-        final msg = messages[messages.length - 1 - index];
-        return _buildMessageItem(msg);
+        return Consumer<ChatProvider>(
+          builder: (context, chatProvider, _) {
+            final messages = chatProvider.messages;
+
+            return ListView.builder(
+              reverse: true,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final msg = messages[messages.length - 1 - index];
+                final isMe = msg.senderId == userId;
+                final decryptedMessage = _chatProvider.decryptMessage(
+                  msg.encryptedMessage!,
+                  _chatProvider.chatSecret!,
+                );
+                return _buildMessageItem(decryptedMessage, isMe);
+              },
+            );
+          },
+        );
       },
     );
   }
 
-  Widget _buildMessageItem(_ChatMessage msg) {
-    final borderRadiusMe = BorderRadius.only(
+  Widget _buildMessageItem(String text, bool isMe) {
+    final borderRadius = BorderRadius.only(
       topLeft: const Radius.circular(12),
       topRight: const Radius.circular(12),
-      bottomLeft: Radius.circular(msg.isMe ? 12 : 4),
-      bottomRight: Radius.circular(msg.isMe ? 4 : 12),
-    );
-
-    final borderRadiusOther = BorderRadius.only(
-      topLeft: const Radius.circular(12),
-      topRight: const Radius.circular(12),
-      bottomLeft: Radius.circular(msg.isMe ? 4 : 12),
-      bottomRight: Radius.circular(msg.isMe ? 12 : 4),
+      bottomLeft: Radius.circular(isMe ? 12 : 4),
+      bottomRight: Radius.circular(isMe ? 4 : 12),
     );
 
     return Padding(
@@ -219,41 +187,24 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment:
-            msg.isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
-          if (!msg.isMe) ...[
-            CircleAvatar(
-              radius: 12,
-              backgroundImage: NetworkImage(msg.avatarUrl),
-            ),
-            const SizedBox(width: 8),
-          ],
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: msg.isMe ? AppColors.primaryColor : AppColors.cardColor,
-                borderRadius: msg.isMe ? borderRadiusMe : borderRadiusOther,
+                color: isMe ? AppColors.primaryColor : AppColors.cardColor,
+                borderRadius: borderRadius,
               ),
               child: Text(
-                msg.text,
+                text,
                 style: TextStyle(
-                  color:
-                      msg.isMe
-                          ? AppColors.backgroundColor
-                          : AppColors.textColor,
+                  color: isMe ? AppColors.backgroundColor : AppColors.textColor,
                   fontSize: 14,
                 ),
               ),
             ),
           ),
-          if (msg.isMe) ...[
-            const SizedBox(width: 8),
-            CircleAvatar(
-              radius: 12,
-              backgroundImage: NetworkImage(msg.avatarUrl),
-            ),
-          ],
         ],
       ),
     );
@@ -344,7 +295,20 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           IconButton(
             icon: Icon(Icons.send, color: AppColors.textColor.withOpacity(0.7)),
-            onPressed: () {},
+            onPressed: () async {
+              final text = _messageController.text.trim();
+              if (text.isEmpty || _chatProvider.chatSecret == null) return;
+
+              final encrypted = _chatProvider.encryptMessage(
+                text,
+                _chatProvider.chatSecret!,
+              );
+
+              // ✅ Ab sendMessage ChatProvider ke zariye call hoga
+              // Aur ChatProvider khud hi decide karega ke Socket.IO se bhejna hai
+              await _chatProvider.sendMessage(encrypted, 'text');
+              _messageController.clear();
+            },
           ),
           IconButton(
             icon: Icon(
@@ -364,16 +328,4 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-}
-
-class _ChatMessage {
-  final String text;
-  final bool isMe;
-  final String avatarUrl;
-
-  _ChatMessage({
-    required this.text,
-    required this.isMe,
-    required this.avatarUrl,
-  });
 }
