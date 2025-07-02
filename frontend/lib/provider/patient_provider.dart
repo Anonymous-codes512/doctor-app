@@ -21,7 +21,6 @@ class PatientProvider with ChangeNotifier {
 
   void setPatients(List<Patient> patients) {
     _patients = patients;
-    print('✅✅$_patients✅✅');
     notifyListeners();
   }
 

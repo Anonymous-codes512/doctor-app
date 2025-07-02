@@ -10,6 +10,8 @@ class Config:
     JWT_CSRF_IN_COOKIES = False
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=12)
 
+    SOCKETIO_CORS_ALLOWED_ORIGINS = "*"  # or list of specific origins
+
     DEBUG = True
     HOST = '0.0.0.0'
     PORT = 5000

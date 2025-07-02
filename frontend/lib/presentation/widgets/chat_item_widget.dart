@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 class ChatItem extends StatelessWidget {
   final String userName;
-  final String messagePreview;
   final String time;
   final int unreadCount;
   final String avatarUrl;
@@ -14,7 +13,6 @@ class ChatItem extends StatelessWidget {
   const ChatItem({
     Key? key,
     required this.userName,
-    required this.messagePreview,
     required this.time,
     required this.unreadCount,
     required this.avatarUrl,
@@ -35,7 +33,8 @@ class ChatItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String? fixedImagePath;
-    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+    if (avatarUrl.isNotEmpty) {
+      // Simplified null check, as avatarUrl is required
       fixedImagePath = avatarUrl.replaceAll(r'\', '/');
     }
     ImageProvider? avatarImage;
@@ -61,9 +60,14 @@ class ChatItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
+        alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment:
+              CrossAxisAlignment
+                  .center, // This aligns all children in the Row vertically to the center
           children: [
             Stack(
               children: [
@@ -103,7 +107,12 @@ class ChatItem extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    CrossAxisAlignment
+                        .start, // Keep this as start for text alignment within the column
+                mainAxisAlignment:
+                    MainAxisAlignment
+                        .center, // ADDED: Align column content vertically center
                 children: [
                   Text(
                     userName,
@@ -113,21 +122,14 @@ class ChatItem extends StatelessWidget {
                       color: AppColors.textColor,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    messagePreview,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textColor.withOpacity(0.7),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
                 ],
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment:
+                  MainAxisAlignment
+                      .center, // ADDED: Align column content vertically center
               children: [
                 Text(
                   time,

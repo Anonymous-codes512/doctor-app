@@ -1,4 +1,5 @@
 class ApiConstants {
+  static const String socketUrl = 'http://192.168.100.12:5000';
   static const String imageBaseUrl = 'http://192.168.100.12:5000/';
   static const String baseUrl = 'http://192.168.100.12:5000/api';
   static const String register = '$baseUrl/register';

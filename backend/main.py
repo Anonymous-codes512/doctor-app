@@ -1,12 +1,18 @@
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, jsonify
+from flask_cors import CORS
+from socket_io_instance import socketio, init_socket_io
 from routes import init_routes
 from config import Config
 from extensions import db, migrate, jwt
-from models import *  # Ensure models are registered (e.g., User)
+from models import *
 from extensions import mail
 
-
 app = Flask(__name__)
+CORS(app)
+
 app.config.from_object(Config)
 
 app.config['JWT_TOKEN_LOCATION'] = ['headers']
@@ -34,6 +40,23 @@ def unauthorized_response(reason):
 # ✅ Register all route blueprints
 init_routes(app)
 
+init_socket_io(app)
+
+# --- Socket.IO Connection/Disconnection Handlers ---
+# Yeh handlers add kiye gaye hain taake aapko console mein connection status dikhe.
+@socketio.on('connect')
+def handle_connect():
+    # Is function ko tab call kiya jayega jab koi client Socket.IO se connect hoga.
+    # request.sid (session ID) se aap har client ko identify kar sakte hain.
+    print(f'✅ Client connected to Socket.IO!')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    # Is function ko tab call kiya jayega jab koi client Socket.IO se disconnect hoga.
+    print(f'❌ Client disconnected from Socket.IO!')
+# --- End of Socket.IO Handlers ---
+
+
 # ✅ Test route for backend status
 @app.route('/')
 def home():
@@ -42,8 +65,4 @@ def home():
 
 # ✅ Start server
 if __name__ == '__main__':
-    app.run(
-        host=app.config['HOST'],
-        port=app.config['PORT'],
-        debug=app.config['DEBUG']
-    )
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)

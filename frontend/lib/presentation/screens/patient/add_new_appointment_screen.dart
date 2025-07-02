@@ -43,17 +43,17 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
   final TextEditingController _descriptionController = TextEditingController();
 
   String? _selectedReason;
-  List<String> reasonOptions = ['Follow-up', 'Checkup', 'Consultation'];
+  List<String> reasonOptions = ['consultation', 'follow-up', 'check-up'];
 
   String? _selectedMode;
-  List<String> modeOptions = ['Phyical', 'Online'];
+  List<String> modeOptions = ['online', 'in-person'];
 
   String? _selectedPaymentMethod;
   List<String> paymentMethodOptions = [
-    'Cash',
-    'Credit card',
-    'Bank transfer',
-    'Cheque',
+    'cash',
+    'credit card',
+    'bank transfer',
+    'cheque',
   ];
 
   DateTime selectedDate = DateTime.now();

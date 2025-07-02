@@ -22,6 +22,7 @@ class _AddNoteScreen extends State<AddNoteScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.patientId);
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
@@ -86,7 +87,7 @@ class _AddNoteScreen extends State<AddNoteScreen> {
                         notesDescription: _descriptionController.text.trim(),
                         date: DateFormat('MMMM d, y').format(DateTime.now()),
                       );
-
+                      print(note);
                       await Provider.of<DoctorProvider>(
                         context,
                         listen: false,

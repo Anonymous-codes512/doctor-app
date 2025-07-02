@@ -156,7 +156,10 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                       Navigator.pushNamed(
                         context,
                         Routes.notesScreen,
-                        arguments: patient.notes,
+                        arguments: {
+                          'notes': patient.notes,
+                          'patientId': patient.id,
+                        },
                       );
                     },
                   ),

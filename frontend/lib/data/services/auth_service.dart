@@ -52,7 +52,6 @@ class AuthService {
       );
 
       final body = jsonDecode(response.body);
-      print(body);
       if (response.statusCode == 200) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', body['token']);

@@ -6,6 +6,9 @@ from utils.AES_key import generate_aes_key
 from models import Conversation, User,Doctor ,Patient, Message
 from datetime import datetime
 
+from flask_socketio import join_room, emit, disconnect
+from socket_io_instance import socketio
+
 chat_bp = Blueprint('chat', __name__, url_prefix='/api')
 
 @chat_bp.route('/create_conversation', methods=['POST'])
@@ -150,7 +153,7 @@ def get_users_for_chat(user_id):
         result.append({
             'user_id': doc_user.id,
             'name': doc_user.name,
-            'role': patient_user.role,
+            'role': doc_user.role,
             'avatar': doc.image_path if hasattr(doc, 'image_path') else '',
             'is_online': False
         })
@@ -189,7 +192,7 @@ def get_messages(conversation_id):
             'id': msg.id,
             'sender_id': msg.sender_id,
             'receiver_id': msg.receiver_id,
-            'content': msg.encrypted_message,
+            'encrypted_message': msg.encrypted_message,
             'message_type': msg.message_type,
             'timestamp': msg.timestamp.isoformat(),
             'is_read': msg.is_read,
@@ -200,3 +203,121 @@ def get_messages(conversation_id):
 
     return jsonify({'success': True, 'messages': result}), 200
 
+@chat_bp.route('/send_message', methods=['POST'])
+@jwt_required()
+def send_message():
+    try:
+        data = request.get_json()
+        sender_id = get_jwt_identity()  # sender is the logged-in user
+
+        if not data:
+            return jsonify({"error": "Missing data"}), 400
+
+        conversation_id = data.get('conversation_id')
+        encrypted_message = data.get('encrypted_message')
+        message_type = data.get('message_type', 'text')
+        receiver_id = data.get('receiver_id')
+
+        if not conversation_id or not encrypted_message or not receiver_id:
+            return jsonify({"error": "Missing required fields"}), 400
+
+        # Create message object
+        message = Message(
+            sender_id=sender_id,
+            receiver_id=receiver_id,
+            conversation_id=conversation_id,
+            encrypted_message=encrypted_message,
+            message_type=message_type,
+            timestamp=datetime.utcnow()
+        )
+
+        db.session.add(message)
+        db.session.commit()
+        
+        socketio.emit('new_message', {
+            "conversation_id": message.conversation_id,
+            "sender_id": message.sender_id,
+            "receiver_id": message.receiver_id,
+            "message": message.encrypted_message,
+            "message_type": message.message_type,
+            "timestamp": message.timestamp.isoformat(),
+        }, room=f"user_{receiver_id}")
+
+        return jsonify({"message": "Message sent successfully", "id": message.id}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        print(f'❌ Error sending message: {e}')
+        return jsonify({"error": "Server error", "details": str(e)}), 500
+    
+    # Existing @socketio.on('join') handler
+
+@socketio.on('join')
+def handle_join(data):
+    user_id = data.get('user_id')
+    if user_id:
+        join_room(f"user_{user_id}")
+        print(f"✅ User {user_id} joined room user_{user_id} (Socket.IO)")
+    else:
+        print("❌ Join event received without user_id")
+        # disconnect() # Agar user_id na ho to disconnect bhi kar sakte hain
+
+
+# ✅ Naya Socket.IO event handler for sending messages
+@socketio.on('send_message') # Yeh woh event name hai jo frontend emit karega
+def handle_send_message(data):
+    try:
+        # Backend mein JWT required hone ki wajah se, yahan get_jwt_identity()
+        # direct Socket.IO event mein kaam nahi karega jab tak aap token ko
+        # connection query params mein na bhejen aur phir use validate na karein.
+        # Simple test ke liye, hum data se sender_id le rahe hain,
+        # lekin production mein isko secure banana zaroori hai.
+        sender_id = data.get('sender_id') # Frontend se aayega
+        conversation_id = data.get('conversation_id')
+        encrypted_message = data.get('encrypted_message')
+        message_type = data.get('message_type', 'text')
+        receiver_id = data.get('receiver_id')
+
+        if not all([sender_id, conversation_id, encrypted_message, receiver_id]):
+            print("❌ Missing data for real-time message.")
+            return # Acha hoga ke client ko error emit karein
+
+        # Database mein message save karein
+        message = Message(
+            sender_id=sender_id,
+            receiver_id=receiver_id,
+            conversation_id=conversation_id,
+            encrypted_message=encrypted_message,
+            message_type=message_type,
+            timestamp=datetime.utcnow()
+        )
+        db.session.add(message)
+        db.session.commit()
+
+        # Message ko receiver ke room mein emit karein (real-time delivery)
+        # MessageModel.fromJson() ko use kar sakein frontend par
+        message_to_emit = {
+            "id": message.id,
+            "sender_id": message.sender_id,
+            "receiver_id": message.receiver_id,
+            "conversation_id": message.conversation_id, # Yeh bhi bhej dein
+            "encrypted_message": message.encrypted_message,
+            "message_type": message.message_type,
+            "timestamp": message.timestamp.isoformat(),
+            "is_read": message.is_read,
+            "read_at": message.read_at.isoformat() if message.read_at else None,
+            # 'sender_image' aur 'receiver_image' yahan se fetch karna complex hoga
+            # Agar chahiye, to alag se fetch ya cached data use karein
+        }
+        
+        # Sender ko bhi message bhejen taake uska UI update ho
+        emit('new_message', message_to_emit, room=f"user_{sender_id}")
+        # Receiver ko message bhejen
+        emit('new_message', message_to_emit, room=f"user_{receiver_id}")
+        
+        print(f"✅ Real-time message sent from {sender_id} to {receiver_id} in conversation {conversation_id}")
+
+    except Exception as e:
+        db.session.rollback()
+        print(f'❌ Error in real-time message handling: {e}')
+        # emit('error', {'message': 'Server error sending message'}) # Client ko error bhejen

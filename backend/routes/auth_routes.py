@@ -86,6 +86,15 @@ def login():
     if not user or not check_password_hash(user.password, password):
         return jsonify({'success': False, 'message': 'Invalid credentials'}), 401
     
+    if not user.email_confirmed:
+        # If email not confirmed, resend confirmation email and inform the user
+        token = generate_confirmation_token(user.email)
+        send_confirmation_email(user.email, user.name, token)
+        return jsonify({
+            'success': False,
+            'message': 'Please confirm your email address. A new confirmation email has been sent.'
+        }), 403 # Forbidden, as they cannot log in yet
+
     access_token = create_access_token(identity=str(user.id))
 
     return jsonify({

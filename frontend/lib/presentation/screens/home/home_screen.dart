@@ -28,9 +28,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Use WidgetsBinding to safely call providers in initState
+
+    // Defer the async work
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // Get the global instances of your providers
       final doctorProvider = Provider.of<DoctorProvider>(
         context,
         listen: false,
@@ -40,7 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
         listen: false,
       );
 
-      // Call their respective data-fetching methods
       await doctorProvider.getHomeData();
       await patientProvider.fetchPatients();
     });

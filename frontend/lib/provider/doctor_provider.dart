@@ -62,7 +62,6 @@ class DoctorProvider with ChangeNotifier {
 
   void setInvoices(List<InvoiceModel> invoices) {
     _invoices = invoices;
-    print(invoices);
     notifyListeners();
   }
 
@@ -278,7 +277,7 @@ class DoctorProvider with ChangeNotifier {
         Navigator.popAndPushNamed(
           context,
           Routes.notesScreen,
-          arguments: _notes,
+          arguments: {'notes': _notes, 'patientId': note.patientId},
         );
       } else {
         ToastHelper.showError(context, result['message']);
@@ -299,7 +298,7 @@ class DoctorProvider with ChangeNotifier {
         Navigator.popAndPushNamed(
           context,
           Routes.notesScreen,
-          arguments: _notes,
+          arguments: {'notes': _notes, 'patientId': note.patientId},
         );
       } else {
         ToastHelper.showError(context, result['message']);
