@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatService {
-  Future<String?> _getToken() async {
+  Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
@@ -21,7 +21,7 @@ class ChatService {
 
   // ✅ Get conversations for logged-in user
   Future<List<Map<String, dynamic>>> fetchConversations() async {
-    final token = await _getToken();
+    final token = await getToken();
     int? doctorUserId = await _getUserId();
     final response = await http.get(
       Uri.parse('${ApiConstants.getConversations}/$doctorUserId'),
@@ -38,7 +38,7 @@ class ChatService {
   }
 
   Future<List<Map<String, dynamic>>> fetchUsersForChat() async {
-    final token = await _getToken();
+    final token = await getToken();
     int? userId = await _getUserId();
     final response = await http.get(
       Uri.parse('${ApiConstants.getUsersForChat}/$userId'),
@@ -56,7 +56,7 @@ class ChatService {
 
   // ✅ Get or create a new conversation
   Future<Map<String, dynamic>> getOrCreateConversation(int otherUserId) async {
-    final token = await _getToken();
+    final token = await getToken();
     final userId = await _getUserId();
     final response = await http.post(
       Uri.parse(ApiConstants.createConversation),
@@ -77,7 +77,7 @@ class ChatService {
   // ✅ Send encrypted message
   Future<bool> sendMessage(MessageModel message) async {
     try {
-      final token = await _getToken();
+      final token = await getToken();
       final userId = await _getUserId();
 
       if (token == null) {
@@ -130,7 +130,7 @@ class ChatService {
 
   // ✅ Fetch messages for a conversation
   Future<List<MessageModel>> fetchMessages(int conversationId) async {
-    final token = await _getToken();
+    final token = await getToken();
     final response = await http.get(
       Uri.parse('${ApiConstants.getMessages}/$conversationId'),
       headers: {'Authorization': 'Bearer $token'},

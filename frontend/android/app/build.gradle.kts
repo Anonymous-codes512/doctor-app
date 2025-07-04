@@ -22,7 +22,7 @@ android {
     defaultConfig {
         applicationId = "com.example.doctor_app"
         ndkVersion = "27.0.12077973"
-        minSdk = flutter.minSdkVersion
+        minSdk = 24 
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

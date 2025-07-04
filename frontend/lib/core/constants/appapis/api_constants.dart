@@ -26,6 +26,8 @@ class ApiConstants {
   static const String createNote = '$baseUrl/create_note';
   static const String updateNote = '$baseUrl/update_note';
 
+  static const String uploadMedia = '$baseUrl/upload_media';
+
   static const String createConversation = '$baseUrl/create_conversation';
   static const String getConversations = '$baseUrl/get_conversations';
   static const String getUsersForChat = '$baseUrl/get_users_for_chat';

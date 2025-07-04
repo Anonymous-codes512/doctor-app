@@ -1,8 +1,10 @@
+import os
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from sqlalchemy import or_, and_
 from extensions import db
 from utils.AES_key import generate_aes_key
+from werkzeug.utils import secure_filename
 from models import Conversation, User,Doctor ,Patient, Message
 from datetime import datetime
 
@@ -10,6 +12,9 @@ from flask_socketio import join_room, emit, disconnect
 from socket_io_instance import socketio
 
 chat_bp = Blueprint('chat', __name__, url_prefix='/api')
+
+UPLOAD_FOLDER = 'static/uploads/media'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @chat_bp.route('/create_conversation', methods=['POST'])
 @jwt_required()
@@ -252,6 +257,27 @@ def send_message():
     
     # Existing @socketio.on('join') handler
 
+
+@chat_bp.route('/upload_media', methods=['POST'])
+@jwt_required()
+def upload_media():
+    file = request.files.get('file')
+    file_path = None
+
+    if file:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(file_path)
+        print(f"🖼️ File saved to: {file_path}")
+    else:
+        print("🚫 No image file received.")
+
+    if not file:
+        return jsonify({'error': 'No file uploaded'}), 400
+
+    return jsonify({'success': True, 'file_url': file_path}), 200
+
+
 @socketio.on('join')
 def handle_join(data):
     user_id = data.get('user_id')
@@ -261,7 +287,6 @@ def handle_join(data):
     else:
         print("❌ Join event received without user_id")
         # disconnect() # Agar user_id na ho to disconnect bhi kar sakte hain
-
 
 # ✅ Naya Socket.IO event handler for sending messages
 @socketio.on('send_message') # Yeh woh event name hai jo frontend emit karega
