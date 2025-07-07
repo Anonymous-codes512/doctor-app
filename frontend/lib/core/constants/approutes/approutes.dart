@@ -65,7 +65,6 @@ import 'package:doctor_app/presentation/screens/splash screen/splash_screen.dart
 import 'package:doctor_app/presentation/screens/task/task_screen.dart';
 import 'package:doctor_app/presentation/screens/video/all_video_screen.dart';
 import 'package:doctor_app/presentation/screens/voice/all_voice_screen.dart';
-import 'package:doctor_app/presentation/screens/voice/call_screen.dart';
 import 'package:flutter/material.dart';
 
 class Routes {
@@ -189,7 +188,7 @@ class Routes {
       case allVoiceCallsScreen:
         return MaterialPageRoute(builder: (_) => AllVoiceCallScreen());
       case voiceCallScreen:
-        return MaterialPageRoute(builder: (_) => CallScreen());
+      // return MaterialPageRoute(builder: (_) => CallScreen(user: {}));
 
       case allVideoCallsScreen:
         return MaterialPageRoute(builder: (_) => AllVideoCallScreen());

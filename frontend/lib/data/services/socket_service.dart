@@ -2,41 +2,38 @@ import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class SocketService {
+  Function(Map<String, dynamic>)? onIncomingCall; // Ab map data receive karega
+  Function(Map<String, dynamic>)? onCallAccepted; // Ab map data receive karega
+  Function(Map<String, dynamic>)? onCallEnded; // Ab map data receive karega
+  Function(Map<String, dynamic>)? onCallError;
+
   static final SocketService _instance = SocketService._internal();
 
   factory SocketService() => _instance;
-
-  // ✅ Ab 'late' keyword hata kar isko nullable bana dein
   io.Socket? _socket;
-
-  // New messages ke liye callback function
   Function(Map<String, dynamic>)? onNewMessageReceived;
-
   SocketService._internal();
-
-  // Socket instance ko get karne ke liye, agar aapko bahar access karna ho
   io.Socket? get socketInstance => _socket;
 
   void initSocket(int userId) {
-    // ✅ Pehle check karein ke _socket null nahi hai AUR connected bhi hai
+    // ✅ Socket ko initialize karne se pehle bhi _socket ko null aur connected check karein
     if (_socket != null && _socket!.connected) {
       print('ℹ️ Socket already connected. Skipping re-initialization.');
-      return; // Agar pehle se connected hai, to kuch na karein
+      return;
     }
 
-    // ✅ Agar _socket null hai ya disconnected hai, to usko initialize karein
     _socket = io.io(ApiConstants.socketUrl, <String, dynamic>{
       'transports': ['websocket'],
-      'autoConnect': false, // Manual connect karenge
-      // 'query': {'user_id': userId.toString()} // Agar authentication query mein chahiye
+      'autoConnect': false,
     });
 
-    _socket!.connect(); // ✅ Initialize hone ke baad connect karein
+    _socket!.connect();
 
     _socket!.onConnect((_) {
       print('✅ Flutter Socket connected');
       _socket!.emit('join', {'user_id': userId});
       print('✅ Emitted join event with user_id: $userId');
+      _listenToCallEvents();
     });
 
     _socket!.onConnectError((data) {
@@ -59,8 +56,37 @@ class SocketService {
     });
 
     _socket!.onAny((event, data) {
-      // Optional: Har event ko log karein debugging ke liye
-      // print('Socket Event: $event, Data: $data');
+      print('🔍 Socket Event: $event, Data: $data');
+    });
+  }
+
+  void _listenToCallEvents() {
+    _socket!.on('incoming_call', (data) {
+      print("📞 Incoming call received: $data");
+      if (onIncomingCall != null) {
+        onIncomingCall!(Map<String, dynamic>.from(data));
+      }
+    });
+
+    _socket!.on('call_accepted', (data) {
+      print("✅ Call accepted: $data");
+      if (onCallAccepted != null) {
+        onCallAccepted!(Map<String, dynamic>.from(data));
+      }
+    });
+
+    _socket!.on('call_ended', (data) {
+      print("🛑 Call ended: $data");
+      if (onCallEnded != null) {
+        onCallEnded!(Map<String, dynamic>.from(data));
+      }
+    });
+
+    _socket!.on('call_error', (data) {
+      print("❌ Call error: $data");
+      if (onCallError != null) {
+        onCallError!(Map<String, dynamic>.from(data));
+      }
     });
   }
 
@@ -82,6 +108,66 @@ class SocketService {
       _socket!.dispose(); // Resources release karein
       _socket = null; // ✅ Dispose ke baad _socket ko null kar dein
       print('🔌 Socket disconnected and disposed.');
+    }
+  }
+
+  void startCall({
+    required int callerId,
+    required int receiverId,
+    required String callerName,
+    required String callType, // 'audio' ya 'video'
+  }) {
+    if (_socket != null && _socket!.connected) {
+      _socket!.emit('start_call', {
+        'caller_id': callerId,
+        'receiver_id': receiverId,
+        'caller_name': callerName,
+        'call_type': callType, // New parameter
+      });
+      print(
+        "📞 Emitted start_call event: Caller $callerId, Receiver $receiverId, Type $callType",
+      );
+    } else {
+      print("⚠️ Socket not connected. Cannot start call.");
+    }
+  }
+
+  // ✅ Updated acceptCall method to include callRecordId
+  void acceptCall({
+    required int callerId,
+    required int receiverId,
+    required int callRecordId, // New parameter
+  }) {
+    if (_socket != null && _socket!.connected) {
+      _socket!.emit('accept_call', {
+        'caller_id': callerId,
+        'receiver_id': receiverId,
+        'call_record_id': callRecordId,
+      });
+      print("✅ Emitted accept_call event for CallRecord ID: $callRecordId");
+    } else {
+      print("⚠️ Socket not connected. Cannot accept call.");
+    }
+  }
+
+  // ✅ Updated endCall method to include callRecordId and callStatus
+  void endCall({
+    required int callRecordId,
+    required int enderId, // Wo user jo call end kar raha hai
+    required String
+    callStatus, // 'completed', 'cancelled', 'rejected', 'missed'
+  }) {
+    if (_socket != null && _socket!.connected) {
+      _socket!.emit('end_call', {
+        'call_record_id': callRecordId,
+        'ender_id': enderId,
+        'call_status': callStatus,
+      });
+      print(
+        "🛑 Emitted end_call event for CallRecord ID: $callRecordId, Status: $callStatus",
+      );
+    } else {
+      print("⚠️ Socket not connected. Cannot end call.");
     }
   }
 }

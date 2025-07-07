@@ -5,7 +5,12 @@ import 'package:doctor_app/presentation/screens/video/video_call_attended_screen
 import 'package:flutter/material.dart';
 
 class VideoCallingScreen extends StatefulWidget {
-  const VideoCallingScreen({super.key});
+  const VideoCallingScreen({
+    super.key,
+    required int callRecordId,
+    required int callerId,
+    required receiverId,
+  });
 
   @override
   State<VideoCallingScreen> createState() => _VideoCallingScreenState();

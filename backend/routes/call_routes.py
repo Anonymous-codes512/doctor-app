@@ -11,14 +11,14 @@ from datetime import datetime
 from flask_socketio import join_room, emit, disconnect
 from socket_io_instance import socketio
 
-chat_bp = Blueprint('chat', __name__, url_prefix='/api')
+call_bp = Blueprint('call', __name__, url_prefix='/api')
 
 UPLOAD_FOLDER = 'static/uploads/media'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-@chat_bp.route('/create_conversation', methods=['POST'])
+@call_bp.route('/create_call_conversation', methods=['POST'])
 @jwt_required()
-def get_or_create_conversation():
+def get_or_create_call_conversation():
     data = request.get_json()
     current_user_id = data.get('user_id')
     other_user_id = data.get('other_user_id')
@@ -27,48 +27,46 @@ def get_or_create_conversation():
         return jsonify({'success': False, 'message': 'Cannot chat with yourself'}), 400
 
     # Check if conversation exists
-    convo = Conversation.query.filter(
+    call = CallConversation.query.filter(
         or_(
-            and_(Conversation.participant1_id == current_user_id, Conversation.participant2_id == other_user_id),
-            and_(Conversation.participant1_id == other_user_id, Conversation.participant2_id == current_user_id)
+            and_(CallConversation.user1_id == current_user_id, CallConversation.user2_id == other_user_id),
+            and_(CallConversation.user1_id == other_user_id, CallConversation.user2_id == current_user_id)
         )
     ).first()
 
-    if convo:
-        return jsonify({'success': True, 'conversation_id': convo.id, 'chat_secret': convo.chat_secret}), 200
+    if call:
+        return jsonify({'success': True, 'call_conversation_id': call.id}), 200
 
     # Create new conversation
-    new_secret = generate_aes_key()
-    convo = Conversation(
-        participant1_id=current_user_id,
-        participant2_id=other_user_id,
-        chat_secret=new_secret
+    call = CallConversation(
+        user1_id=current_user_id,
+        user2_id=other_user_id,
     )
-    db.session.add(convo)
+    db.session.add(call)
     db.session.commit()
 
-    return jsonify({'success': True, 'conversation_id': convo.id, 'chat_secret': convo.chat_secret}), 201
+    return jsonify({'success': True, 'call_conversation_id': call.id,}), 201
 
-@chat_bp.route('/get_conversations/<int:user_id>', methods=['GET'])
+@call_bp.route('/get_call_history/<int:user_id>', methods=['GET'])
 @jwt_required()
-def get_conversations(user_id):
+def get_call_history(user_id):
     user = User.query.get(user_id)
     if not user:
         return jsonify({'success': False, 'message': 'User not found'}), 404
 
-    conversations = Conversation.query.filter(
+    callconversations = CallConversation.query.filter(
         or_(
-            Conversation.participant1_id == user_id,
-            Conversation.participant2_id == user_id
+            CallConversation.user1_id == user_id,
+            CallConversation.user2_id == user_id
         )
     ).all()
 
     formatted = []
-    for convo in conversations:
-        other_user_id = convo.participant1_id if convo.participant2_id == user_id else convo.participant2_id
+    for call in callconversations:
+        other_user_id = call.user1_id if call.user2_id == user_id else call.user2_id
         other_user = User.query.get(other_user_id)
 
-        last_message = Message.query.filter_by(conversation_id=convo.id).order_by(Message.timestamp.desc()).first()
+        last_call = CallRecord.query.filter_by(call_conversation_id=call.id).order_by(CallRecord.timestamp.desc()).first()
 
         image_path = ''
         if other_user.role.lower() == 'doctor' and other_user.doctor:
@@ -81,11 +79,9 @@ def get_conversations(user_id):
             'name': other_user.name,
             'avatar': image_path,
             'is_online': False,
-            'last_message': last_message.encrypted_message if last_message else '',
-            'last_time': last_message.timestamp.strftime('%H:%M') if last_message else '',
-            'unread_count': Message.query.filter_by(conversation_id=convo.id, receiver_id=user_id, is_read=False).count()
-        })
-
+            'last_call': last_call.call_status if last_call else '',
+            'timestamp': last_call.timestamp.strftime('%B %d, %I:%M %p') if last_call else '',
+            })
     # Fetch related patients if user is a doctor
     patient_users = []
     if user.role == 'doctor':
@@ -100,9 +96,8 @@ def get_conversations(user_id):
                         'name': patient_user.name,
                         'avatar': patient_user.patient.image_path if patient_user.patient else '',
                         'is_online': False,
-                        'last_message': '',
-                        'last_time': '',
-                        'unread_count': 0
+                        'last_call': '',
+                        'timestamp': '',
                     })
 
     # Add other doctors
@@ -115,9 +110,8 @@ def get_conversations(user_id):
                 'name': doc_user.name,
                 'avatar': doc_user.doctor.image_path if doc_user.doctor else '',
                 'is_online': False,
-                'last_message': '',
-                'last_time': '',
-                'unread_count': 0
+                'last_call': '',
+                'timestamp': '',
             })
 
     # Merge without duplicates
@@ -125,13 +119,13 @@ def get_conversations(user_id):
     for p in patient_users:
         if p['user_id'] not in seen_ids:
             formatted.append(p)
-    print(f'\n\n conversations : {formatted}')
+    print(f'\n\n calls : {formatted}')
 
-    return jsonify({'success': True, 'conversations': formatted}), 200
+    return jsonify({'success': True, 'calls': formatted}), 200
 
-@chat_bp.route('/get_users_for_chat/<int:user_id>', methods=['GET'])
+@call_bp.route('/get_users_for_call/<int:user_id>', methods=['GET'])
 @jwt_required()
-def get_users_for_chat(user_id):
+def get_users_for_call(user_id):
     user = User.query.get(user_id)
     if not user:
         return jsonify({'success': False, 'message': 'User not found'}), 404
@@ -165,28 +159,28 @@ def get_users_for_chat(user_id):
 
     return jsonify({'success': True, 'users': result}), 200
 
-@chat_bp.route('/get_messages/<int:conversation_id>', methods=['GET'])
+@call_bp.route('/get_calls/<int:conversation_id>', methods=['GET'])
 @jwt_required()
-def get_messages(conversation_id):
-    convo = Conversation.query.get(conversation_id)
-    if not convo:
-        return jsonify({'success': False, 'message': 'Conversation not found'}), 404
+def get_calls(conversation_id):
+    call = CallConversation.query.get(conversation_id)
+    if not call:
+        return jsonify({'success': False, 'message': 'call Conversation not found'}), 404
 
-    messages = Message.query.filter_by(conversation_id=conversation_id).order_by(Message.timestamp.asc()).all()
+    calls = CallRecord.query.filter_by(call_conversation_id=conversation_id).order_by(CallRecord.timestamp.asc()).all()
     result = []
 
-    for msg in messages:
+    for call in calls:
         # Fetch sender image
-        sender_user = User.query.get(msg.sender_id)
-        receiver_user = User.query.get(msg.receiver_id)
+        caller_user = User.query.get(call.caller_id)
+        receiver_user = User.query.get(call.receiver_id)
 
-        sender_image = None
+        caller_image = None
         receiver_image = None
 
-        if sender_user.role.lower() == 'doctor' and sender_user.doctor:
-            sender_image = sender_user.doctor.image_path
-        elif sender_user.role.lower() == 'patient' and sender_user.patient:
-            sender_image = sender_user.patient.image_path
+        if caller_user.role.lower() == 'doctor' and caller_user.doctor:
+            caller_image = caller_image.doctor.image_path
+        elif caller_user.role.lower() == 'patient' and caller_user.patient:
+            caller_image = caller_user.patient.image_path
 
         if receiver_user.role.lower() == 'doctor' and receiver_user.doctor:
             receiver_image = receiver_user.doctor.image_path
@@ -194,88 +188,20 @@ def get_messages(conversation_id):
             receiver_image = receiver_user.patient.image_path
 
         result.append({
-            'id': msg.id,
-            'sender_id': msg.sender_id,
-            'receiver_id': msg.receiver_id,
-            'encrypted_message': msg.encrypted_message,
-            'message_type': msg.message_type,
-            'timestamp': msg.timestamp.isoformat(),
-            'is_read': msg.is_read,
-            'read_at': msg.read_at.isoformat() if msg.read_at else None,
-            'sender_image': sender_image,
+            'id': call.id,
+            'caller_id': call.caller_id,
+            'receiver_id': call.receiver_id,
+            'caller_image': caller_image,
             'receiver_image': receiver_image,
+            'start_time': call.start_time.isoformat() if call.start_time else None,
+            'end_time': call.end_time.isoformat() if call.end_time else None,
+            'call_status': call.call_status,
+            'call_type': call.call_type,
+            'timestamp': call.timestamp.isoformat(),
+            'call_conversation_id': call.call_conversation_id,
         })
 
     return jsonify({'success': True, 'messages': result}), 200
-
-@chat_bp.route('/send_message', methods=['POST'])
-@jwt_required()
-def send_message():
-    try:
-        data = request.get_json()
-        sender_id = get_jwt_identity()  # sender is the logged-in user
-
-        if not data:
-            return jsonify({"error": "Missing data"}), 400
-
-        conversation_id = data.get('conversation_id')
-        encrypted_message = data.get('encrypted_message')
-        message_type = data.get('message_type', 'text')
-        receiver_id = data.get('receiver_id')
-
-        if not conversation_id or not encrypted_message or not receiver_id:
-            return jsonify({"error": "Missing required fields"}), 400
-
-        # Create message object
-        message = Message(
-            sender_id=sender_id,
-            receiver_id=receiver_id,
-            conversation_id=conversation_id,
-            encrypted_message=encrypted_message,
-            message_type=message_type,
-            timestamp=datetime.utcnow()
-        )
-
-        db.session.add(message)
-        db.session.commit()
-        
-        socketio.emit('new_message', {
-            "conversation_id": message.conversation_id,
-            "sender_id": message.sender_id,
-            "receiver_id": message.receiver_id,
-            "message": message.encrypted_message,
-            "message_type": message.message_type,
-            "timestamp": message.timestamp.isoformat(),
-        }, room=f"user_{receiver_id}")
-
-        return jsonify({"message": "Message sent successfully", "id": message.id}), 201
-
-    except Exception as e:
-        db.session.rollback()
-        print(f'❌ Error sending message: {e}')
-        return jsonify({"error": "Server error", "details": str(e)}), 500
-    
-    # Existing @socketio.on('join') handler
-
-
-@chat_bp.route('/upload_media', methods=['POST'])
-@jwt_required()
-def upload_media():
-    file = request.files.get('file')
-    file_path = None
-
-    if file:
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(file_path)
-        print(f"🖼️ File saved to: {file_path}")
-    else:
-        print("🚫 No image file received.")
-
-    if not file:
-        return jsonify({'error': 'No file uploaded'}), 400
-
-    return jsonify({'success': True, 'file_url': file_path}), 200
 
 
 @socketio.on('join')
@@ -347,9 +273,6 @@ def handle_send_message(data):
         # emit('error', {'message': 'Server error sending message'}) # Client ko error bhejen
 
 
-# Socket.IO events for call handling
-# Yeh events Socket.IO ke liye hain, jo real-time call handling ke liye use honge.
-# Inhe frontend se emit kiya jayega jab user call start, accept ya end karega.
 # In events ko backend mein handle karne ke liye, aapko Flask-SocketIO ka use karna hoga.
 @socketio.on('start_call')
 def handle_start_call(data):
