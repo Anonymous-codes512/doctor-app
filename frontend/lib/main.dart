@@ -1,5 +1,6 @@
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/provider/auth_provider.dart';
+import 'package:doctor_app/provider/call_provider.dart';
 import 'package:doctor_app/provider/chat_provider.dart';
 import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:doctor_app/provider/patient_provider.dart';
@@ -31,11 +32,11 @@ void main() async {
   String initialRoute;
 
   if (isFirstLaunch) {
-    initialRoute = Routes.onboarding; // Splash → Login
+    initialRoute = Routes.onboarding;
   } else if (isLoggedIn) {
-    initialRoute = Routes.homeScreen; // Direct to home
+    initialRoute = Routes.homeScreen;
   } else {
-    initialRoute = Routes.splash; // Onboarding
+    initialRoute = Routes.splash;
   }
 
   runApp(MyApp(initialRoute: initialRoute));
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => DoctorProvider()),
         ChangeNotifierProvider(create: (_) => PatientProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => CallProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

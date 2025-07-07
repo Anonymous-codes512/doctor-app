@@ -26,7 +26,6 @@ class _MessageHomeScreenState extends State<MessageHomeScreen> {
   int selectedIndex = 0;
   late PageController _pageController;
 
-  // Make _chatProvider nullable and initialize it in initState directly.
   ChatProvider? _chatProvider;
   int? userId;
 

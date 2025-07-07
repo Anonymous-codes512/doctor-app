@@ -10,3 +10,5 @@ from .user import User
 from .note import Note
 from .message import Message
 from .conversation import Conversation
+from .call_record import CallRecord
+from .call_conversation import CallConversation

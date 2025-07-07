@@ -2,7 +2,12 @@ import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class CallingScreen extends StatefulWidget {
-  const CallingScreen({super.key});
+  const CallingScreen({
+    super.key,
+    required int callRecordId,
+    required int callerId,
+    required receiverId,
+  });
 
   @override
   State<CallingScreen> createState() => _CallingScreenState();

@@ -5,6 +5,7 @@ from .patient_routes import patient_bp
 from .doctor_routes import doctor_bp
 from .invoice_routes import invoice_bp
 from .chat_routes import chat_bp
+from .call_routes import call_bp
 
 def init_routes(app):
     app.register_blueprint(auth_bp)
@@ -14,3 +15,4 @@ def init_routes(app):
     app.register_blueprint(doctor_bp)
     app.register_blueprint(invoice_bp)
     app.register_blueprint(chat_bp)
+    app.register_blueprint(call_bp)

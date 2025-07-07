@@ -1,5 +1,4 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
-import 'package:doctor_app/presentation/screens/voice/call_screen.dart';
 import 'package:doctor_app/presentation/screens/voice/voice_detail_screen.dart';
 import 'package:doctor_app/presentation/widgets/custom_search_widget.dart';
 import 'package:doctor_app/presentation/widgets/custom_tabs_widget.dart';
@@ -181,10 +180,10 @@ class _AllVideoCallScreenState extends State<AllVideoCallScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CallScreen()),
-          );
+          // Navigator.push(
+          // context,
+          // MaterialPageRoute(builder: (context) => const CallScreen(user: {})),
+          // );
         },
         shape: const CircleBorder(),
         backgroundColor: AppColors.primaryColor,

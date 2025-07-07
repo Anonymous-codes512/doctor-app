@@ -33,4 +33,10 @@ class ApiConstants {
   static const String getUsersForChat = '$baseUrl/get_users_for_chat';
   static const String sendMessage = '$baseUrl/send_message';
   static const String getMessages = '$baseUrl/get_messages';
+
+  static const String getCallHistory = '$baseUrl/get_call_history';
+  static const String getUsersForCall = '$baseUrl/get_users_for_call';
+  static const String createCallConversation =
+      '$baseUrl/create_call_conversation';
+  static const String getCalls = '$baseUrl/get_calls';
 }
