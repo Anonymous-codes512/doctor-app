@@ -9,6 +9,9 @@ class ApiConstants {
   static const String uploadDoctorImage = '$baseUrl/upload_doctor_image';
   static const String updateDoctor = '$baseUrl/update_doctor';
 
+  static const String uploadReportFile = '$baseUrl/upload_report_file';
+  static const String createReport = '$baseUrl/create_report';
+
   static const String sendResetCode = '$baseUrl/send-reset-code';
   static const String verifyResetOtp = '$baseUrl/verify-reset-otp';
   static const String resetPassword = '$baseUrl/reset-password';

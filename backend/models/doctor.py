@@ -33,5 +33,7 @@ class Doctor(db.Model):
     patients = db.relationship('Patient', secondary=doctor_patient, back_populates='doctors')
     appointments_as_doctor = db.relationship('Appointment', back_populates='doctor', foreign_keys='Appointment.doctor_id')
     tasks = db.relationship('Task', back_populates='doctor', foreign_keys='Task.doctor_id')
-
+    reports = db.relationship('Report', back_populates='doctor', cascade="all, delete-orphan")
+    payments = db.relationship('Payment', back_populates='doctor', cascade="all, delete-orphan")
+    invoices = db.relationship('Invoice', back_populates='doctor', cascade="all, delete-orphan")
 

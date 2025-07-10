@@ -1,14 +1,19 @@
+import uuid
 from dateutil import parser
 import os
 from flask import request, jsonify, Blueprint
 from werkzeug.utils import secure_filename
 from flask_jwt_extended import jwt_required
+from models.invoice import Invoice
+from models.payment import Payment
+from models.report import Report
+from models.user import User
 from utils.enum import Gender
 from models.note import Note
 from models.doctor import Doctor
 from extensions import db
 from models.patient import Patient
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from sqlalchemy.exc import SQLAlchemyError
 
 
@@ -16,6 +21,9 @@ doctor_bp = Blueprint('doctor', __name__, url_prefix='/api')
 
 UPLOAD_FOLDER = 'static/uploads/doctors'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+UPLOAD_REPORT_FOLDER = 'static/uploads/reports'
+os.makedirs(UPLOAD_REPORT_FOLDER, exist_ok=True)
 
 @doctor_bp.route('/create_note', methods=['POST'])
 def create_note():
@@ -123,7 +131,6 @@ def upload_image():
         image_path = os.path.join(UPLOAD_FOLDER, filename)
         image.save(image_path)
 
-        # Ensure URL has proper folder path
         image_url = image_path
         return jsonify({'success': True, 'image_url': image_url})
         
@@ -286,3 +293,104 @@ def fetch_notes():
     except Exception as e:
         print(f'❌ Unexpected error in fetch_notes: {e}')
         return jsonify({'success': False, 'message': 'Internal server error'}), 500
+    
+@doctor_bp.route('/upload_report_file', methods=['POST'])
+@jwt_required()
+def upload_report_file():
+    if 'report' not in request.files:
+        return jsonify({'success': False, 'message': 'No report part'}), 400
+
+    file = request.files['report']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No selected file'}), 400
+
+    try:
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4().hex}_{filename}"
+        file_path = os.path.join(UPLOAD_REPORT_FOLDER, unique_filename)
+        file.save(file_path)
+        print(file_path)
+        return jsonify({'success': True, 'file_path': file_path}), 200
+        
+    except Exception as e:
+        print(f'❌ Error saving file: {e}')
+        return jsonify({'success': False, 'message': 'Failed to upload file'}), 500
+    
+
+@doctor_bp.route('/create_report', methods=['POST'])
+@jwt_required()
+def create_report():
+    data = request.get_json()
+    try:
+        email = data.get('patient_email')
+        if not email:
+            return jsonify({'success': False, 'message': 'Email not found'}), 400
+            
+        user = User.query.filter_by(email = email).first()
+        if not user:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+        
+        patient = Patient.query.filter_by(user_id=user.id).first()
+        if not patient:
+            return jsonify({'success': False, 'message': 'Patient not found'}), 404
+        
+        doctor_id = data.get('doctor_id')
+        if not doctor_id:
+            return jsonify({'success': False, 'message': 'Doctor ID is required'}), 400
+        
+        doctor = Doctor.query.filter(Doctor.user_id == doctor_id).first()
+        if not doctor:
+            return jsonify({'success': False, 'message': 'Doctor not found'}), 404
+
+        # 1️⃣ Create Report
+        report = Report(
+            patient_id=patient.id,
+            doctor_id=doctor_id,
+            report_name=data['report_name'],
+            report_type=data['report_type'],
+            report_date=data['report_date'],
+            report_time=data['report_time'],
+            file_url=data['file_url']
+        )
+        db.session.add(report)
+        db.session.commit()
+
+        # 2️⃣ Create Payment
+        payment = Payment(
+            patient_id=patient.id,
+            amount=data['payment_amount'],
+            status=data['payment_status'],
+            method=data['payment_method'],
+            report_id=report.id,
+            doctor_id=doctor_id
+        )
+        db.session.add(payment)
+        db.session.commit()
+
+        
+        last_invoice = Invoice.query.order_by(Invoice.id.desc()).first()
+        if last_invoice and last_invoice.invoice_number.startswith("INV-"):
+            last_number = int(last_invoice.invoice_number.split('-')[1])
+            new_invoice_number = f"INV-{last_number + 1:03d}"
+        else:
+            new_invoice_number = "INV-001"
+
+        # 3️⃣ Create Invoice
+        invoice = Invoice(
+            patient_id=patient.id,
+            doctor_id=doctor_id,
+            payment_id=payment.id,
+            invoice_number=new_invoice_number,
+            amount_due=data['payment_amount'],
+            due_date = date.today() + timedelta(days=7),
+            payment_status=data['payment_status']
+        )
+        db.session.add(invoice)
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': 'Report, payment, and invoice created'}), 201
+
+    except Exception as e:
+        print(f"❌ Error in creating report: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'message': 'Internal Server Error'}), 500

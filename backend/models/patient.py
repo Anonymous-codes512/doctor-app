@@ -199,3 +199,6 @@ class Patient(db.Model):
     appointments = db.relationship('Appointment', back_populates='patient', cascade='all, delete-orphan')
     invoices = db.relationship('Invoice', back_populates='patient', cascade='all, delete-orphan')
     health_records = db.relationship('HealthTracker', back_populates='patient', cascade='all, delete-orphan')
+    reports = db.relationship('Report', back_populates='patient', cascade="all, delete-orphan")
+    payments = db.relationship('Payment', back_populates='patient', cascade="all, delete-orphan")
+    invoices = db.relationship('Invoice', back_populates='patient', cascade="all, delete-orphan")
