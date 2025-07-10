@@ -1,36 +1,64 @@
-import 'package:doctor_app/core/assets/images/images_paths.dart';
+import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class AppDrawer extends StatelessWidget {
-  const AppDrawer({super.key});
+class AppDrawer extends StatefulWidget {
+  final String doctorName;
+  final String email;
+  final String nameInitials;
+  final ImageProvider profileImage;
+
+  const AppDrawer({
+    super.key,
+    required this.doctorName,
+    required this.email,
+    required this.nameInitials,
+    required this.profileImage,
+  });
 
   @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
+  @override
   Widget build(BuildContext context) {
+    print(
+      '${widget.doctorName} have the emil : ${widget.email} with image : ${widget.profileImage}',
+    );
     return Drawer(
       child: SafeArea(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            // Custom header without background and with horizontal layout
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              // No background color here to keep it transparent
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage(ImagePath.profileAvatar),
+                    backgroundImage: widget.profileImage,
+                    backgroundColor: AppColors.primaryColor.withOpacity(0.3),
+
+                    child:
+                        widget.profileImage == null
+                            ? Text(
+                              widget.nameInitials,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryColor,
+                              ),
+                            )
+                            : null,
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Dr. Staller Kane',
+                          widget.doctorName,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
@@ -38,7 +66,7 @@ class AppDrawer extends StatelessWidget {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          'doctor@example.com',
+                          widget.email,
                           style: TextStyle(fontSize: 14, color: Colors.black54),
                         ),
                       ],
@@ -64,7 +92,9 @@ class AppDrawer extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
-              onTap: () {},
+              onTap: () {
+                Navigator.pushNamed(context, Routes.updateDoctorProfile);
+              },
             ),
             ListTile(
               leading: const Icon(Icons.person_add),

@@ -102,7 +102,7 @@ def createAppointment():
             invoice_number=new_invoice_number,
             amount_due=fee,
             due_date=appointment_date,
-            payment_status='Pending'
+            payment_status='pending'
         )
         db.session.add(invoice)
         db.session.commit()
@@ -120,6 +120,7 @@ def createAppointment():
 
     except Exception as e:
         db.session.rollback()
+        print(e)
         return jsonify({'success': False, 'message': 'Failed to create appointment', 'error': str(e)}), 500
 
 @appointment_bp.route('/doctor_appointments/<int:user_id>', methods=['GET'])

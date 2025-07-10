@@ -5,9 +5,11 @@ import 'dart:typed_data';
 import 'package:animated_confirm_dialog/animated_confirm_dialog.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/core/utils/toast_helper.dart';
 import 'package:doctor_app/data/models/appointment_model.dart';
+import 'package:doctor_app/data/models/doctor_model.dart';
 import 'package:doctor_app/data/models/invoice_model.dart';
 import 'package:doctor_app/data/models/notes_model.dart';
 import 'package:doctor_app/data/models/task_model.dart';
@@ -31,6 +33,11 @@ class DoctorProvider with ChangeNotifier {
 
   String userName = '';
   String greeting = '';
+  String profileImage = '';
+  String doctorEmail = '';
+
+  late DoctorModel _doctor;
+  DoctorModel get doctor => _doctor;
 
   AppointmentModel? _appointment;
   AppointmentModel? get appointment => _appointment;
@@ -49,6 +56,14 @@ class DoctorProvider with ChangeNotifier {
 
   List<TaskModel> _tasks = [];
   List<TaskModel> get tasks => _tasks;
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  void setDoctor(DoctorModel doctor) {
+    _doctor = doctor;
+    notifyListeners();
+  }
 
   void setAppointments(List<AppointmentModel> appts) {
     _appointments = appts;
@@ -80,6 +95,48 @@ class DoctorProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void _setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
+  String getInitials(String name) {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    } else if (parts.isNotEmpty) {
+      return parts[0][0].toUpperCase();
+    }
+    return '';
+  }
+
+  ImageProvider? refineImagePath(String image_url) {
+    String? fixedImagePath;
+    ImageProvider? avatarImage;
+    if (image_url.isNotEmpty) {
+      fixedImagePath = image_url.replaceAll(r'\', '/');
+    }
+    if (fixedImagePath != null && fixedImagePath.isNotEmpty) {
+      final fullUrl =
+          ApiConstants.imageBaseUrl.endsWith('/')
+              ? ApiConstants.imageBaseUrl.substring(
+                0,
+                ApiConstants.imageBaseUrl.length - 1,
+              )
+              : ApiConstants.imageBaseUrl;
+
+      final cleanedPath =
+          fixedImagePath.startsWith('/')
+              ? fixedImagePath.substring(1)
+              : fixedImagePath;
+
+      final imageUrl = '$fullUrl/$cleanedPath';
+
+      avatarImage = NetworkImage(imageUrl);
+    }
+    return avatarImage;
+  }
+
   Future<void> getHomeData() async {
     try {
       final headerData = await _service.getHomeHeaderData();
@@ -89,9 +146,64 @@ class DoctorProvider with ChangeNotifier {
       await loadAppointments();
       await loadTasks();
       await loadInvoices();
+      await fetchDoctorProfile();
       notifyListeners();
     } catch (e) {
       print('❌ Error in getHomeData: $e');
+    }
+  }
+
+  Future<void> fetchDoctorProfile() async {
+    _setLoading(true);
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userJson = prefs.getString('user');
+      if (userJson == null) return;
+
+      final userMap = jsonDecode(userJson);
+      final doctorId = userMap['id'];
+
+      final doctorData = await _service.fetchDoctor(doctorId);
+      print(doctorData);
+      if (doctorData != null) {
+        doctorEmail = doctorData.email ?? '';
+        profileImage = doctorData.imagePath ?? '';
+
+        setDoctor(doctorData);
+        _setLoading(false);
+      } else {
+        print("❌ Doctor data not found");
+        _setLoading(false);
+      }
+    } catch (e) {
+      print("❌ Error in fetchDoctorProfile: $e");
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> updateDoctor(DoctorModel doctor, BuildContext context) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userJson = prefs.getString('user');
+      if (userJson == null) return;
+
+      final userMap = jsonDecode(userJson);
+      doctor.doctorUserId = userMap['id'];
+
+      final result = await _service.updateDoctor(doctor);
+
+      if (result['success']) {
+        ToastHelper.showSuccess(context, result['message']);
+        await fetchDoctorProfile();
+        Navigator.pop(context);
+      } else {
+        ToastHelper.showError(context, result['message']);
+        print("❌ Failed to update doctor: ${result['message']}");
+      }
+    } catch (e) {
+      print("❌ Error in updateDoctor: $e");
+      ToastHelper.showError(context, 'Failed to update doctor profile');
     }
   }
 

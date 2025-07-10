@@ -4,6 +4,11 @@ class ApiConstants {
   static const String baseUrl = 'http://192.168.100.12:5000/api';
   static const String register = '$baseUrl/register';
   static const String login = '$baseUrl/login';
+
+  static const String fetchDoctor = '$baseUrl/fetch_doctor';
+  static const String uploadDoctorImage = '$baseUrl/upload_doctor_image';
+  static const String updateDoctor = '$baseUrl/update_doctor';
+
   static const String sendResetCode = '$baseUrl/send-reset-code';
   static const String verifyResetOtp = '$baseUrl/verify-reset-otp';
   static const String resetPassword = '$baseUrl/reset-password';

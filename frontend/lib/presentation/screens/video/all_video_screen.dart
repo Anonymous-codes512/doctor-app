@@ -66,25 +66,7 @@ class _AllVideoCallScreenState extends State<AllVideoCallScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder:
-                    (context) => VoiceCallDetailScreen(
-                      userName: "Darlene Steward",
-                      avatarUrl: "https://i.pravatar.cc/150?img=1",
-                      callHistory: [
-                        CallHistoryItem(
-                          isMissed: false,
-                          callDate: "03:30 AM",
-                          durationOrSize: "33 mins 12.3 MB",
-                          isVideoCall: false,
-                        ),
-                        CallHistoryItem(
-                          isMissed: false,
-                          callDate: "Yesterday, 07:53 AM",
-                          durationOrSize: "0:20 47 KB",
-                          isVideoCall: true,
-                        ),
-                      ],
-                    ),
+                builder: (context) => VoiceCallDetailScreen(user: {}),
               ),
             );
           },

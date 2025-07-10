@@ -1,13 +1,15 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:flutter/material.dart';
 
 class VoiceCallItem extends StatelessWidget {
   final String userName;
-  final String callTime; // e.g. "Yesterday", "2 min ago"
-  final String callType; // e.g. "Incoming", "Outgoing", "Missed"
+  final String callTime;
+  final String callType;
   final String avatarUrl;
   final bool isOnline;
   final VoidCallback? onTap;
+  final VoidCallback? onpPhoneTap;
 
   const VoiceCallItem({
     Key? key,
@@ -17,7 +19,18 @@ class VoiceCallItem extends StatelessWidget {
     required this.avatarUrl,
     this.isOnline = false,
     this.onTap,
+    this.onpPhoneTap,
   }) : super(key: key);
+
+  String _getInitials(String name) {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    } else if (parts.isNotEmpty) {
+      return parts[0][0].toUpperCase();
+    }
+    return '';
+  }
 
   Color getCallTypeColor() {
     switch (callType.toLowerCase()) {
@@ -47,6 +60,30 @@ class VoiceCallItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String? fixedImagePath;
+    if (avatarUrl.isNotEmpty) {
+      // Simplified null check, as avatarUrl is required
+      fixedImagePath = avatarUrl.replaceAll(r'\', '/');
+    }
+    ImageProvider? avatarImage;
+    if (fixedImagePath != null && fixedImagePath.isNotEmpty) {
+      final fullUrl =
+          ApiConstants.imageBaseUrl.endsWith('/')
+              ? ApiConstants.imageBaseUrl.substring(
+                0,
+                ApiConstants.imageBaseUrl.length - 1,
+              )
+              : ApiConstants.imageBaseUrl;
+
+      final cleanedPath =
+          fixedImagePath.startsWith('/')
+              ? fixedImagePath.substring(1)
+              : fixedImagePath;
+
+      final imageUrl = '$fullUrl/$cleanedPath';
+
+      avatarImage = NetworkImage(imageUrl);
+    }
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -58,8 +95,18 @@ class VoiceCallItem extends StatelessWidget {
             Stack(
               children: [
                 CircleAvatar(
-                  radius: 24,
-                  backgroundImage: NetworkImage(avatarUrl),
+                  backgroundImage: avatarImage,
+                  backgroundColor: AppColors.primaryColor.withOpacity(0.3),
+                  child:
+                      avatarImage == null
+                          ? Text(
+                            _getInitials(userName),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryColor,
+                            ),
+                          )
+                          : null,
                 ),
               ],
             ),
@@ -107,9 +154,7 @@ class VoiceCallItem extends StatelessWidget {
             ),
             IconButton(
               icon: Icon(Icons.call, color: AppColors.primaryColor),
-              onPressed: () {
-                // Add voice call action
-              },
+              onPressed: onpPhoneTap,
             ),
           ],
         ),
