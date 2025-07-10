@@ -8,6 +8,9 @@ class CallConversation(db.Model):
     user1_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user2_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     
+    channal_name = db.Column(db.String(255), nullable=True, unique=True)
+    token = db.Column(db.String(255), nullable=True)
+    
     last_call_time = db.Column(db.DateTime, default=datetime.utcnow)
     unread_calls_count = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

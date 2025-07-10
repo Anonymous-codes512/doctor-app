@@ -1,23 +1,53 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:flutter/material.dart';
 
 class VoiceCallDetailScreen extends StatelessWidget {
-  final String userName;
-  final String avatarUrl;
-  final List<CallHistoryItem> callHistory;
+  final Map<String, dynamic> user;
+  const VoiceCallDetailScreen({super.key, required this.user});
 
-  const VoiceCallDetailScreen({
-    super.key,
-    required this.userName,
-    required this.avatarUrl,
-    required this.callHistory,
-  });
+  String _getInitials(String name) {
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    } else if (parts.isNotEmpty) {
+      return parts[0][0].toUpperCase();
+    }
+    return '';
+  }
 
   @override
   Widget build(BuildContext context) {
+    String? fixedImagePath;
+    if (user['avatar'].isNotEmpty) {
+      // Simplified null check, as avatarUrl is required
+      fixedImagePath = user['avatar'].replaceAll(r'\', '/');
+    }
+    ImageProvider? avatarImage;
+    if (fixedImagePath != null && fixedImagePath.isNotEmpty) {
+      final fullUrl =
+          ApiConstants.imageBaseUrl.endsWith('/')
+              ? ApiConstants.imageBaseUrl.substring(
+                0,
+                ApiConstants.imageBaseUrl.length - 1,
+              )
+              : ApiConstants.imageBaseUrl;
+
+      final cleanedPath =
+          fixedImagePath.startsWith('/')
+              ? fixedImagePath.substring(1)
+              : fixedImagePath;
+
+      final imageUrl = '$fullUrl/$cleanedPath';
+
+      avatarImage = NetworkImage(imageUrl);
+    }
     return Scaffold(
       appBar: AppBar(
-        title: Text('Voice Call', style: TextStyle(color: AppColors.textColor)),
+        title: Text(
+          'Voice Call Details',
+          style: TextStyle(color: AppColors.textColor),
+        ),
         backgroundColor: AppColors.backgroundColor,
         iconTheme: const IconThemeData(color: AppColors.textColor),
         centerTitle: true,
@@ -42,12 +72,23 @@ class VoiceCallDetailScreen extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CircleAvatar(
-                      radius: 40,
-                      backgroundImage: NetworkImage(avatarUrl),
+                      backgroundImage: avatarImage,
+                      radius: 50,
+                      backgroundColor: AppColors.primaryColor.withOpacity(0.3),
+                      child:
+                          avatarImage == null
+                              ? Text(
+                                _getInitials(user['name'] ?? 'Unknown User'),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryColor,
+                                ),
+                              )
+                              : null,
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      userName,
+                      user['name'] ?? 'Unknown User',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -108,68 +149,81 @@ class VoiceCallDetailScreen extends StatelessWidget {
             const SizedBox(height: 8),
             // Call history list view
             Expanded(
-              child: ListView.builder(
-                itemCount: callHistory.length,
-                itemBuilder: (context, index) {
-                  final call = callHistory[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 6,
-                      horizontal: 20,
-                    ),
-                    child: Row(
-                      children: [
-                        // Call status icon
-                        Icon(
-                          call.isMissed ? Icons.call_missed : Icons.call_made,
-                          size: 14,
-                          color:
-                              call.isMissed
-                                  ? AppColors.errorColor
-                                  : AppColors
-                                      .successColor, // Your custom error/success colors
+              child:
+                  (user['call_history'] == null || user['call_history'].isEmpty)
+                      ? const Center(
+                        child: Text(
+                          'No call history available',
+                          style: TextStyle(color: Colors.grey),
                         ),
-                        const SizedBox(width: 8),
-                        // Call date and duration/size
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                call.callDate,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                      )
+                      : ListView.builder(
+                        itemCount: user.length,
+                        itemBuilder: (context, index) {
+                          final call = user['call_history'][index];
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 6,
+                              horizontal: 20,
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  call.isMissed
+                                      ? Icons.call_missed
+                                      : Icons.call_made,
+                                  size: 14,
+                                  color:
+                                      call.isMissed
+                                          ? AppColors.errorColor
+                                          : AppColors
+                                              .successColor, // Your custom error/success colors
+                                ),
+                                const SizedBox(width: 8),
+                                // Call date and duration/size
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        call.callDate,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                          color:
+                                              AppColors
+                                                  .textColor, // Your custom text color
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        call.durationOrSize,
+                                        style: TextStyle(
+                                          color:
+                                              Colors
+                                                  .grey
+                                                  .shade700, // Use custom grey color or leave as is
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Call type icon
+                                Icon(
+                                  call.isVideoCall
+                                      ? Icons.videocam
+                                      : Icons.call,
                                   color:
                                       AppColors
-                                          .textColor, // Your custom text color
+                                          .primaryColor, // Your custom icon color
                                 ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                call.durationOrSize,
-                                style: TextStyle(
-                                  color:
-                                      Colors
-                                          .grey
-                                          .shade700, // Use custom grey color or leave as is
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Call type icon
-                        Icon(
-                          call.isVideoCall ? Icons.videocam : Icons.call,
-                          color:
-                              AppColors.primaryColor, // Your custom icon color
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
             ),
           ],
         ),

@@ -59,6 +59,16 @@ class _AllVoiceCallScreenState extends State<AllVoiceCallScreen> {
     return null;
   }
 
+  Future<void> _onCallIconTap(Map<String, dynamic> call) async {
+    await Provider.of<CallProvider>(
+      context,
+      listen: false,
+    ).selectUserForCall(call['user_id']);
+    if (!mounted) return;
+
+    Navigator.pushNamed(context, Routes.callingScreen, arguments: call);
+  }
+
   @override
   void dispose() {
     mySearchController.dispose();
@@ -105,7 +115,11 @@ class _AllVoiceCallScreenState extends State<AllVoiceCallScreen> {
         actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.menu))],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () async {
+          final users = await callProvider.fetchUsersForNewCall();
+          Navigator.pushNamed(context, Routes.callListScreen, arguments: users);
+        },
+        heroTag: 'addCallButton',
         shape: const CircleBorder(),
         backgroundColor: AppColors.primaryColor,
         child: const Icon(Icons.add_call, color: AppColors.backgroundColor),
@@ -119,8 +133,8 @@ class _AllVoiceCallScreenState extends State<AllVoiceCallScreen> {
               final users = await callProvider.fetchUsersForNewCall();
               Navigator.pushNamed(
                 context,
-                Routes.chatListScreen,
-                arguments: users,
+                Routes.inCommingCallScreen,
+                arguments: users[0],
               );
             },
             onChanged: (value) => print('Search text: $value'),
@@ -162,6 +176,7 @@ class _AllVoiceCallScreenState extends State<AllVoiceCallScreen> {
                               arguments: call,
                             );
                           },
+                          onpPhoneTap: () => _onCallIconTap(call),
                         );
                       },
                     ),

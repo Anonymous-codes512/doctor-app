@@ -15,19 +15,18 @@ class SocketService {
   SocketService._internal();
   io.Socket? get socketInstance => _socket;
 
-  void initSocket(int userId) {
-    // ✅ Socket ko initialize karne se pehle bhi _socket ko null aur connected check karein
+  void initSocket(int userId, {Function(Map<String, dynamic>)? onCall}) {
     if (_socket != null && _socket!.connected) {
       print('ℹ️ Socket already connected. Skipping re-initialization.');
       return;
     }
-
     _socket = io.io(ApiConstants.socketUrl, <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': false,
     });
 
     _socket!.connect();
+    onIncomingCall = onCall; // 👈 Store callback
 
     _socket!.onConnect((_) {
       print('✅ Flutter Socket connected');
@@ -60,14 +59,15 @@ class SocketService {
     });
   }
 
+  // data/services/socket_service.dart
+  // ...
   void _listenToCallEvents() {
     _socket!.on('incoming_call', (data) {
-      print("📞 Incoming call received: $data");
-      if (onIncomingCall != null) {
-        onIncomingCall!(Map<String, dynamic>.from(data));
-      }
+      print('🔍 Socket Event: incoming_call, Data: $data');
+      onIncomingCall?.call(data); // Null-safe call
+      print('📞 Incoming call received: $data');
     });
-
+    // ...
     _socket!.on('call_accepted', (data) {
       print("✅ Call accepted: $data");
       if (onCallAccepted != null) {

@@ -13,6 +13,7 @@ class CallRecord(db.Model):
     call_status = db.Column(db.String(50), nullable=False)
     call_type = db.Column(db.String(50), nullable=False)
     duration = db.Column(db.Integer, nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     caller = db.relationship('User', foreign_keys=[caller_id], backref='initiated_calls')
     receiver = db.relationship('User', foreign_keys=[receiver_id], backref='received_calls')

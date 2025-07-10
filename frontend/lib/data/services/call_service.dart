@@ -30,7 +30,7 @@ class CallService {
 
     if (response.statusCode == 200) {
       return List<Map<String, dynamic>>.from(
-        jsonDecode(response.body)['calls'],
+        jsonDecode(response.body)['calls_with_history'],
       );
     } else {
       print('Failed to fetch call history: ${response.body}');
@@ -69,7 +69,7 @@ class CallService {
       },
       body: jsonEncode({'other_user_id': otherUserId, 'user_id': userId}),
     );
-
+    print('Response body: ${response.body}');
     if (response.statusCode == 200 || response.statusCode == 201) {
       return jsonDecode(response.body);
     } else {

@@ -25,6 +25,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late DoctorProvider doctorProvider;
 
+  String? doctorName;
+  String? nameInitials;
+  String? doctorEmail;
+  ImageProvider? profileImage = AssetImage(ImagePath.profileAvatar);
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +47,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
       await doctorProvider.getHomeData();
       await patientProvider.fetchPatients();
+      setState(() {
+        doctorName = doctorProvider.doctor.fullName;
+        doctorEmail = doctorProvider.doctor.email;
+        nameInitials = doctorProvider.getInitials(
+          doctorProvider.doctor.fullName ?? '',
+        );
+        if (doctorProvider.doctor.imagePath != null &&
+            doctorProvider.doctor.imagePath!.isNotEmpty) {
+          profileImage = doctorProvider.refineImagePath(
+            doctorProvider.doctor.imagePath!,
+          );
+        } else {
+          profileImage = AssetImage(ImagePath.profileAvatar);
+        }
+      });
     });
   }
 
@@ -334,7 +354,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(),
+      drawer: AppDrawer(
+        doctorName: doctorName ?? 'Doctor',
+        email: doctorEmail ?? 'doctor@gmail.com',
+        profileImage: profileImage!,
+        nameInitials: nameInitials ?? 'D',
+      ),
       appBar: AppBar(
         backgroundColor: AppColors.backgroundColor,
         elevation: 0,
@@ -350,7 +375,19 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: CircleAvatar(
-              backgroundImage: AssetImage(ImagePath.profileAvatar),
+              backgroundImage: profileImage,
+              backgroundColor: AppColors.primaryColor.withOpacity(0.3),
+
+              child:
+                  profileImage == null
+                      ? Text(
+                        nameInitials ?? 'D',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryColor,
+                        ),
+                      )
+                      : null,
             ),
           ),
         ],

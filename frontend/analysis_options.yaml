@@ -18,7 +18,8 @@ analyzer:
     unused_field: ignore
     prefer_final_fields: ignore
     unnecessary_null_comparison: ignore
-include: package:flutter_lints/flutter.yaml
+
+# include: package:flutter_lints/flutter.yaml
 
 linter:
   # The lint rules applied to this project can be customized in the

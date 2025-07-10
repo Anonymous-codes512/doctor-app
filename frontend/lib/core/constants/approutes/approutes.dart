@@ -2,6 +2,7 @@ import 'package:doctor_app/data/models/appointment_model.dart';
 import 'package:doctor_app/data/models/invoice_model.dart';
 import 'package:doctor_app/data/models/notes_model.dart';
 import 'package:doctor_app/data/models/patient_model.dart';
+import 'package:doctor_app/presentation/screens/home/doctor_profile.dart';
 import 'package:doctor_app/presentation/screens/messages/chat_list_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/add_new_appointment_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/add_new_group_screen.dart';
@@ -65,10 +66,17 @@ import 'package:doctor_app/presentation/screens/splash screen/splash_screen.dart
 import 'package:doctor_app/presentation/screens/task/task_screen.dart';
 import 'package:doctor_app/presentation/screens/video/all_video_screen.dart';
 import 'package:doctor_app/presentation/screens/voice/all_voice_screen.dart';
+import 'package:doctor_app/presentation/screens/voice/call_list_screen.dart';
+import 'package:doctor_app/presentation/screens/voice/calling_screen.dart';
+import 'package:doctor_app/presentation/screens/voice/incoming_call_screen.dart';
+import 'package:doctor_app/presentation/screens/voice/voice_detail_screen.dart';
 import 'package:flutter/material.dart';
 
 class Routes {
   static const String home = '/';
+
+  static const String updateDoctorProfile = '/update_doctor_profile';
+
   static const String splash = '/splash';
   static const String onboarding = '/onboarding';
   static const String openingScreen = '/opening_screen';
@@ -82,9 +90,13 @@ class Routes {
   static const String allmessageScreen = '/all_message_screen';
   static const String chatScreen = '/chat_screen';
   static const String chatListScreen = '/chat_list_screen';
+
   static const String allVoiceCallsScreen = '/all_voice_screen';
+  static const String callListScreen = '/call_list_screen';
   static const String voiceCallDetailScreen = '/voice_details_screen';
-  static const String voiceCallScreen = '/voice_call_screen';
+  static const String callingScreen = '/calling_screen';
+  static const String inCommingCallScreen = '/in_comming_call_screen';
+
   static const String allVideoCallsScreen = '/all_video_screen';
   static const String healthTrackerStartScreen = '/health_tracker_start_screen';
   static const String healthTrackerScreen = '/health_tracker_screen';
@@ -171,6 +183,11 @@ class Routes {
         );
       case passwordChangedScreen:
         return MaterialPageRoute(builder: (_) => PasswordChangedScreen());
+      case updateDoctorProfile:
+        return MaterialPageRoute(builder: (_) => DoctorProfile());
+
+      case home:
+        return MaterialPageRoute(builder: (_) => HomeScreen());
       case homeScreen:
         return MaterialPageRoute(builder: (_) => HomeScreen());
       case allmessageScreen:
@@ -185,10 +202,37 @@ class Routes {
         if (args != null && args is List<Map<String, dynamic>>) {
           return MaterialPageRoute(builder: (_) => ChatListScreen(users: args));
         }
+
       case allVoiceCallsScreen:
         return MaterialPageRoute(builder: (_) => AllVoiceCallScreen());
-      case voiceCallScreen:
-      // return MaterialPageRoute(builder: (_) => CallScreen(user: {}));
+
+      case callingScreen:
+        final args = settings.arguments;
+        if (args != null && args is Map<String, dynamic>) {
+          return MaterialPageRoute(builder: (_) => CallingScreen(user: args));
+        }
+
+      case callListScreen:
+        final args = settings.arguments;
+        if (args != null && args is List<Map<String, dynamic>>) {
+          return MaterialPageRoute(builder: (_) => CallListScreen(users: args));
+        }
+
+      case inCommingCallScreen:
+        final args = settings.arguments;
+        if (args != null && args is Map<String, dynamic>) {
+          return MaterialPageRoute(
+            builder: (_) => IncomingCallScreen(callData: args),
+          );
+        }
+
+      case voiceCallDetailScreen:
+        final args = settings.arguments;
+        if (args != null && args is Map<String, dynamic>) {
+          return MaterialPageRoute(
+            builder: (_) => VoiceCallDetailScreen(user: args),
+          );
+        }
 
       case allVideoCallsScreen:
         return MaterialPageRoute(builder: (_) => AllVideoCallScreen());
