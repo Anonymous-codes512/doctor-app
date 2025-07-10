@@ -29,6 +29,7 @@ import 'package:doctor_app/presentation/screens/patient/patient_selection_screen
 import 'package:doctor_app/presentation/screens/patient/personal_details_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/personal_stats_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/update_note_screen.dart';
+import 'package:doctor_app/presentation/screens/reports/add_new_report.dart';
 import 'package:doctor_app/presentation/screens/reports/all_patients_reports.dart';
 import 'package:doctor_app/presentation/screens/appointment/appointment_screen.dart';
 import 'package:doctor_app/presentation/screens/auth/forgot_password_screen.dart';
@@ -123,6 +124,7 @@ class Routes {
   static const String invoiceDetailScreen = '/invoice_detail_screen';
   static const String paymentsScreen = '/payments_screen';
   static const String allPatientsReportsScreen = '/all_patients_reports_screen';
+  static const String addNewReportScreen = '/add_new_report_screen';
 
   static const String myPatientsScreen = '/my_patients_screen';
   static const String patientProfileScreen = '/patient_profile_screen';
@@ -322,6 +324,9 @@ class Routes {
 
       case allPatientsReportsScreen:
         return MaterialPageRoute(builder: (_) => AllPatientsReportsScreen());
+
+      case addNewReportScreen:
+        return MaterialPageRoute(builder: (_) => AddNewReportScreen());
 
       case myPatientsScreen:
         return MaterialPageRoute(builder: (_) => MyPatientsScreen());

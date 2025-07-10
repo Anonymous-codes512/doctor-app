@@ -1,4 +1,6 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/presentation/widgets/custom_search_widget.dart';
 import 'package:flutter/material.dart';
 
 class AllPatientsReportsScreen extends StatelessWidget {
@@ -74,10 +76,6 @@ class AllPatientsReportsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {},
-        ),
         title: Text(
           'Reports',
           style: TextStyle(
@@ -97,56 +95,23 @@ class AllPatientsReportsScreen extends StatelessWidget {
       body: Column(
         children: [
           // Search Bar
-          Container(
-            padding: EdgeInsets.all(16),
-            color: Colors.white,
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => SearchScreen()),
-                      );
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.borderColor),
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.search, color: AppColors.iconColor),
-                          SizedBox(width: 12),
-                          Text(
-                            'Search',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 16,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12),
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.add, color: Colors.white, size: 24),
-                ),
-              ],
-            ),
+          SearchBarWithAddButton(
+            controller: TextEditingController(),
+            onChanged: (value) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SearchScreen()),
+              );
+            },
+            onAddPressed: () {
+              Navigator.pushNamed(context, Routes.addNewReportScreen);
+            },
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SearchScreen()),
+              );
+            },
           ),
 
           // Reports Header

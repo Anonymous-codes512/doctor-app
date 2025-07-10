@@ -5,6 +5,7 @@ import 'package:doctor_app/data/models/appointment_model.dart';
 import 'package:doctor_app/data/models/doctor_model.dart';
 import 'package:doctor_app/data/models/invoice_model.dart';
 import 'package:doctor_app/data/models/notes_model.dart';
+import 'package:doctor_app/data/models/report_model.dart';
 import 'package:doctor_app/data/models/task_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -141,6 +142,60 @@ class DoctorService {
       }
     } catch (e) {
       return {'success': false, 'message': 'Network error. Please try again.'};
+    }
+  }
+
+  Future<String?> uploadReportFile(File file) async {
+    try {
+      final token = await getToken();
+      final uri = Uri.parse(ApiConstants.uploadReportFile);
+      final request =
+          http.MultipartRequest('POST', uri)
+            ..headers['Authorization'] = 'Bearer $token'
+            ..files.add(await http.MultipartFile.fromPath('report', file.path));
+
+      final response = await request.send();
+      final respStr = await response.stream.bytesToString();
+      final body = jsonDecode(respStr);
+
+      if (response.statusCode == 200 && body['success']) {
+        return body['file_path'];
+      } else {
+        print('❌ File upload failed: ${body['message']}');
+        return null;
+      }
+    } catch (e) {
+      print('❌ Exception while uploading file: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>> createReport(ReportModel report) async {
+    try {
+      final token = await getToken();
+      final response = await http.post(
+        Uri.parse(ApiConstants.createReport),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(report.toJson()),
+      );
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'Report created',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': body['message'] ?? 'Failed to create',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error occurred'};
     }
   }
 

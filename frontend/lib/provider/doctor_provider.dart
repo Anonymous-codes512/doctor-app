@@ -12,6 +12,7 @@ import 'package:doctor_app/data/models/appointment_model.dart';
 import 'package:doctor_app/data/models/doctor_model.dart';
 import 'package:doctor_app/data/models/invoice_model.dart';
 import 'package:doctor_app/data/models/notes_model.dart';
+import 'package:doctor_app/data/models/report_model.dart';
 import 'package:doctor_app/data/models/task_model.dart';
 import 'package:doctor_app/data/services/doctor_service.dart';
 import 'package:file_picker/file_picker.dart';
@@ -204,6 +205,62 @@ class DoctorProvider with ChangeNotifier {
     } catch (e) {
       print("❌ Error in updateDoctor: $e");
       ToastHelper.showError(context, 'Failed to update doctor profile');
+    }
+  }
+
+  Future<void> addReport(
+    ReportModel report,
+    File file,
+    BuildContext context,
+  ) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userJson = prefs.getString('user');
+      if (userJson == null) return;
+
+      final userMap = jsonDecode(userJson);
+      final doctorId = userMap['id'];
+
+      final uploadedUrl = await _service.uploadReportFile(file);
+
+      if (uploadedUrl == null) {
+        ToastHelper.showError(context, "Failed to upload report file");
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      report = ReportModel(
+        patientId: report.patientId,
+        doctorUserId: doctorId,
+        patientName: report.patientName,
+        patientEmail: report.patientEmail,
+        reportName: report.reportName,
+        reportType: report.reportType,
+        reportDate: report.reportDate,
+        reportTime: report.reportTime,
+        fileUrl: uploadedUrl,
+        paymentAmount: report.paymentAmount,
+        paymentStatus: report.paymentStatus,
+        paymentMethod: report.paymentMethod,
+      );
+
+      final response = await _service.createReport(report);
+
+      if (response['success']) {
+        ToastHelper.showSuccess(context, response['message']);
+        Navigator.pop(context);
+      } else {
+        ToastHelper.showError(context, response['message']);
+      }
+    } catch (e) {
+      ToastHelper.showError(context, "Unexpected error: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
