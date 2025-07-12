@@ -1,9 +1,24 @@
+import 'package:dio/dio.dart';
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/core/constants/appapis/api_constants.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/data/models/report_model.dart';
 import 'package:doctor_app/presentation/widgets/custom_search_widget.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
-class AllPatientsReportsScreen extends StatelessWidget {
+class AllPatientsReportsScreen extends StatefulWidget {
+  AllPatientsReportsScreen({super.key});
+
+  @override
+  State<AllPatientsReportsScreen> createState() =>
+      _AllPatientsReportsScreenState();
+}
+
+class _AllPatientsReportsScreenState extends State<AllPatientsReportsScreen> {
   final List<Map<String, dynamic>> patients = [
     {
       "name": "Ali Raza",
@@ -67,7 +82,19 @@ class AllPatientsReportsScreen extends StatelessWidget {
     },
   ];
 
-  AllPatientsReportsScreen({super.key});
+  late List<ReportModel> reportModel;
+  late DoctorProvider doctorProvider;
+
+  @override
+  void initState() {
+    super.initState();
+
+    doctorProvider = Provider.of<DoctorProvider>(context, listen: false);
+    doctorProvider.fetchReports();
+    reportModel = doctorProvider.reports;
+
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,13 +161,31 @@ class AllPatientsReportsScreen extends StatelessWidget {
             ),
           ),
 
-          // Reports List
           Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.all(16),
-              itemCount: patients.length,
-              itemBuilder: (context, index) {
-                return PatientReportCard(patient: patients[index]);
+            child: Consumer<DoctorProvider>(
+              builder: (context, provider, _) {
+                final reports = provider.reports;
+                if (reports.isEmpty) {
+                  return Center(child: Text('No reports found.'));
+                }
+                final Map<String, List<ReportModel>> grouped = {};
+                for (var report in reports) {
+                  final key = '${report.patientName} (${report.patientEmail})';
+                  grouped.putIfAbsent(key, () => []).add(report);
+                }
+                return ListView.builder(
+                  padding: EdgeInsets.all(16),
+                  itemCount: grouped.keys.length,
+                  itemBuilder: (context, index) {
+                    final patientName = grouped.keys.elementAt(index);
+                    final patientReports = grouped[patientName]!;
+
+                    return PatientReportCard(
+                      patientName: patientName,
+                      reports: patientReports,
+                    );
+                  },
+                );
               },
             ),
           ),
@@ -273,14 +318,17 @@ class _SearchScreenState extends State<SearchScreen> {
 }
 
 class PatientReportCard extends StatelessWidget {
-  final Map<String, dynamic> patient;
+  final String patientName;
+  final List<ReportModel> reports;
 
-  const PatientReportCard({Key? key, required this.patient}) : super(key: key);
+  const PatientReportCard({
+    Key? key,
+    required this.patientName,
+    required this.reports,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> reports = patient['reports'];
-
     return Container(
       margin: EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
@@ -299,10 +347,10 @@ class PatientReportCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Patient Name
-          Container(
-            padding: EdgeInsets.all(16),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 16),
             child: Text(
-              patient['name'],
+              patientName.split('(')[0].trim(),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -314,37 +362,33 @@ class PatientReportCard extends StatelessWidget {
           // Reports Table
           Table(
             border: TableBorder.all(color: AppColors.borderColor, width: 0.5),
-
             children: [
-              // Header Row
               TableRow(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
-
-                  color: AppColors.tableColor,
-                ), // Light purple-blue header
+                decoration: BoxDecoration(color: AppColors.tableColor),
                 children: [
-                  _buildTableCell('Report\nname', isHeader: true),
-                  _buildTableCell('Type', isHeader: true),
-                  _buildTableCell('Date', isHeader: true),
-                  _buildTableCell('Time', isHeader: true),
-                  _buildTableCell('Actions', isHeader: true),
+                  _buildTableCell(text: 'Report\nName', isHeader: true),
+                  _buildTableCell(text: 'Type', isHeader: true),
+                  _buildTableCell(text: 'Date', isHeader: true),
+                  _buildTableCell(text: 'Time', isHeader: true),
+                  _buildTableCell(text: 'Visit', isHeader: true),
                 ],
               ),
-              // Data Rows
-              ...reports.asMap().entries.map((entry) {
-                Map<String, dynamic> report = entry.value;
+              ...reports.map((report) {
                 return TableRow(
                   decoration: BoxDecoration(color: AppColors.tableColor),
                   children: [
-                    _buildTableCell(report['name']),
-                    _buildTableCell(report['type']),
-                    _buildTableCell(report['date']),
-                    _buildTableCell(report['time']),
-                    _buildTableCell('⋮', isAction: true),
+                    _buildTableCell(text: report.reportName),
+                    _buildTableCell(text: report.reportType),
+                    _buildTableCell(text: report.reportDate.split('T').first),
+                    _buildTableCell(text: report.reportTime),
+                    _buildTableCell(
+                      icon: Icons.link,
+                      text: report.fileUrl,
+                      isAction: true,
+                    ),
                   ],
                 );
-              }),
+              }).toList(),
             ],
           ),
         ],
@@ -352,22 +396,51 @@ class PatientReportCard extends StatelessWidget {
     );
   }
 
-  Widget _buildTableCell(
-    String text, {
+  Widget _buildTableCell({
+    String? text,
+    IconData? icon,
     bool isHeader = false,
     bool isAction = false,
   }) {
     return Container(
       padding: EdgeInsets.all(12),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: isHeader ? FontWeight.w600 : FontWeight.normal,
-          color: Colors.black,
-        ),
-        textAlign: isAction ? TextAlign.center : TextAlign.left,
-      ),
+
+      child:
+          icon != null
+              ? IconButton(
+                icon: Icon(icon, color: AppColors.primaryColor, size: 25),
+                onPressed: () async {
+                  if (text != null && text.isNotEmpty) {
+                    final fixedFilePath = text.replaceAll(r'\', '/');
+                    final fullUrl =
+                        '${ApiConstants.imageBaseUrl}$fixedFilePath';
+                    final fileName = fullUrl.split('/').last;
+
+                    print('📂 Downloading and opening: $fullUrl');
+
+                    try {
+                      final dir = await getTemporaryDirectory();
+                      final filePath = '${dir.path}/$fileName';
+
+                      await Dio().download(fullUrl, filePath);
+
+                      final result = await OpenFilex.open(filePath);
+                      print('✅ Opened: ${result.message}');
+                    } catch (e) {
+                      print('❌ Error opening file: $e');
+                    }
+                  }
+                },
+              )
+              : Text(
+                text!,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isHeader ? FontWeight.w600 : FontWeight.normal,
+                  color: Colors.black,
+                ),
+                textAlign: isAction ? TextAlign.center : TextAlign.left,
+              ),
     );
   }
 }

@@ -1,10 +1,16 @@
+import 'package:dio/dio.dart';
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
-import 'package:doctor_app/core/constants/approutes/approutes.dart';
-import 'package:doctor_app/presentation/widgets/custom_search_widget.dart';
+import 'package:doctor_app/core/constants/appapis/api_constants.dart';
+import 'package:doctor_app/data/models/report_model.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
 class CorrespondenceScreen extends StatefulWidget {
-  const CorrespondenceScreen({Key? key}) : super(key: key);
+  final int patientId;
+  CorrespondenceScreen({super.key, required this.patientId});
 
   @override
   State<CorrespondenceScreen> createState() => _CorrespondenceScreenState();
@@ -12,59 +18,7 @@ class CorrespondenceScreen extends StatefulWidget {
 
 class _CorrespondenceScreenState extends State<CorrespondenceScreen> {
   final TextEditingController _searchController = TextEditingController();
-  String selectedTab = 'Files'; // Initial selected tab
-
-  // Dummy data for Files
-  final List<Map<String, String>> _files = [
-    {
-      'fileName': 'Medical Prescription',
-      'type': 'PDF',
-      'date': '12/01/25',
-      'time': '09:00 am',
-    },
-    {
-      'fileName': 'Medical Prescription',
-      'type': 'PDF',
-      'date': '12/01/25',
-      'time': '09:00 am',
-    },
-    {
-      'fileName': 'Blood Test Results',
-      'type': 'image',
-      'date': '12/01/25',
-      'time': '09:00 am',
-    },
-    {
-      'fileName': 'Blood Test Results',
-      'type': 'image',
-      'date': '12/01/25',
-      'time': '09:00 am',
-    },
-    {
-      'fileName': 'Doctor\'s Notes',
-      'type': 'PDF',
-      'date': '12/01/25',
-      'time': '09:00 am',
-    },
-    {
-      'fileName': 'Doctor\'s Notes',
-      'type': 'PDF',
-      'date': '12/01/25',
-      'time': '09:00 am',
-    },
-    {
-      'fileName': 'Doctor\'s Notes',
-      'type': 'PDF',
-      'date': '12/01/25',
-      'time': '09:00 am',
-    },
-    {
-      'fileName': 'Doctor\'s Notes',
-      'type': 'PDF',
-      'date': '12/01/25',
-      'time': '09:00 am',
-    },
-  ];
+  String selectedTab = 'Files';
 
   // Dummy data for Communications
   final List<Map<String, String>> _communications = [
@@ -94,11 +48,19 @@ class _CorrespondenceScreenState extends State<CorrespondenceScreen> {
     },
   ];
 
-  void _filterCorrespondence(String query) {
-    setState(() {
-      // In a real application, you would filter the lists here based on the query.
-      // For now, we just trigger a rebuild.
-    });
+  late DoctorProvider doctorProvider;
+  late List<ReportModel> reports;
+
+  @override
+  void initState() {
+    super.initState();
+    doctorProvider = Provider.of<DoctorProvider>(context, listen: false);
+    doctorProvider.fetchReports();
+    reports =
+        doctorProvider.reports
+            .where((report) => report.patientId == widget.patientId)
+            .toList();
+    setState(() {});
   }
 
   void _onTabChanged(String tab) {
@@ -179,31 +141,25 @@ class _CorrespondenceScreenState extends State<CorrespondenceScreen> {
             TableRow(
               decoration: BoxDecoration(color: AppColors.tableColor),
               children: [
-                _buildTableHeader('File name'),
-                _buildTableHeader('Type'),
-                _buildTableHeader('Date'),
-                _buildTableHeader('Time'),
-                _buildTableHeader('Actions'),
+                _buildTableCell(text: 'File Name', isHeader: true),
+                _buildTableCell(text: 'Type', isHeader: true),
+                _buildTableCell(text: 'Date', isHeader: true),
+                _buildTableCell(text: 'Time', isHeader: true),
+                _buildTableCell(text: 'Visit', isHeader: true),
               ],
             ),
-            ..._files.map((file) {
+            ...reports.map((report) {
               return TableRow(
                 decoration: BoxDecoration(color: AppColors.tableColor),
                 children: [
-                  _buildTableCell(file['fileName']!),
-                  _buildTableCell(file['type']!),
-                  _buildTableCell(file['date']!),
-                  _buildTableCell(file['time']!),
-                  TableCell(
-                    verticalAlignment: TableCellVerticalAlignment.middle,
-                    child: Center(
-                      child: IconButton(
-                        icon: Icon(Icons.more_vert, color: Colors.grey[600]),
-                        onPressed: () {
-                          // Handle actions button press
-                        },
-                      ),
-                    ),
+                  _buildTableCell(text: report.reportName),
+                  _buildTableCell(text: report.reportType),
+                  _buildTableCell(text: report.reportDate.split('T').first),
+                  _buildTableCell(text: report.reportTime),
+                  _buildTableCell(
+                    text: report.fileUrl,
+                    icon: Icons.link,
+                    isAction: true,
                   ),
                 ],
               );
@@ -302,28 +258,54 @@ class _CorrespondenceScreenState extends State<CorrespondenceScreen> {
     );
   }
 
-  TableCell _buildTableHeader(String text) {
-    return TableCell(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Text(
-          text,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-
-  TableCell _buildTableCell(String text, {Color? backgroundColor}) {
+  TableCell _buildTableCell({
+    Color? backgroundColor,
+    String? text,
+    IconData? icon,
+    bool isHeader = false,
+    bool isAction = false,
+  }) {
     return TableCell(
       verticalAlignment: TableCellVerticalAlignment.middle,
       child: Container(
-        color: backgroundColor, // Set the background color here
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text(text, textAlign: TextAlign.center),
-        ),
+        color: backgroundColor,
+        padding: EdgeInsets.all(12),
+        child:
+            icon != null
+                ? IconButton(
+                  icon: Icon(icon, color: AppColors.primaryColor, size: 25),
+                  onPressed: () async {
+                    if (text != null && text.isNotEmpty) {
+                      final fixedFilePath = text.replaceAll(r'\', '/');
+                      final fullUrl =
+                          '${ApiConstants.imageBaseUrl}$fixedFilePath';
+                      final fileName = fullUrl.split('/').last;
+
+                      print('📂 Downloading and opening: $fullUrl');
+
+                      try {
+                        final dir = await getTemporaryDirectory();
+                        final filePath = '${dir.path}/$fileName';
+
+                        await Dio().download(fullUrl, filePath);
+
+                        final result = await OpenFilex.open(filePath);
+                        print('✅ Opened: ${result.message}');
+                      } catch (e) {
+                        print('❌ Error opening file: $e');
+                      }
+                    }
+                  },
+                )
+                : Text(
+                  text!,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: isHeader ? FontWeight.w600 : FontWeight.normal,
+                    color: Colors.black,
+                  ),
+                  textAlign: isAction ? TextAlign.center : TextAlign.left,
+                ),
       ),
     );
   }
@@ -335,10 +317,6 @@ class _CorrespondenceScreenState extends State<CorrespondenceScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: const Text(
           'Correspondence',
           style: TextStyle(
@@ -348,28 +326,9 @@ class _CorrespondenceScreenState extends State<CorrespondenceScreen> {
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         children: [
-          // Search bar
-          SearchBarWithAddButton(
-            controller: _searchController,
-            onChanged: _filterCorrespondence,
-            onAddPressed: () {
-              Navigator.pushNamed(context, Routes.newCorrespondenceScreen);
-            },
-            onTap: () {
-              // Handle tap if needed, e.g., show a search overlay
-            },
-          ),
-
-          // Title with sound icon
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(

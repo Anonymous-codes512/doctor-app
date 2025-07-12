@@ -1,4 +1,5 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/core/utils/toast_helper.dart';
 import 'package:doctor_app/data/models/appointment_model.dart';
 import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/custom_date_picker.dart';
@@ -14,27 +15,21 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AddNewAppointmentsScreen extends StatefulWidget {
-  final AppointmentModel appointmentModel;
-  const AddNewAppointmentsScreen({super.key, required this.appointmentModel});
+  // Ab sirf patientId required hai, appointmentModel ki zaroorat nahi
+  final int patientId;
+
+  const AddNewAppointmentsScreen({
+    super.key,
+    required this.patientId, // Sirf patientId required hai
+  });
 
   @override
-  State<AddNewAppointmentsScreen> createState() => _AppointmentsScreenState();
+  State<AddNewAppointmentsScreen> createState() =>
+      _AddNewAppointmentsScreenState();
 }
 
-class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
-  List<Patient> _allPatients = [];
-  late Patient? matchedPatient;
-
-  @override
-  void initState() {
-    super.initState();
-    final patients =
-        Provider.of<PatientProvider>(context, listen: false).patients;
-    _allPatients = patients;
-    matchedPatient = patients.firstWhere(
-      (patient) => patient.id == widget.appointmentModel.patientId,
-    );
-  }
+class _AddNewAppointmentsScreenState extends State<AddNewAppointmentsScreen> {
+  Patient? _matchedPatient;
 
   final TextEditingController _appointmentDurationController =
       TextEditingController();
@@ -56,13 +51,55 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
     'cheque',
   ];
 
-  DateTime selectedDate = DateTime.now();
-  TimeOfDay selectedTime = TimeOfDay.now();
+  late DateTime selectedDate;
+  late TimeOfDay selectedTime;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final patients =
+        Provider.of<PatientProvider>(context, listen: false).patients;
+
+    try {
+      _matchedPatient = patients.firstWhere(
+        (patient) => patient.id == widget.patientId,
+      );
+    } catch (e) {
+      _matchedPatient = null;
+      print(
+        'Patient with ID ${widget.patientId} not found. Cannot create appointment without patient data.',
+      );
+    }
+
+    selectedDate = DateTime.now();
+    selectedTime = TimeOfDay.now();
+  }
 
   void _saveAppointment(BuildContext context) async {
+    if (_matchedPatient == null) {
+      ToastHelper.showError(
+        context,
+        'Patient data is missing. Cannot save appointment.',
+      );
+      return;
+    }
+    if (_selectedReason == null ||
+        _selectedMode == null ||
+        _selectedPaymentMethod == null ||
+        _appointmentDurationController.text.isEmpty ||
+        _appointmentFeeController.text.isEmpty) {
+      ToastHelper.showError(
+        context,
+        'Please fill all required fields (Duration, Fee, Reason, Mode, Payment Method).',
+      );
+      return;
+    }
+
     final appointment = AppointmentModel(
-      patientEmail: matchedPatient!.email!,
-      patientName: matchedPatient!.fullName,
+      patientId: widget.patientId,
+      patientEmail: _matchedPatient!.email!,
+      patientName: _matchedPatient!.fullName,
       duration: int.tryParse(_appointmentDurationController.text) ?? 0,
       appointmentReason: _selectedReason,
       appointmentMode: _selectedMode,
@@ -75,7 +112,6 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
 
     final provider = Provider.of<DoctorProvider>(context, listen: false);
     provider.setAppointment(appointment);
-
     await provider.saveAppointment(context);
   }
 
@@ -91,6 +127,7 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
+          // Title ab static 'New Appointment' hai
           'New Appointment',
           style: TextStyle(
             color: Colors.black,
@@ -106,11 +143,12 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Patient Email aur Name ab bhi show honge, read-only fields mein
               LabeledTextField(
                 label: 'Patient Email',
                 hintText: '',
                 controller: TextEditingController(
-                  text: matchedPatient?.email ?? '',
+                  text: _matchedPatient?.email ?? 'N/A', // Null check
                 ),
                 readOnly: true,
               ),
@@ -119,7 +157,7 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
                 label: 'Patient Name',
                 hintText: '',
                 controller: TextEditingController(
-                  text: matchedPatient?.fullName ?? '',
+                  text: _matchedPatient?.fullName ?? 'N/A', // Null check
                 ),
                 readOnly: true,
               ),
@@ -128,6 +166,7 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
                 label: 'Appointment Duration',
                 hintText: 'Enter appointment duration here...',
                 controller: _appointmentDurationController,
+                keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
               GenderRadioGroup(
@@ -153,9 +192,10 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
               ),
               const SizedBox(height: 16),
               LabeledTextField(
-                label: 'Fee for appointmrnt',
+                label: 'Fee for appointment',
                 hintText: 'Enter appointment fee here...',
                 controller: _appointmentFeeController,
+                keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
               LabeledDropdown(
@@ -210,7 +250,7 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
                   const SizedBox(width: 16),
                   Expanded(
                     child: PrimaryCustomButton(
-                      text: 'Save',
+                      text: 'Save New', // Button text ab static 'Save New' hai
                       onPressed: () => _saveAppointment(context),
                     ),
                   ),
@@ -226,6 +266,9 @@ class _AppointmentsScreenState extends State<AddNewAppointmentsScreen> {
 
   @override
   void dispose() {
+    _appointmentDurationController.dispose();
+    _appointmentFeeController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 }

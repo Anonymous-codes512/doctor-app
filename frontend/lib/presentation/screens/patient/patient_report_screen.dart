@@ -1,47 +1,47 @@
+import 'package:dio/dio.dart';
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
+import 'package:doctor_app/core/constants/appapis/api_constants.dart';
+import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/data/models/report_model.dart';
 import 'package:doctor_app/presentation/widgets/custom_search_widget.dart';
+import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 
 class PatientReportScreen extends StatefulWidget {
-  const PatientReportScreen({Key? key}) : super(key: key);
+  final int patientId;
+  final String patientEmail;
+  final String patientName;
+
+  const PatientReportScreen({
+    super.key,
+    required this.patientId,
+    required this.patientEmail,
+    required this.patientName,
+  });
 
   @override
-  State<PatientReportScreen> createState() => _PatientReportScreenState(); // Changed state class name
+  State<PatientReportScreen> createState() => _PatientReportScreenState();
 }
 
 class _PatientReportScreenState extends State<PatientReportScreen> {
-  // Changed state class name
   final TextEditingController _searchController = TextEditingController();
 
-  // This list now represents individual reports, not "patients" with reports.
-  final List<Map<String, String>> _allReports = [
-    {
-      "name": "Medical Prescription",
-      "type": "PDF",
-      "date": "12/01/25",
-      "time": "09:00 am",
-    },
-    {
-      "name": "MRI report",
-      "type": "PDF",
-      "date": "12/01/25",
-      "time": "09:00 am",
-    },
-    {
-      "name": "Blood Test Results",
-      "type": "Image",
-      "date": "12/01/25",
-      "time": "09:00 am",
-    },
-    {"name": "X-Ray", "type": "Image", "date": "12/01/25", "time": "09:00 am"},
-    {"name": "CBP", "type": "PDF", "date": "12/01/25", "time": "09:00 am"},
-    {
-      "name": "Blood Sugar Test",
-      "type": "PDF",
-      "date": "12/01/25",
-      "time": "09:00 am",
-    },
-  ];
+  late DoctorProvider doctorProvider;
+  late List<ReportModel> reports;
+
+  @override
+  void initState() {
+    super.initState();
+    doctorProvider = Provider.of<DoctorProvider>(context, listen: false);
+    doctorProvider.fetchReports();
+    reports =
+        doctorProvider.reports
+            .where((report) => report.patientId == widget.patientId)
+            .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,10 +50,6 @@ class _PatientReportScreenState extends State<PatientReportScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: const Text(
           'Reports',
           style: TextStyle(
@@ -63,19 +59,23 @@ class _PatientReportScreenState extends State<PatientReportScreen> {
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         children: [
           SearchBarWithAddButton(
             controller: _searchController,
             onChanged: (value) {},
-            onAddPressed: () {},
+            onAddPressed: () {
+              Navigator.pushNamed(
+                context,
+                Routes.addNewReportScreen,
+                arguments: {
+                  'patientId': widget.patientId,
+                  'patientEmail': widget.patientEmail,
+                  'patientName': widget.patientName,
+                },
+              );
+            },
             onTap: () {},
           ),
           Padding(
@@ -115,7 +115,7 @@ class _PatientReportScreenState extends State<PatientReportScreen> {
           const SizedBox(height: 24),
           Expanded(
             child:
-                _allReports.isEmpty
+                reports.isEmpty
                     ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -136,7 +136,7 @@ class _PatientReportScreenState extends State<PatientReportScreen> {
                         ],
                       ),
                     )
-                    : SinglePatientReportTable(reports: _allReports),
+                    : SinglePatientReportTable(reports: reports),
           ),
         ],
       ),
@@ -150,67 +150,51 @@ class _PatientReportScreenState extends State<PatientReportScreen> {
   }
 }
 
-// Renamed and refactored PatientReportCard to SinglePatientReportTable
-// because it now displays a table of reports, not a card for a single patient.
 class SinglePatientReportTable extends StatelessWidget {
-  final List<Map<String, String>> reports; // Now expects a list of reports
+  final List<ReportModel> reports;
 
   const SinglePatientReportTable({Key? key, required this.reports})
     : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // We remove the outer Container with padding and box shadow
-    // as it's better to manage padding/margin within the ListView.builder itself,
-    // or wrap this entire table in a single container.
-    // Given the previous setup, we'll just have the Table directly.
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16.0,
-      ), // Apply padding here
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Table(
         border: TableBorder.all(color: AppColors.borderColor, width: 0.5),
         columnWidths: const {
-          0: FlexColumnWidth(3), // Report Name
-          1: FlexColumnWidth(1.5), // Type
-          2: FlexColumnWidth(2), // Date
-          3: FlexColumnWidth(2), // Time
-          4: FlexColumnWidth(1.5), // Actions
+          0: FlexColumnWidth(2),
+          1: FlexColumnWidth(2),
+          2: FlexColumnWidth(2.5),
+          3: FlexColumnWidth(2),
+          4: FlexColumnWidth(1.5),
         },
         children: [
-          // Header Row
           TableRow(
-            decoration: BoxDecoration(
-              // No top radius here if TableBorder.all is used,
-              // as the border will be drawn on all sides.
-              // If you want rounded corners for the table itself,
-              // you'd typically wrap the Table in a Container with borderRadius.
-              color: AppColors.tableColor,
-            ),
+            decoration: BoxDecoration(color: AppColors.tableColor),
             children: [
-              _buildTableCell('Report\nname', isHeader: true),
-              _buildTableCell('Type', isHeader: true),
-              _buildTableCell('Date', isHeader: true),
-              _buildTableCell('Time', isHeader: true),
-              _buildTableCell('Actions', isHeader: true),
+              _buildTableCell(text: 'Report\nname', isHeader: true),
+              _buildTableCell(text: 'Type', isHeader: true),
+              _buildTableCell(text: 'Date', isHeader: true),
+              _buildTableCell(text: 'Time', isHeader: true),
+              _buildTableCell(text: 'Visit', isHeader: true),
             ],
           ),
           // Data Rows
           ...reports.asMap().entries.map((entry) {
-            Map<String, String> report = entry.value; // Corrected type here
+            ReportModel report = entry.value;
             return TableRow(
-              // Alternating row colors could be added here if desired
-              decoration: BoxDecoration(
-                color: AppColors.tableColor, // Example alternating row color
-              ),
+              decoration: BoxDecoration(color: AppColors.tableColor),
               children: [
+                _buildTableCell(text: report.reportName),
+                _buildTableCell(text: report.reportType),
+                _buildTableCell(text: report.reportDate.split('T').first),
+                _buildTableCell(text: report.reportTime),
                 _buildTableCell(
-                  report['name']!,
-                ), // Use '!' since we know keys exist
-                _buildTableCell(report['type']!),
-                _buildTableCell(report['date']!),
-                _buildTableCell(report['time']!),
-                _buildTableCell('⋮', isAction: true),
+                  text: report.fileUrl,
+                  icon: Icons.link,
+                  isAction: true,
+                ),
               ],
             );
           }),
@@ -219,29 +203,50 @@ class SinglePatientReportTable extends StatelessWidget {
     );
   }
 
-  Widget _buildTableCell(
-    String text, {
+  Widget _buildTableCell({
+    String? text,
+    IconData? icon,
     bool isHeader = false,
     bool isAction = false,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 12,
-      ), // Adjust padding for cells
-      alignment:
-          isAction
-              ? Alignment.center
-              : Alignment.centerLeft, // Align action icon centrally
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: isHeader ? FontWeight.w600 : FontWeight.normal,
-          color: Colors.black,
-        ),
-        // No explicit TextAlign for non-action cells, let alignment handle it.
-      ),
+      padding: EdgeInsets.all(12),
+      child:
+          icon != null
+              ? IconButton(
+                icon: Icon(icon, color: AppColors.primaryColor, size: 25),
+                onPressed: () async {
+                  if (text != null && text.isNotEmpty) {
+                    final fixedFilePath = text.replaceAll(r'\', '/');
+                    final fullUrl =
+                        '${ApiConstants.imageBaseUrl}$fixedFilePath';
+                    final fileName = fullUrl.split('/').last;
+
+                    print('📂 Downloading and opening: $fullUrl');
+
+                    try {
+                      final dir = await getTemporaryDirectory();
+                      final filePath = '${dir.path}/$fileName';
+
+                      await Dio().download(fullUrl, filePath);
+
+                      final result = await OpenFilex.open(filePath);
+                      print('✅ Opened: ${result.message}');
+                    } catch (e) {
+                      print('❌ Error opening file: $e');
+                    }
+                  }
+                },
+              )
+              : Text(
+                text!,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: isHeader ? FontWeight.w600 : FontWeight.normal,
+                  color: Colors.black,
+                ),
+                textAlign: isAction ? TextAlign.center : TextAlign.left,
+              ),
     );
   }
 }

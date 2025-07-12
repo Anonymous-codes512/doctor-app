@@ -9,8 +9,17 @@ class ApiConstants {
   static const String uploadDoctorImage = '$baseUrl/upload_doctor_image';
   static const String updateDoctor = '$baseUrl/update_doctor';
 
+  static const String sendAudioFileForTranscription =
+      '$baseUrl/send_audio_file_for_transcription';
+
+  static const String saveNewTranscriptedDictation =
+      '$baseUrl/save_new_transcripted_dictation';
+
+  static const String fetchDictations = '$baseUrl/fetch_dictations';
+
   static const String uploadReportFile = '$baseUrl/upload_report_file';
   static const String createReport = '$baseUrl/create_report';
+  static const String fetchReports = '$baseUrl/fetch_reports';
 
   static const String sendResetCode = '$baseUrl/send-reset-code';
   static const String verifyResetOtp = '$baseUrl/verify-reset-otp';

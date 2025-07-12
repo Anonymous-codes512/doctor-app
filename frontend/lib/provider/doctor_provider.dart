@@ -52,6 +52,9 @@ class DoctorProvider with ChangeNotifier {
   List<InvoiceModel> _invoices = [];
   List<InvoiceModel> get invoices => _invoices;
 
+  List<ReportModel> _reports = [];
+  List<ReportModel> get reports => _reports;
+
   List<Note> _notes = []; // ✅ added
   List<Note> get notes => _notes;
 
@@ -91,6 +94,11 @@ class DoctorProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void setReports(List<ReportModel> reports) {
+    _reports = reports;
+    notifyListeners();
+  }
+
   void setTask(TaskModel task) {
     _task = task;
     notifyListeners();
@@ -111,13 +119,15 @@ class DoctorProvider with ChangeNotifier {
     return '';
   }
 
-  ImageProvider? refineImagePath(String image_url) {
-    String? fixedImagePath;
-    ImageProvider? avatarImage;
-    if (image_url.isNotEmpty) {
-      fixedImagePath = image_url.replaceAll(r'\', '/');
+  ImageProvider? refineImagePath(String? image_url) {
+    if (image_url == null || image_url.isEmpty) {
+      return null;
     }
-    if (fixedImagePath != null && fixedImagePath.isNotEmpty) {
+
+    String fixedImagePath = image_url.replaceAll(r'\', '/');
+    ImageProvider? avatarImage;
+
+    if (fixedImagePath.isNotEmpty) {
       final fullUrl =
           ApiConstants.imageBaseUrl.endsWith('/')
               ? ApiConstants.imageBaseUrl.substring(
@@ -261,6 +271,77 @@ class DoctorProvider with ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<void> fetchReports() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? userJson = prefs.getString('user');
+      if (userJson == null) return;
+      final userMap = jsonDecode(userJson);
+      final doctorId = userMap['id'];
+
+      final reports = await _service.fetchReports(doctorId);
+      if (reports != null) {
+        setReports(reports);
+      } else {
+        print("❌ No reports found for doctor ID: $doctorId");
+      }
+    } catch (e) {
+      print("❌ Error fetching reports: $e");
+    }
+  }
+
+  Future<void> addNewDictation(
+    Map<String, dynamic> dictation,
+    BuildContext context,
+  ) async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    String? userJson = pref.getString('user');
+
+    if (userJson == null) {
+      ToastHelper.showError(
+        context,
+        'User data not found. Please log in again.',
+      );
+      return;
+    }
+
+    final userMap = jsonDecode(userJson);
+    final doctorUserId = userMap['id'];
+
+    dictation['doctorUserId'] = doctorUserId;
+    try {
+      final response = await _service.saveNewTranscriptedDictation(dictation);
+      if (response['success']) {
+        ToastHelper.showSuccess(context, response['message']);
+      } else {
+        ToastHelper.showError(context, response['message']);
+      }
+    } catch (e) {
+      ToastHelper.showError(context, 'Failed to save dictation');
+      print('Error saving dictation: $e');
+    }
+    notifyListeners();
+  }
+
+  Future<List<Map<String, String>>> fetchDictations(int patientId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('user');
+      if (userJson == null) return [];
+      final userMap = jsonDecode(userJson);
+      final doctorUserId = userMap['id'];
+
+      final dictations = await _service.fetchDictations(
+        doctorUserId,
+        patientId,
+      );
+      return dictations;
+    } catch (e) {
+      print('❌ Error fetching dictations: $e');
+      return [];
     }
   }
 

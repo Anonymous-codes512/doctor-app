@@ -1,4 +1,3 @@
-import 'package:doctor_app/data/models/appointment_model.dart';
 import 'package:doctor_app/data/models/invoice_model.dart';
 import 'package:doctor_app/data/models/notes_model.dart';
 import 'package:doctor_app/data/models/patient_model.dart';
@@ -326,7 +325,19 @@ class Routes {
         return MaterialPageRoute(builder: (_) => AllPatientsReportsScreen());
 
       case addNewReportScreen:
-        return MaterialPageRoute(builder: (_) => AddNewReportScreen());
+        final Map<String, dynamic>? arguments =
+            settings.arguments as Map<String, dynamic>?;
+        final int? patientId = arguments?['patientId'] as int?;
+        final String? patientEmail = arguments?['patientEmail'] as String?;
+        final String? patientName = arguments?['patientName'] as String?;
+        return MaterialPageRoute(
+          builder:
+              (_) => AddNewReportScreen(
+                patientId: patientId,
+                patientEmail: patientEmail,
+                patientName: patientName,
+              ),
+        );
 
       case myPatientsScreen:
         return MaterialPageRoute(builder: (_) => MyPatientsScreen());
@@ -406,10 +417,18 @@ class Routes {
         );
 
       case dictationScreen:
-        return MaterialPageRoute(builder: (_) => DictationScreen());
+        int patientId = settings.arguments as int;
+        if (patientId != null) {
+          return MaterialPageRoute(
+            builder: (_) => DictationScreen(patientId: patientId),
+          );
+        }
 
       case correspondenceScreen:
-        return MaterialPageRoute(builder: (_) => CorrespondenceScreen());
+        int patientId = settings.arguments as int;
+        return MaterialPageRoute(
+          builder: (_) => CorrespondenceScreen(patientId: patientId),
+        );
 
       case newCorrespondenceScreen:
         return MaterialPageRoute(builder: (_) => NewCorrespondenceScreen());
@@ -420,16 +439,32 @@ class Routes {
           builder: (_) => AppointmentsScreen(patientId: patientId),
         );
 
-      case addNewAppointmentsScreen:
+      case Routes.addNewAppointmentsScreen:
         final args = settings.arguments;
-        if (args != null && args is AppointmentModel) {
+
+        if (args is int) {
+          final int patientId = args;
           return MaterialPageRoute(
-            builder: (_) => AddNewAppointmentsScreen(appointmentModel: args),
+            builder: (_) => AddNewAppointmentsScreen(patientId: patientId),
           );
         }
 
       case patientReportScreen:
-        return MaterialPageRoute(builder: (_) => PatientReportScreen());
+        final Map<String, dynamic>? arguments =
+            settings.arguments as Map<String, dynamic>?;
+        if (arguments != null && arguments.containsKey('patientId')) {
+          final int patientId = arguments['patientId'] as int;
+          final String patientEmail = arguments['patientEmail'] as String;
+          final String patientName = arguments['patientName'] as String;
+          return MaterialPageRoute(
+            builder:
+                (_) => PatientReportScreen(
+                  patientId: patientId,
+                  patientEmail: patientEmail,
+                  patientName: patientName,
+                ),
+          );
+        }
 
       case historyScreen:
         final args = settings.arguments;

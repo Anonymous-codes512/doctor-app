@@ -36,10 +36,7 @@ class _UpdateNoteScreen extends State<UpdateNoteScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+
         centerTitle: true,
         title: const Text(
           'Update Note',
@@ -49,12 +46,6 @@ class _UpdateNoteScreen extends State<UpdateNoteScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {

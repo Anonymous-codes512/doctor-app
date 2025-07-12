@@ -18,11 +18,14 @@ class MoodAssessmentScreen extends StatefulWidget {
 }
 
 class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  TextEditingController _medicalConditionsController = TextEditingController();
+  // _searchController ki yahan zaroorat nahi lagti, isay hata sakte hain
+  // final TextEditingController _searchController = TextEditingController();
+
+  late TextEditingController
+  _medicalConditionsController; // Late init theek hai
 
   String selectedPhysicalSymptom = 'Select Category';
-  double moodLevels = 0;
+  double moodLevels = 1.0; // Default value ko 1.0 set karein
   String? moodAffectLife;
   String? extremeEnergyPeriods;
   String? recklessSpendingFrequency;
@@ -37,11 +40,24 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
 
     final patients =
         Provider.of<PatientProvider>(context, listen: false).patients;
-    patient = patients.firstWhere((patient) => patient.id == widget.patientId);
 
-    selectedPhysicalSymptom =
-        patient.selectedPhysicalSymptom ?? 'Select Category';
-    moodLevels = patient.moodLevels ?? 1.0;
+    // Patient dhoondhne ke liye try-catch block use karein
+    try {
+      patient = patients.firstWhere((p) => p.id == widget.patientId);
+    } catch (e) {
+      selectedPhysicalSymptom =
+          patient.selectedPhysicalSymptom ?? 'Select Category';
+    }
+    double? patientMoodLevel = patient.moodLevels;
+    print('Patient mood level: $patientMoodLevel');
+    if (patientMoodLevel != null &&
+        patientMoodLevel >= 1.0 &&
+        patientMoodLevel <= 10.0) {
+      moodLevels = patientMoodLevel;
+    } else {
+      moodLevels = 1.0; // Default to 1.0 if null or out of range
+    }
+
     moodAffectLife = patient.moodAffectLife ?? '';
     extremeEnergyPeriods = patient.extremeEnergyPeriods ?? '';
     recklessSpendingFrequency = patient.recklessSpendingFrequency ?? '';
@@ -54,16 +70,20 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
   }
 
   @override
+  void dispose() {
+    _medicalConditionsController.dispose();
+    // _searchController (agar tha) ko bhi yahan dispose karte
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: AppColors.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+
         title: const Text(
           'Mood assessment form',
           style: TextStyle(
@@ -82,7 +102,8 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
             children: [
               LabeledDropdown(
                 label: 'Physical Symptoms',
-                items: [
+                items: const [
+                  // Use const for fixed lists
                   'Select Category',
                   'Fatigue',
                   'Frequent Headaches',
@@ -141,7 +162,12 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
               GenderRadioGroup(
                 label: 'How much does your mood affect daily life?',
                 groupValue: moodAffectLife,
-                options: ['Not much', 'Somewhat', 'Moderately', 'Severely'],
+                options: const [
+                  'Not much',
+                  'Somewhat',
+                  'Moderately',
+                  'Severely',
+                ], // Use const
                 onChanged: (value) => setState(() => moodAffectLife = value),
               ),
 
@@ -151,7 +177,7 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
                 label:
                     'Have you ever had periods of extreme energy with little sleep?',
                 groupValue: extremeEnergyPeriods,
-                options: ['no', 'sometimes', 'often'],
+                options: const ['no', 'sometimes', 'often'], // Use const
                 onChanged:
                     (value) => setState(() => extremeEnergyPeriods = value),
               ),
@@ -162,7 +188,7 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
                 label:
                     'Have you ever spent money recklessly or felt unusually confident?',
                 groupValue: recklessSpendingFrequency,
-                options: ['no', 'sometimes', 'often'],
+                options: const ['no', 'sometimes', 'often'], // Use const
                 onChanged:
                     (value) =>
                         setState(() => recklessSpendingFrequency = value),
@@ -175,7 +201,6 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
                     'Are you currently taking any medications that affect your mood?',
                 value: isTakingMedications,
                 onChanged: (value) {
-                  // value is now bool?
                   setState(() {
                     isTakingMedications =
                         value ?? false; // Safely handle null, default to false
@@ -188,7 +213,7 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
                 label:
                     'Have you recently used alcohol or drugs more than usual?',
                 groupValue: alcoholDrugUseFrequency,
-                options: ['no', 'sometimes', 'often'],
+                options: const ['no', 'sometimes', 'often'], // Use const
                 onChanged:
                     (value) => setState(() => alcoholDrugUseFrequency = value),
               ),
@@ -210,6 +235,21 @@ class _MoodAssessmentScreenState extends State<MoodAssessmentScreen> {
                     context,
                     listen: false,
                   );
+
+                  // Validate required fields before saving
+                  if (selectedPhysicalSymptom == 'Select Category' ||
+                      moodAffectLife == null ||
+                      extremeEnergyPeriods == null ||
+                      recklessSpendingFrequency == null ||
+                      alcoholDrugUseFrequency == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please fill all required fields.'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return; // Stop the save process
+                  }
 
                   await provider.updatePatientFields(
                     context,

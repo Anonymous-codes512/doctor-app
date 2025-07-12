@@ -6,8 +6,8 @@ class Payment(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.id'), nullable=False)
-    report_id = db.Column(db.Integer, db.ForeignKey('reports.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
+    report_id = db.Column(db.Integer, db.ForeignKey('reports.id'), nullable=True)
     amount = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(20), nullable=False)  # Paid/Unpaid
     method = db.Column(db.String(20), nullable=False)  # Cash/Card/Online

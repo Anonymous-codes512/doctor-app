@@ -1,3 +1,4 @@
+
 from flask import Flask, jsonify
 from flask_cors import CORS
 from config import Config
@@ -37,3 +38,9 @@ def create_app():
         return 'Doctor App Backend is running!'
 
     return app
+
+
+# If you suspect a heart attack, seek immediate medical attention.
+# A cardiologist is a heart specialist who can diagnose and treat heart conditions
+# including heart attacks. If you are experiencing symptoms of a heart attack, 
+# call emergency services or go to the nearest emergency room immediately. 

@@ -321,6 +321,7 @@ def upload_report_file():
 @jwt_required()
 def create_report():
     data = request.get_json()
+    print(f"Received data: {data}")
     try:
         email = data.get('patient_email')
         if not email:
@@ -334,7 +335,7 @@ def create_report():
         if not patient:
             return jsonify({'success': False, 'message': 'Patient not found'}), 404
         
-        doctor_id = data.get('doctor_id')
+        doctor_id = data.get('doctor_user_id')
         if not doctor_id:
             return jsonify({'success': False, 'message': 'Doctor ID is required'}), 400
         
@@ -359,8 +360,8 @@ def create_report():
         payment = Payment(
             patient_id=patient.id,
             amount=data['payment_amount'],
-            status=data['payment_status'],
-            method=data['payment_method'],
+            status=data['payment_status'].lower(),
+            method=data['payment_method'].lower(),
             report_id=report.id,
             doctor_id=doctor_id
         )
@@ -383,7 +384,7 @@ def create_report():
             invoice_number=new_invoice_number,
             amount_due=data['payment_amount'],
             due_date = date.today() + timedelta(days=7),
-            payment_status=data['payment_status']
+            payment_status=data['payment_status'].lower()
         )
         db.session.add(invoice)
         db.session.commit()
@@ -394,3 +395,38 @@ def create_report():
         print(f"❌ Error in creating report: {e}")
         db.session.rollback()
         return jsonify({'success': False, 'message': 'Internal Server Error'}), 500
+
+@doctor_bp.route('/fetch_reports/<int:doctor_id>', methods=['GET'])
+@jwt_required()
+def fetch_reports(doctor_id):
+    try:
+        doctor = Doctor.query.filter_by(user_id=doctor_id).first()
+        if not doctor:
+            return jsonify({'success': False, 'message': 'Doctor not found'}), 404
+        
+        reports = Report.query.filter_by(doctor_id=doctor.id).all()
+        if not reports:
+            return jsonify({'success': False, 'message': 'No reports found'}), 404
+
+        report_list = []
+        for report in reports:
+            patient = Patient.query.filter_by(id=report.patient_id).first()
+            report_data = {
+                'id': report.id,
+                'doctor_id': report.doctor_id,
+                'patient_id': report.patient_id,
+                'patient_name': patient.user.name,
+                'patient_email': patient.user.email,
+                'report_name': report.report_name,
+                'report_type': report.report_type,
+                'report_date': report.report_date,
+                'report_time': report.report_time,
+                'file_url': report.file_url
+            }
+            report_list.append(report_data)
+
+        return jsonify({'success': True, 'reports': report_list}), 200
+
+    except Exception as e:
+        print(f"❌ Error fetching reports: {e}")
+        return jsonify({'success': False, 'message': 'Internal server error'}), 500

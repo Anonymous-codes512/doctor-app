@@ -68,10 +68,6 @@ class _FamilyHistoryScreenState extends State<FamilyHistoryScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: const Text(
           'Family History',
           style: TextStyle(

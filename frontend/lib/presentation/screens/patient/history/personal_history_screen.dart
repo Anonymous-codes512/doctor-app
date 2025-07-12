@@ -57,10 +57,7 @@ class _PersonalHistoryScreenState extends State<PersonalHistoryScreen> {
       appBar: AppBar(
         backgroundColor: Colors.grey[50],
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+
         title: const Text(
           'Personal History',
           style: TextStyle(

@@ -221,10 +221,7 @@ class _PersonalStatsScreenState extends State<PersonalStatsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+
         centerTitle: true,
         title: const Text(
           'Personal Stats',
@@ -234,12 +231,6 @@ class _PersonalStatsScreenState extends State<PersonalStatsScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Padding(

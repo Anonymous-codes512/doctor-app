@@ -212,7 +212,10 @@ class _FileNameDialogState extends State<FileNameDialog> {
                 Expanded(
                   child: PrimaryCustomButton(
                     text: 'Ok',
-                    onPressed: () => () {},
+                    onPressed: () {
+                      widget.onSave(_controller.text.trim());
+                      Navigator.pop(context);
+                    },
                   ),
                 ),
               ],

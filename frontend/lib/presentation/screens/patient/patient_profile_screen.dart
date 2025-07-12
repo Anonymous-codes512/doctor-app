@@ -39,10 +39,6 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.backgroundColor,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
         centerTitle: true,
         title: const Text(
           'Patient Profile',
@@ -52,14 +48,6 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () {
-              print(widget.patient);
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -168,7 +156,11 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                     icon: Icons.mic_outlined,
                     title: 'Dictation',
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.dictationScreen);
+                      Navigator.pushNamed(
+                        context,
+                        Routes.dictationScreen,
+                        arguments: widget.patient.id,
+                      );
                     },
                   ),
                   const Divider(height: 1, indent: 56),
@@ -176,7 +168,11 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                     icon: Icons.email_outlined,
                     title: 'Correspondence',
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.correspondenceScreen);
+                      Navigator.pushNamed(
+                        context,
+                        Routes.correspondenceScreen,
+                        arguments: widget.patient.id,
+                      );
                     },
                   ),
                   const Divider(height: 1, indent: 56),
@@ -196,7 +192,15 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                     icon: Icons.description_outlined,
                     title: 'Reports',
                     onTap: () {
-                      Navigator.pushNamed(context, Routes.patientReportScreen);
+                      Navigator.pushNamed(
+                        context,
+                        Routes.patientReportScreen,
+                        arguments: {
+                          'patientId': widget.patient.id,
+                          'patientEmail': widget.patient.email,
+                          'patientName': widget.patient.fullName,
+                        },
+                      );
                     },
                   ),
                   const Divider(height: 1, indent: 56),

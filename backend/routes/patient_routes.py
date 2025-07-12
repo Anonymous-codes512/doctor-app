@@ -15,9 +15,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 @patient_bp.route('/create_patient', methods=['POST'])
 def create_patient():
     try:
-        print(f"✅ Incoming request data: {request.form}") # Added print for all form data
-        print(f"✅ Incoming request files: {request.files}") # Added print for all files
-
         image = request.files.get('image')
         image_path = None
         if image:
@@ -41,12 +38,6 @@ def create_patient():
         pulse = request.form.get('pulse')
         doctor_user_id = request.form.get('doctorUserId') # This should be a string at this point
         password = f'{full_name} 1234' # Consider a more secure password generation in production
-
-        print(f"Received form values:") # Added print
-        print(f"  fullName: {full_name}")
-        print(f"  email: {email}")
-        print(f"  contact: {contact}")
-        print(f"  doctorUserId: {doctor_user_id} (Type: {type(doctor_user_id)})") # Added type check
 
         if not full_name or not email or not contact or not doctor_user_id:
             missing_fields = []

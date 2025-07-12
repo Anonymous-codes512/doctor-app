@@ -199,6 +199,90 @@ class DoctorService {
     }
   }
 
+  Future<List<ReportModel>> fetchReports(int doctorId) async {
+    try {
+      final token = await getToken();
+      final response = await http.get(
+        Uri.parse('${ApiConstants.fetchReports}/$doctorId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['success']) {
+          final List data = body['reports'];
+          return data.map((e) => ReportModel.fromJson(e)).toList();
+        } else {
+          print('❌ Error fetching reports: ${body['message']}');
+          return [];
+        }
+      } else {
+        print('❌ Error fetching reports: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('❌ Error fetching reports: $e');
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> saveNewTranscriptedDictation(
+    Map<String, dynamic> dictation,
+  ) async {
+    try {
+      final token = await getToken();
+      final response = await http.post(
+        Uri.parse(ApiConstants.saveNewTranscriptedDictation),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(dictation),
+      );
+
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {
+          'success': true,
+          'message': body['message'] ?? 'Dictation saved successfully',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': body['message'] ?? 'Failed to save dictation',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'UnExpected Error, Try Again'};
+    }
+  }
+
+  Future<List<Map<String, String>>> fetchDictations(
+    doctorUserId,
+    patientId,
+  ) async {
+    try {
+      final token = await getToken();
+      final response = await http.get(
+        Uri.parse('${ApiConstants.fetchDictations}/$doctorUserId/$patientId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return List<Map<String, String>>.from(
+          body['dictations'].map((e) => Map<String, String>.from(e)),
+        );
+      }
+    } catch (e) {
+      return [
+        {'error': 'Unexpected Error Occur'},
+      ];
+    }
+    return [
+      {'error': 'No dictations found'},
+    ];
+  }
+
   Future<Map<String, dynamic>> createAppointment(
     AppointmentModel appointment,
   ) async {

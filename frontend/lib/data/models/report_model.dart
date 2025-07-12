@@ -9,9 +9,9 @@ class ReportModel {
   final String reportDate;
   final String reportTime;
   final String fileUrl;
-  final double paymentAmount;
-  final String paymentStatus;
-  final String paymentMethod;
+  final double? paymentAmount;
+  final String? paymentStatus;
+  final String? paymentMethod;
 
   ReportModel({
     this.id,
@@ -24,9 +24,9 @@ class ReportModel {
     required this.reportDate,
     required this.reportTime,
     required this.fileUrl,
-    required this.paymentAmount,
-    required this.paymentStatus,
-    required this.paymentMethod,
+    this.paymentAmount,
+    this.paymentStatus,
+    this.paymentMethod,
   });
 
   factory ReportModel.fromJson(Map<String, dynamic> json) {
@@ -41,7 +41,10 @@ class ReportModel {
       reportDate: json['report_date'],
       reportTime: json['report_time'],
       fileUrl: json['file_url'],
-      paymentAmount: double.parse(json['payment_amount'].toString()),
+      paymentAmount:
+          json['payment_amount'] != null
+              ? double.tryParse(json['payment_amount'].toString())
+              : null,
       paymentStatus: json['payment_status'],
       paymentMethod: json['payment_method'],
     );

@@ -62,8 +62,10 @@ class _DoctorProfileState extends State<DoctorProfile> {
     _doctorProvider = Provider.of<DoctorProvider>(context, listen: false);
     doctor = _doctorProvider.doctor;
     profileImage =
-        _doctorProvider.refineImagePath(doctor.imagePath!) ??
-        AssetImage(ImagePath.profileAvatar);
+        profileImage =
+            _doctorProvider.refineImagePath(doctor.imagePath) ??
+            AssetImage(ImagePath.profileAvatar);
+
     doctorName = _doctorProvider.getInitials(doctor.fullName!);
 
     // Initialize controllers with doctor data
@@ -158,7 +160,7 @@ class _DoctorProfileState extends State<DoctorProfile> {
         builder: (context, doctorProvider, _) {
           doctor = doctorProvider.doctor;
           profileImage =
-              doctorProvider.refineImagePath(doctor.imagePath!) ??
+              doctorProvider.refineImagePath(doctor.imagePath) ??
               AssetImage(ImagePath.profileAvatar);
           doctorName = doctorProvider.getInitials(doctor.fullName!);
 
@@ -187,25 +189,6 @@ class _DoctorProfileState extends State<DoctorProfile> {
                                         : profileImage,
                                 backgroundColor: AppColors.primaryColor
                                     .withOpacity(0.3),
-                                child:
-                                    _selectedImage == null &&
-                                            (profileImage == null ||
-                                                (profileImage is AssetImage &&
-                                                    (profileImage as AssetImage)
-                                                            .assetName ==
-                                                        ImagePath
-                                                            .profileAvatar))
-                                        ? Text(
-                                          doctorProvider.getInitials(
-                                            doctorName!,
-                                          ),
-                                          style: const TextStyle(
-                                            fontSize: 40,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.primaryColor,
-                                          ),
-                                        )
-                                        : null,
                               ),
                             ),
                           ),

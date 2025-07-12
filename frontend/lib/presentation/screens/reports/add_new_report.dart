@@ -11,7 +11,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class AddNewReportScreen extends StatefulWidget {
-  const AddNewReportScreen({super.key});
+  final int? patientId;
+  final String? patientName;
+  final String? patientEmail;
+
+  AddNewReportScreen({
+    super.key,
+    this.patientId,
+    this.patientName,
+    this.patientEmail,
+  });
 
   @override
   State<AddNewReportScreen> createState() => _AddNewReportScreenState();
@@ -20,8 +29,8 @@ class AddNewReportScreen extends StatefulWidget {
 class _AddNewReportScreenState extends State<AddNewReportScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController patientNameCtrl = TextEditingController();
-  final TextEditingController patientEmailCtrl = TextEditingController();
+  TextEditingController patientNameCtrl = TextEditingController();
+  TextEditingController patientEmailCtrl = TextEditingController();
   final TextEditingController reportNameCtrl = TextEditingController();
   final TextEditingController paymentAmountCtrl = TextEditingController();
 
@@ -34,10 +43,18 @@ class _AddNewReportScreenState extends State<AddNewReportScreen> {
   final List<String> paymentStatusList = ['Paid', 'Unpaid'];
   final List<String> paymentMethodList = ['Cash', 'Card', 'Online'];
 
+  @override
+  void initState() {
+    super.initState();
+    patientEmailCtrl.text = widget.patientEmail ?? '';
+    patientNameCtrl.text = widget.patientName ?? '';
+
+    print('${widget.patientId} ${widget.patientName} ${widget.patientEmail}');
+  }
+
   void pickFile() async {
     FilePickerResult? result;
 
-    // Pick files based on selected type
     if (selectedType == 'PDF') {
       result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -61,6 +78,7 @@ class _AddNewReportScreenState extends State<AddNewReportScreen> {
   void submitReport() {
     if (_formKey.currentState!.validate() && selectedFile != null) {
       final reportModel = ReportModel(
+        patientId: widget.patientId,
         patientName: patientNameCtrl.text.trim(),
         patientEmail: patientEmailCtrl.text.trim(),
         reportName: reportNameCtrl.text.trim(),

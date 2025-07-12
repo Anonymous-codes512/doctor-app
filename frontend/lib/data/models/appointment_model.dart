@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppointmentModel {
+  int? id;
   int? doctorId;
   int? patientId;
   String patientEmail;
@@ -15,6 +16,7 @@ class AppointmentModel {
   TimeOfDay appointmentTime;
 
   AppointmentModel({
+    this.id,
     this.doctorId,
     this.patientId,
     required this.patientEmail,
@@ -31,6 +33,7 @@ class AppointmentModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'doctor_id': doctorId,
       'patient_id': patientId,
       'patient_email': patientEmail,
@@ -50,6 +53,7 @@ class AppointmentModel {
   factory AppointmentModel.fromJson(Map<String, dynamic> json) {
     final timeParts = (json['appointment_time'] as String).split(':');
     return AppointmentModel(
+      id: json['id'],
       doctorId: json['doctor_id'],
       patientId: json['patient_id'],
       patientEmail: json['patient_email'],

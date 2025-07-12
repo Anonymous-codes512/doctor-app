@@ -230,10 +230,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: const Text(
           'Appointments',
           style: TextStyle(
@@ -243,34 +239,19 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         children: [
           SearchBarWithAddButton(
             controller: _searchController,
             onChanged: _filterAppointments,
+            // onAddPressed callback mein
             onAddPressed: () {
-              if (_allAppointments.isNotEmpty) {
-                final latestAppointment = _allAppointments.last;
-
-                Navigator.pushNamed(
-                  context,
-                  Routes.addNewAppointmentsScreen,
-                  arguments: latestAppointment,
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('No previous appointment found'),
-                  ),
-                );
-              }
+              Navigator.pushNamed(
+                context,
+                Routes.addNewAppointmentsScreen,
+                arguments: widget.patientId,
+              );
             },
           ),
           Padding(

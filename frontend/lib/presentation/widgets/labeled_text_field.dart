@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class LabeledTextField extends StatelessWidget {
-  final String label;
+  final String? label;
   final String hintText;
   final TextEditingController controller;
   final bool obscureText;
@@ -12,7 +12,7 @@ class LabeledTextField extends StatelessWidget {
   final bool? readOnly;
   const LabeledTextField({
     Key? key,
-    required this.label,
+    this.label,
     required this.hintText,
     required this.controller,
     this.obscureText = false,
@@ -28,10 +28,11 @@ class LabeledTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-        ),
+        if (label != null)
+          Text(
+            label!,
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+          ),
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,

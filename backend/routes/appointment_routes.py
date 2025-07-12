@@ -1,5 +1,6 @@
 from flask import request, jsonify, Blueprint
 from datetime import datetime
+from models.payment import Payment
 from models import Appointment, Patient, User, Doctor, Invoice
 from extensions import db
 from sqlalchemy.exc import IntegrityError
@@ -10,10 +11,11 @@ appointment_bp = Blueprint('appointment', __name__, url_prefix='/api')
 @appointment_bp.route('/create_appointment', methods=['POST'])
 def createAppointment():
     data = request.get_json()
-
+    print(data)
     required_fields = ['doctor_id', 'patient_name', 'patient_email', 'appointment_date', 'appointment_time', 'mode', 'reason', 'fee', 'payment_mode', 'duration']
     missing_fields = [f for f in required_fields if f not in data]
     if missing_fields:
+        print(f"Missing fields: {missing_fields}")
         return jsonify({'success': False, 'message': f'Missing required fields: {", ".join(missing_fields)}'}), 400
 
     try:
@@ -23,16 +25,19 @@ def createAppointment():
         if fee < 0:
             raise ValueError()
     except ValueError:
+        print("Invalid date, time, or fee format")
         return jsonify({'success': False, 'message': 'Invalid date, time, or fee format'}), 400
 
     patient_name = data['patient_name'].strip()
     patient_email = data['patient_email'].strip().lower()
 
     if not patient_name or not patient_email:
+        print("Patient name and email cannot be empty")
         return jsonify({'success': False, 'message': 'Patient name and email cannot be empty'}), 400
 
     doctor = Doctor.query.filter_by(user_id=data['doctor_id']).first()
     if not doctor:
+        print(f"Doctor with user ID {data['doctor_id']} not found")
         return jsonify({'success': False, 'message': f'Doctor with user ID {data["doctor_id"]} not found'}), 400
 
     # Check if user (patient) exists
@@ -68,6 +73,7 @@ def createAppointment():
         payment_mode = get_enum_value(PaymentMode, data['payment_mode'])
         reason = get_enum_value(AppointmentReason, data['reason'])
     except ValueError as e:
+        print(f"Invalid enum value: {e}")
         return jsonify({'success': False, 'message': str(e)}), 400
 
     try:
@@ -88,6 +94,17 @@ def createAppointment():
         db.session.add(appointment)
         db.session.flush()
 
+    # 2️⃣ Create Payment
+        payment = Payment(
+            patient_id=patient.id,
+            amount=fee,
+            status='pending',
+            method=payment_mode,
+            doctor_id=doctor.id,
+        )
+        db.session.add(payment)
+        db.session.commit()
+
         # Fetch last global invoice and generate next invoice number
         last_invoice = Invoice.query.order_by(Invoice.id.desc()).first()
         if last_invoice and last_invoice.invoice_number.startswith("INV-"):
@@ -98,7 +115,9 @@ def createAppointment():
 
         # Create invoice
         invoice = Invoice(
+            doctor_id=doctor.id,
             patient_id=patient.id,
+            payment_id=payment.id,
             invoice_number=new_invoice_number,
             amount_due=fee,
             due_date=appointment_date,
@@ -116,6 +135,7 @@ def createAppointment():
 
     except IntegrityError as e:
         db.session.rollback()
+        print(f"Database integrity error: {e}")
         return jsonify({'success': False, 'message': 'Database integrity error', 'error': str(e)}), 400
 
     except Exception as e:

@@ -36,4 +36,5 @@ class Doctor(db.Model):
     reports = db.relationship('Report', back_populates='doctor', cascade="all, delete-orphan")
     payments = db.relationship('Payment', back_populates='doctor', cascade="all, delete-orphan")
     invoices = db.relationship('Invoice', back_populates='doctor', cascade="all, delete-orphan")
+    dictations = db.relationship('Dictation', back_populates='doctor', cascade="all, delete-orphan")
 
