@@ -1,4 +1,6 @@
 # Python virtual environment
-venv/
+backend/venv/
+
+# Exclude common large binary files
 *.dll
 *.lib
