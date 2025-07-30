@@ -1,5 +1,5 @@
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/pulse%20tracker/pulse_empty_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/pulse%20tracker/pulse_history_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/pulse%20tracker/pulse_empty_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/pulse%20tracker/pulse_history_screen.dart';
 import 'package:flutter/material.dart';
 
 class PulseTrackerScreen extends StatelessWidget {

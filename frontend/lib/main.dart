@@ -80,9 +80,7 @@
 
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/data/services/socket_service.dart';
-import 'package:doctor_app/presentation/screens/voice/incoming_call_screen.dart';
 import 'package:doctor_app/provider/auth_provider.dart';
-import 'package:doctor_app/provider/call_provider.dart';
 import 'package:doctor_app/provider/chat_provider.dart';
 import 'package:doctor_app/provider/doctor_provider.dart';
 import 'package:doctor_app/provider/patient_provider.dart';
@@ -100,18 +98,15 @@ void main() async {
     await prefs.setBool('isFirstTime', false);
   }
 
-  // Login status check karein
   final token = prefs.getString('token');
   final loginTime = prefs.getInt('loginTime');
   bool isLoggedIn = false;
 
   if (token != null && loginTime != null) {
     final now = DateTime.now().millisecondsSinceEpoch;
-    // Token ki validity 12 ghante (12 * 60 * 60 * 1000 milliseconds)
     isLoggedIn = now - loginTime < 12 * 60 * 60 * 1000;
   }
 
-  // Initial route decide karein
   String initialRoute;
   if (isFirstLaunch) {
     initialRoute = Routes.onboarding;
@@ -124,7 +119,6 @@ void main() async {
   runApp(MyApp(initialRoute: initialRoute));
 }
 
-// MyApp ab StatefulWidget hai takay NavigatorState aur CallProvider Listener ko manage kar sake
 class MyApp extends StatefulWidget {
   final String initialRoute;
 
@@ -135,86 +129,54 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // GlobalKey for NavigatorState takay kisi bhi context se routes push kar sakein
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
-  bool _isNavigatingToCallScreen = false;
-  late VoidCallback _callProviderListener; // Listener function ko store karein
+  // String? _userId;
+  // String? _userName;
 
-  @override
-  void initState() {
-    super.initState();
-    // Listener function ko define karein
-    _callProviderListener = () {
-      // Pehle check karein ke NavigatorState aur widget mounted hain
-      if (_navigatorKey.currentState == null || !mounted) {
-        print(
-          "💡 NavigatorState ya MyApp unmounted hai. Call event process nahi ho sakta.",
-        );
-        return;
-      }
+  // final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
-      // CallProvider ko Navigator's context se access karein
-      final callProvider = Provider.of<CallProvider>(
-        _navigatorKey.currentContext!,
-        listen: false,
-      );
+  // ✅ ZegoCloud AppID aur AppSign
+  // Inhe apne ZegoCloud console se confirm kar len
+  // static const int appId = 10560672;
+  // static const String appSign =
+  //     "cd989de409cca06a3f06af0cd61efad746db9d1a5b1b9099f13b99684821ccc0";
 
-      if (callProvider.incomingCallData != null && !_isNavigatingToCallScreen) {
-        print(
-          "💡 Incoming call detected in _MyAppState: ${callProvider.incomingCallData}",
-        );
-        _isNavigatingToCallScreen = true;
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _initZego();
+  // }
 
-        // IncomingCallScreen par navigate karein using GlobalKey
-        _navigatorKey.currentState!
-            .push(
-              MaterialPageRoute(
-                builder:
-                    (context) => IncomingCallScreen(
-                      callData:
-                          callProvider.incomingCallData!, // Incoming call data
-                    ),
-              ),
-            )
-            .then((_) {
-              // Jab IncomingCallScreen pop ho jaye, toh flag reset kar dein
-              if (mounted) {
-                // Ensure widget is still mounted before updating state
-                _isNavigatingToCallScreen = false;
-              }
-            });
-      }
-    };
+  // Future<void> _initZego() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final userString = prefs.getString('user');
+  //   if (userString == null) {
+  //     debugPrint("❌ User data not found in SharedPreferences.");
+  //     return;
+  //   }
 
-    // Providers initialize hone ke baad listener set up karein
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && _navigatorKey.currentContext != null) {
-        _setupCallListener();
-      }
-    });
-  }
+  //   final user = jsonDecode(userString);
+  //   _userId = user['id']?.toString();
+  //   _userName = user['name'];
 
-  void _setupCallListener() {
-    // listen: false ka istemal karein takay listener CallProvider ki state changes par dubara run na ho
-    final callProvider = Provider.of<CallProvider>(
-      _navigatorKey.currentContext!,
-      listen: false,
-    );
-    callProvider.addListener(_callProviderListener);
-  }
+  //   if (_userId == null || _userName == null) {
+  //     debugPrint("❌ User ID or UserName is null after parsing.");
+  //     return;
+  //   }
 
-  @override
-  void dispose() {
-    // Listener ko remove karein jab widget dispose ho jaye
-    if (_navigatorKey.currentContext != null) {
-      final callProvider = Provider.of<CallProvider>(
-        _navigatorKey.currentContext!,
-        listen: false,
-      );
-      callProvider.removeListener(_callProviderListener);
-    }
-    super.dispose();
-  }
+  //   // ✅ NOTE: setNavigatorKey ko init se pehle call karein
+  //   ZegoUIKitPrebuiltCallInvitationService().setNavigatorKey(_navigatorKey);
+
+  //   // ✅ init invitation service
+  //   ZegoUIKitPrebuiltCallInvitationService().init(
+  //     appID: appId,
+  //     appSign: appSign,
+  //     userID: _userId!,
+  //     userName: _userName!,
+  //     plugins: [ZegoUIKitSignalingPlugin()],
+  //   );
+
+  //   debugPrint("✅ Zego initialized with $_userId / $_userName");
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -225,22 +187,18 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (_) => DoctorProvider()),
         ChangeNotifierProvider(create: (_) => PatientProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
-        ChangeNotifierProvider(
-          create: (context) {
-            final callProvider = CallProvider();
-            callProvider
-                .init(); // CallProvider ka init() method yahan call kiya jayega
-            return callProvider;
-          },
-        ),
+        // CallProvider ko bhi yahan provide karein agar ye app-wide use hota hai
+        // Agar AllVoiceCallScreen mein Provider.of<CallProvider> use ho raha hai
+        // aur CallProviderMyApp ke scope mein initialize nahi hai, to yahan add karein:
+        // ChangeNotifierProviPr(create: (_) => CallProvider()),
       ],
       child: MaterialApp(
-        navigatorKey: _navigatorKey, // Navigator key ko set karein
         debugShowCheckedModeBanner: false,
         title: 'Doctor App',
         theme: ThemeData(useMaterial3: true, fontFamily: 'Outfit'),
-        initialRoute: widget.initialRoute, // Initial route yahan set karein
+        initialRoute: widget.initialRoute,
         onGenerateRoute: Routes.generateRoute,
+        // navigatorKey: _navigatorKey, // ✅ NavigatorKey ko set karna zaroori hai
       ),
     );
   }

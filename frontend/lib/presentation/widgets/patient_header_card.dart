@@ -1,21 +1,27 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/constants/appapis/api_constants.dart';
+import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/provider/patient_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class PatientHeaderCard extends StatelessWidget {
   final String name;
   final String age;
+  final int? patientId;
   final String condition;
   final String? phone;
   final String? imagePath;
-
+  final bool? isFavourite;
   const PatientHeaderCard({
     Key? key,
     required this.name,
     required this.age,
+    this.patientId,
     required this.condition,
     this.phone,
     this.imagePath,
+    this.isFavourite = false,
   }) : super(key: key);
 
   @override
@@ -140,13 +146,40 @@ class PatientHeaderCard extends StatelessWidget {
           Row(
             children: [
               IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.star, color: Colors.white, size: 20),
+                onPressed: () async {
+                  final provider = Provider.of<PatientProvider>(
+                    context,
+                    listen: false,
+                  );
+
+                  // Toggle favourite status
+                  final newStatus = !(isFavourite ?? false);
+
+                  await provider.updateFavouriteStatus(
+                    context,
+                    patientId!,
+                    newStatus,
+                  );
+                },
+                icon: Icon(
+                  Icons.star,
+                  color:
+                      (isFavourite ?? false)
+                          ? AppColors.warningColor
+                          : Colors.white,
+                  size: 20,
+                ),
               ),
 
               const SizedBox(width: 8),
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    Routes.editPatientProfileScreen,
+                    arguments: patientId,
+                  );
+                },
                 icon: Icon(Icons.edit, color: Colors.white, size: 20),
               ),
             ],

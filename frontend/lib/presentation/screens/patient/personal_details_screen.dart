@@ -1,7 +1,12 @@
+// Updated PersonalDetailsScreen (Editable with Dropdowns)
+import 'package:doctor_app/provider/patient_provider.dart';
+import 'package:flutter/material.dart';
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/labeled_text_field.dart';
-import 'package:flutter/material.dart';
+import 'package:doctor_app/presentation/widgets/labeled_dropdown.dart';
+import 'package:doctor_app/presentation/widgets/primary_custom_button.dart';
+import 'package:provider/provider.dart';
 
 class PersonalDetailsScreen extends StatefulWidget {
   final Patient patientData;
@@ -25,15 +30,9 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   late TextEditingController _allergiesController;
   late TextEditingController _dobController;
   late TextEditingController _gpDetailsController;
-  late TextEditingController _preferredLanguageController;
   late TextEditingController _kinRelationController;
   late TextEditingController _kinFullNameController;
   late TextEditingController _kinContactController;
-  late TextEditingController _physicalDisabilitySpecifyController;
-  late TextEditingController _wheelchairSpecifyController;
-  late TextEditingController _communicationSpecifyController;
-  late TextEditingController _hearingSpecifyController;
-  late TextEditingController _visualSpecifyController;
   late TextEditingController _environmentalFactorsController;
   late TextEditingController _otherAccessibilityController;
   late TextEditingController _insuranceProviderController;
@@ -42,16 +41,27 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
   late TextEditingController _linkedHospitalsController;
   late TextEditingController _additionalHealthBenefitsController;
 
-  late String _genderBornWith;
-  late String _genderIdentifiedWith;
+  String? _genderBornWith;
+  String? _genderIdentifiedWith;
+  String? _preferredLanguage;
+  String? _hasPhysicalDisability;
+  String? _requiresWheelchair;
+  String? _needsCommunication;
+  String? _hasHearing;
+  String? _hasVisual;
+  String? _hasInsurance;
+
+  final genderOptions = ['male', 'female', 'other'];
+  final languageOptions = ['English', 'Urdu', 'Punjabi', 'Other'];
+  final yesNoOptions = ['Yes', 'No'];
 
   num _calculateAge(dynamic dob) {
     if (dob is String) {
       final DateTime? parsedDob = DateTime.tryParse(dob);
-      if (parsedDob == null) return 0; // Handle invalid date string
+      if (parsedDob == null) return 0;
       dob = parsedDob;
     }
-    if (dob is! DateTime) return 0; // Ensure dob is DateTime
+    if (dob is! DateTime) return 0;
 
     final today = DateTime.now();
     num age = today.year - dob.year;
@@ -67,18 +77,14 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     super.initState();
     final nameParts = widget.patientData.fullName.trim().split(' ');
     _firstNameController = TextEditingController(
-      text: nameParts.isNotEmpty ? nameParts[0] : 'Not set yet',
+      text: nameParts.isNotEmpty ? nameParts[0] : '',
     );
     _middleNameController = TextEditingController(
-      text: nameParts.length >= 2 ? nameParts[1] : 'Not set yet',
+      text: nameParts.length >= 2 ? nameParts[1] : '',
     );
     _lastNameController = TextEditingController(
-      text:
-          nameParts.length >= 3
-              ? nameParts.sublist(2).join(' ')
-              : 'Not set yet',
+      text: nameParts.length >= 3 ? nameParts.sublist(2).join(' ') : '',
     );
-
     _emailController = TextEditingController(text: widget.patientData.email);
     _contactNumberController = TextEditingController(
       text: widget.patientData.contact,
@@ -87,114 +93,76 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
       text: widget.patientData.address,
     );
     _weightController = TextEditingController(
-      text: widget.patientData.weight?.toString() ?? 'Not set yet',
+      text: widget.patientData.weight?.toString() ?? '',
     );
     _heightController = TextEditingController(
-      text: widget.patientData.height?.toString() ?? 'Not set yet',
+      text: widget.patientData.height?.toString() ?? '',
     );
     _bpController = TextEditingController(
-      text: widget.patientData.bloodPressure ?? 'Not set yet',
+      text: widget.patientData.bloodPressure ?? '',
     );
     _pulseController = TextEditingController(
-      text: widget.patientData.pulse ?? 'Not set yet',
+      text: widget.patientData.pulse ?? '',
     );
     _allergiesController = TextEditingController(
-      text: widget.patientData.allergies ?? 'Not set yet',
+      text: widget.patientData.allergies ?? '',
     );
     _dobController = TextEditingController(
       text:
           widget.patientData.dateOfBirth != null
               ? '${_calculateAge(widget.patientData.dateOfBirth)} Years'
-              : 'Not set yet',
+              : '',
     );
 
-    _genderBornWith = widget.patientData.genderBornWith ?? 'Not set yet';
-    _genderIdentifiedWith =
-        widget.patientData.genderIdentifiedWith ?? 'Not set yet';
+    _genderBornWith = widget.patientData.genderBornWith;
+    _genderIdentifiedWith = widget.patientData.genderIdentifiedWith;
+    _preferredLanguage = widget.patientData.preferredLanguage;
 
     _gpDetailsController = TextEditingController(
-      text: widget.patientData.gpDetails ?? 'Not set yet',
-    );
-    _preferredLanguageController = TextEditingController(
-      text: widget.patientData.preferredLanguage ?? 'Not set yet',
+      text: widget.patientData.gpDetails ?? '',
     );
     _kinRelationController = TextEditingController(
-      text: widget.patientData.kinRelation ?? 'Not set yet',
+      text: widget.patientData.kinRelation ?? '',
     );
     _kinFullNameController = TextEditingController(
-      text: widget.patientData.kinFullName ?? 'Not set yet',
+      text: widget.patientData.kinFullName ?? '',
     );
     _kinContactController = TextEditingController(
-      text: widget.patientData.kinContactNumber ?? 'Not set yet',
+      text: widget.patientData.kinContactNumber ?? '',
     );
 
-    _physicalDisabilitySpecifyController = TextEditingController(
-      text:
-          widget.patientData.hasPhysicalDisabilities == true
-              ? (widget.patientData.physicalDisabilitySpecify ??
-                  'Not specified')
-              : 'N/A',
-    );
-    _wheelchairSpecifyController = TextEditingController(
-      text:
-          widget.patientData.requiresWheelchairAccess == true
-              ? (widget.patientData.wheelchairSpecify ?? 'Not specified')
-              : 'N/A',
-    );
-    _communicationSpecifyController = TextEditingController(
-      text:
-          widget.patientData.needsSpecialCommunication == true
-              ? (widget.patientData.communicationSpecify ?? 'Not specified')
-              : 'N/A',
-    );
-    _hearingSpecifyController = TextEditingController(
-      text:
-          widget.patientData.hasHearingImpairments == true
-              ? (widget.patientData.hearingSpecify ?? 'Not specified')
-              : 'N/A',
-    );
-    _visualSpecifyController = TextEditingController(
-      text:
-          widget.patientData.hasVisualImpairments == true
-              ? (widget.patientData.visualSpecify ?? 'Not specified')
-              : 'N/A',
-    );
+    _hasPhysicalDisability =
+        widget.patientData.hasPhysicalDisabilities == true ? 'Yes' : 'No';
+    _requiresWheelchair =
+        widget.patientData.requiresWheelchairAccess == true ? 'Yes' : 'No';
+    _needsCommunication =
+        widget.patientData.needsSpecialCommunication == true ? 'Yes' : 'No';
+    _hasHearing =
+        widget.patientData.hasHearingImpairments == true ? 'Yes' : 'No';
+    _hasVisual = widget.patientData.hasVisualImpairments == true ? 'Yes' : 'No';
+    _hasInsurance =
+        widget.patientData.hasHealthInsurance == true ? 'Yes' : 'No';
+
     _environmentalFactorsController = TextEditingController(
-      text: widget.patientData.environmentalFactors ?? 'Not set yet',
+      text: widget.patientData.environmentalFactors ?? '',
     );
     _otherAccessibilityController = TextEditingController(
-      text: widget.patientData.otherAccessibilityNeeds ?? 'Not set yet',
+      text: widget.patientData.otherAccessibilityNeeds ?? '',
     );
-
     _insuranceProviderController = TextEditingController(
-      text:
-          widget.patientData.hasHealthInsurance == true
-              ? (widget.patientData.insuranceProvider ?? 'Not set yet')
-              : 'N/A',
+      text: widget.patientData.insuranceProvider ?? '',
     );
     _policyNumberController = TextEditingController(
-      text:
-          widget.patientData.hasHealthInsurance == true
-              ? (widget.patientData.policyNumber ?? 'Not set yet')
-              : 'N/A',
+      text: widget.patientData.policyNumber ?? '',
     );
     _insuranceClaimContactController = TextEditingController(
-      text:
-          widget.patientData.hasHealthInsurance == true
-              ? (widget.patientData.insuranceClaimContact ?? 'Not set yet')
-              : 'N/A',
+      text: widget.patientData.insuranceClaimContact ?? '',
     );
     _linkedHospitalsController = TextEditingController(
-      text:
-          widget.patientData.hasHealthInsurance == true
-              ? (widget.patientData.linkedHospitals ?? 'Not set yet')
-              : 'N/A',
+      text: widget.patientData.linkedHospitals ?? '',
     );
     _additionalHealthBenefitsController = TextEditingController(
-      text:
-          widget.patientData.hasHealthInsurance == true
-              ? (widget.patientData.additionalHealthBenefits ?? 'Not set yet')
-              : 'N/A',
+      text: widget.patientData.additionalHealthBenefits ?? '',
     );
   }
 
@@ -220,36 +188,43 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Basic Information Section
             _buildField('First Name', _firstNameController),
             _buildField('Middle Name', _middleNameController),
             _buildField('Last Name', _lastNameController),
-            _buildField('Date of Birth', _dobController),
-            _buildField(
-              'Gender (Born With)',
-              TextEditingController(text: _genderBornWith),
+            _buildField('Date of Birth', _dobController, readOnly: true),
+
+            LabeledDropdown(
+              label: 'Gender (Born With)',
+              hintText: 'Select Gender',
+              selectedValue: _genderBornWith,
+              items: genderOptions,
+              onChanged: (val) => setState(() => _genderBornWith = val),
             ),
-            _buildField(
-              'Gender (Identified With)',
-              TextEditingController(text: _genderIdentifiedWith),
+            LabeledDropdown(
+              label: 'Gender (Identified With)',
+              hintText: 'Select Gender',
+              selectedValue: _genderIdentifiedWith,
+              items: genderOptions,
+              onChanged: (val) => setState(() => _genderIdentifiedWith = val),
             ),
+
             _buildField('Email', _emailController),
             _buildField('Contact Number', _contactNumberController),
             _buildField('Address', _addressController, maxLines: 3),
             _buildField('GP Details', _gpDetailsController, maxLines: 3),
-            _buildField('Preferred Language', _preferredLanguageController),
-            _buildField(
-              'Emergency Contact (Next of Kin) - Relation',
-              _kinRelationController,
+
+            LabeledDropdown(
+              label: 'Preferred Language',
+              hintText: 'Select Language',
+              selectedValue: _preferredLanguage,
+              items: languageOptions,
+              onChanged: (val) => setState(() => _preferredLanguage = val),
             ),
-            _buildField(
-              'Emergency Contact (Next of Kin) - Full Name',
-              _kinFullNameController,
-            ),
-            _buildField(
-              'Emergency Contact (Next of Kin) - Contact Number',
-              _kinContactController,
-            ),
+            const SizedBox(height: 16),
+            _buildField('Next of Kin - Relation', _kinRelationController),
+            _buildField('Next of Kin - Full Name', _kinFullNameController),
+            _buildField('Next of Kin - Contact Number', _kinContactController),
+
             _buildField('Weight', _weightController),
             _buildField('Height', _heightController),
             _buildField('Blood Pressure', _bpController),
@@ -257,102 +232,47 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
             _buildField('Allergies', _allergiesController),
 
             const SizedBox(height: 24),
-            const Divider(), // Separator
+            const Divider(),
             const SizedBox(height: 24),
 
-            // Accessibility Requirements Section
             const Text(
               'Accessibility Requirements',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-            _buildField(
-              'Physical Disabilities or Mobility Challenges?',
-              TextEditingController(
-                text:
-                    widget.patientData.hasPhysicalDisabilities == true
-                        ? 'Yes'
-                        : 'No',
-              ),
+            LabeledDropdown(
+              label: 'Physical Disabilities?',
+              selectedValue: _hasPhysicalDisability,
+              items: yesNoOptions,
+              onChanged: (val) => setState(() => _hasPhysicalDisability = val),
             ),
-            if (widget.patientData.hasPhysicalDisabilities == true)
-              _buildField(
-                'If yes, specify',
-                _physicalDisabilitySpecifyController,
-                maxLines: 2,
-              ),
-
-            _buildField(
-              'Requires Wheelchair Access?',
-              TextEditingController(
-                text:
-                    widget.patientData.requiresWheelchairAccess == true
-                        ? 'Yes'
-                        : 'No',
-              ),
+            LabeledDropdown(
+              label: 'Requires Wheelchair Access?',
+              selectedValue: _requiresWheelchair,
+              items: yesNoOptions,
+              onChanged: (val) => setState(() => _requiresWheelchair = val),
             ),
-            if (widget.patientData.requiresWheelchairAccess == true)
-              _buildField(
-                'If yes, specify',
-                _wheelchairSpecifyController,
-                maxLines: 2,
-              ),
-
-            _buildField(
-              'Needs Special Communication Assistance?',
-              TextEditingController(
-                text:
-                    widget.patientData.needsSpecialCommunication == true
-                        ? 'Yes'
-                        : 'No',
-              ),
+            LabeledDropdown(
+              label: 'Needs Special Communication?',
+              selectedValue: _needsCommunication,
+              items: yesNoOptions,
+              onChanged: (val) => setState(() => _needsCommunication = val),
             ),
-            if (widget.patientData.needsSpecialCommunication == true)
-              _buildField(
-                'If yes, specify',
-                _communicationSpecifyController,
-                maxLines: 2,
-              ),
-
-            _buildField(
-              'Has Hearing Impairments?',
-              TextEditingController(
-                text:
-                    widget.patientData.hasHearingImpairments == true
-                        ? 'Yes'
-                        : 'No',
-              ),
+            LabeledDropdown(
+              label: 'Hearing Impairment?',
+              selectedValue: _hasHearing,
+              items: yesNoOptions,
+              onChanged: (val) => setState(() => _hasHearing = val),
             ),
-            if (widget.patientData.hasHearingImpairments == true)
-              _buildField(
-                'If yes, specify',
-                _hearingSpecifyController,
-                maxLines: 2,
-              ),
-
-            _buildField(
-              'Has Visual Impairments?',
-              TextEditingController(
-                text:
-                    widget.patientData.hasVisualImpairments == true
-                        ? 'Yes'
-                        : 'No',
-              ),
+            LabeledDropdown(
+              label: 'Visual Impairment?',
+              selectedValue: _hasVisual,
+              items: yesNoOptions,
+              onChanged: (val) => setState(() => _hasVisual = val),
             ),
-            if (widget.patientData.hasVisualImpairments == true)
-              _buildField(
-                'If yes, specify',
-                _visualSpecifyController,
-                maxLines: 2,
-              ),
-
             _buildField(
-              'Environmental Factors Affecting Health',
+              'Environmental Factors',
               _environmentalFactorsController,
               maxLines: 3,
             ),
@@ -363,44 +283,33 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
             ),
 
             const SizedBox(height: 24),
-            const Divider(), // Separator
+            const Divider(),
             const SizedBox(height: 24),
 
-            // Insurance Details Section
             const Text(
               'Insurance Details',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
-              ),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
-            _buildField(
-              'Has Health Insurance?',
-              TextEditingController(
-                text:
-                    widget.patientData.hasHealthInsurance == true
-                        ? 'Yes'
-                        : 'No',
-              ),
+            LabeledDropdown(
+              label: 'Has Health Insurance?',
+              selectedValue: _hasInsurance,
+              items: yesNoOptions,
+              onChanged: (val) => setState(() => _hasInsurance = val),
             ),
-            if (widget.patientData.hasHealthInsurance == true) ...[
-              _buildField(
-                'Insurance Provider Name',
-                _insuranceProviderController,
-              ),
+
+            if (_hasInsurance == 'Yes') ...[
+              _buildField('Insurance Provider', _insuranceProviderController),
               _buildField('Policy Number', _policyNumberController),
               _buildField(
                 'Insurance Claim Contact',
                 _insuranceClaimContactController,
-                maxLines: 2,
               ),
               _buildField(
-                'Linked Hospitals/Clinics',
+                'Linked Hospitals',
                 _linkedHospitalsController,
-                maxLines: 3,
+                maxLines: 2,
               ),
               _buildField(
                 'Additional Health Benefits',
@@ -409,6 +318,59 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
               ),
             ],
 
+            const SizedBox(height: 16),
+            PrimaryCustomButton(
+              text: 'Update',
+              onPressed: () async {
+                final provider = Provider.of<PatientProvider>(
+                  context,
+                  listen: false,
+                );
+
+                await provider.updatePatientFields(
+                  context,
+                  patientId: widget.patientData.id!,
+                  updatedFields: {
+                    'contact': _contactNumberController.text.trim(),
+                    'address': _addressController.text.trim(),
+                    'weight': _weightController.text.trim(),
+                    'height': _heightController.text.trim(),
+                    'blood_pressure': _bpController.text.trim(),
+                    'pulse': _pulseController.text.trim(),
+                    'allergies': _allergiesController.text.trim(),
+                    'gender_born_with': _genderBornWith,
+                    'gender_identified_with': _genderIdentifiedWith,
+                    'preferred_language': _preferredLanguage,
+                    'gp_details': _gpDetailsController.text.trim(),
+                    'kin_relation': _kinRelationController.text.trim(),
+                    'kin_full_name': _kinFullNameController.text.trim(),
+                    'kin_contact_number': _kinContactController.text.trim(),
+                    'has_physical_disabilities':
+                        _hasPhysicalDisability == 'Yes',
+                    'requires_wheelchair_access': _requiresWheelchair == 'Yes',
+                    'needs_special_communication': _needsCommunication == 'Yes',
+                    'has_hearing_impairments': _hasHearing == 'Yes',
+                    'has_visual_impairments': _hasVisual == 'Yes',
+                    'environmental_factors':
+                        _environmentalFactorsController.text.trim(),
+                    'other_accessibility_needs':
+                        _otherAccessibilityController.text.trim(),
+                    'has_health_insurance': _hasInsurance == 'Yes',
+                    if (_hasInsurance == 'Yes') ...{
+                      'insurance_provider':
+                          _insuranceProviderController.text.trim(),
+                      'policy_number': _policyNumberController.text.trim(),
+                      'insurance_claim_contact':
+                          _insuranceClaimContactController.text.trim(),
+                      'linked_hospitals':
+                          _linkedHospitalsController.text.trim(),
+                      'additional_health_benefits':
+                          _additionalHealthBenefitsController.text.trim(),
+                    },
+                  },
+                );
+              },
+            ),
             const SizedBox(height: 32),
           ],
         ),
@@ -420,16 +382,15 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     String label,
     TextEditingController controller, {
     int maxLines = 1,
+    bool readOnly = false,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: LabeledTextField(
         label: label,
         controller: controller,
-        readOnly: true,
+        readOnly: readOnly,
         maxline: maxLines,
-        // The hintText here will only show if the controller's text is empty.
-        // Given that we are populating with 'Not set yet', this might not be needed.
         hintText: '',
       ),
     );
@@ -450,15 +411,9 @@ class _PersonalDetailsScreenState extends State<PersonalDetailsScreen> {
     _allergiesController.dispose();
     _dobController.dispose();
     _gpDetailsController.dispose();
-    _preferredLanguageController.dispose();
     _kinRelationController.dispose();
     _kinFullNameController.dispose();
     _kinContactController.dispose();
-    _physicalDisabilitySpecifyController.dispose();
-    _wheelchairSpecifyController.dispose();
-    _communicationSpecifyController.dispose();
-    _hearingSpecifyController.dispose();
-    _visualSpecifyController.dispose();
     _environmentalFactorsController.dispose();
     _otherAccessibilityController.dispose();
     _insuranceProviderController.dispose();

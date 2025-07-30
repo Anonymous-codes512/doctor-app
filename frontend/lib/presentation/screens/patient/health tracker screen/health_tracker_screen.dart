@@ -1,127 +1,48 @@
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:doctor_app/core/assets/images/images_paths.dart';
 import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/health_tiles.dart';
-import 'package:doctor_app/presentation/widgets/outlined_custom_button.dart'; // import here
+import 'package:doctor_app/presentation/widgets/outlined_custom_button.dart';
+import 'package:doctor_app/provider/patient_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
-class HealthTrackerScreen extends StatelessWidget {
-  const HealthTrackerScreen({Key? key}) : super(key: key);
+class HealthTrackerScreen extends StatefulWidget {
+  final int patientId;
+  const HealthTrackerScreen({super.key, required this.patientId});
+
+  @override
+  State<HealthTrackerScreen> createState() => _HealthTrackerScreenState();
+}
+
+class _HealthTrackerScreenState extends State<HealthTrackerScreen> {
+  late List<Patient> _patient;
+  late PatientProvider _patientProvider;
+
+  List<Map<String, String>> sampleRecords = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _patientProvider = Provider.of<PatientProvider>(context, listen: false);
+    _patient = _patientProvider.patients;
+    _patientProvider.fetchHealthRecords(widget.patientId);
+  }
 
   @override
   Widget build(BuildContext context) {
-    // ignore: unused_local_variable
-    final List<Map<String, String>> emptyRecords = [];
-    final List<Map<String, String>> sampleRecords = [
-      {
-        'status': 'Normal',
-        'date': '12/03/2025',
-        'time': '12:00pm',
-        'systolic': '120',
-        'diastolic': '80',
-        'color': 'green',
-      },
-      {
-        'status': 'Hypertension Stage 1',
-        'date': '13/03/2025',
-        'time': '10:30am',
-        'systolic': '140',
-        'diastolic': '90',
-        'color': 'orange',
-      },
-      {
-        'status': 'Normal',
-        'date': '12/03/2025',
-        'time': '12:00pm',
-        'systolic': '120',
-        'diastolic': '80',
-        'color': 'green',
-      },
-      {
-        'status': 'Hypertension Stage 1',
-        'date': '13/03/2025',
-        'time': '10:30am',
-        'systolic': '140',
-        'diastolic': '90',
-        'color': 'orange',
-      },
-      {
-        'status': 'Normal',
-        'date': '12/03/2025',
-        'time': '12:00pm',
-        'systolic': '120',
-        'diastolic': '80',
-        'color': 'green',
-      },
-      {
-        'status': 'Hypertension Stage 1',
-        'date': '13/03/2025',
-        'time': '10:30am',
-        'systolic': '140',
-        'diastolic': '90',
-        'color': 'orange',
-      },
-      {
-        'status': 'Normal',
-        'date': '12/03/2025',
-        'time': '12:00pm',
-        'systolic': '120',
-        'diastolic': '80',
-        'color': 'green',
-      },
-      {
-        'status': 'Hypertension Stage 1',
-        'date': '13/03/2025',
-        'time': '10:30am',
-        'systolic': '140',
-        'diastolic': '90',
-        'color': 'orange',
-      },
-      {
-        'status': 'Normal',
-        'date': '12/03/2025',
-        'time': '12:00pm',
-        'systolic': '120',
-        'diastolic': '80',
-        'color': 'green',
-      },
-      {
-        'status': 'Hypertension Stage 1',
-        'date': '13/03/2025',
-        'time': '10:30am',
-        'systolic': '140',
-        'diastolic': '90',
-        'color': 'orange',
-      },
-    ];
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: AppColors.backgroundColor,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.black,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
         title: Text(
           'Health Tracker',
           style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 18),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.menu_rounded, color: Colors.black),
-            onPressed: () {
-              // Menu action here
-            },
-          ),
-        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),

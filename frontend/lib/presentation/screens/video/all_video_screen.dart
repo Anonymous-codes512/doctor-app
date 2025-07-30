@@ -1,11 +1,16 @@
+import 'dart:convert';
 import 'package:doctor_app/core/assets/colors/app_colors.dart';
-import 'package:doctor_app/presentation/screens/voice/voice_detail_screen.dart';
+import 'package:doctor_app/core/constants/approutes/approutes.dart';
+import 'package:doctor_app/data/services/socket_service.dart';
 import 'package:doctor_app/presentation/widgets/custom_search_widget.dart';
 import 'package:doctor_app/presentation/widgets/custom_tabs_widget.dart';
 import 'package:doctor_app/presentation/widgets/empty_state_widget.dart';
 import 'package:doctor_app/presentation/widgets/search_screen_widget.dart';
 import 'package:doctor_app/presentation/widgets/voice_call_item.dart';
+import 'package:doctor_app/provider/call_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AllVideoCallScreen extends StatefulWidget {
   const AllVideoCallScreen({super.key});
@@ -21,16 +26,73 @@ class _AllVideoCallScreenState extends State<AllVideoCallScreen> {
   int selectedIndex = 0;
   late PageController _pageController;
 
+  CallProvider? _callProvider;
+  int? userId; // Current user's ID
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _callProvider = Provider.of<CallProvider>(context, listen: false);
+    _initializeAsyncStuff();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _callProvider?.loadCallHistory();
+    });
   }
+
+  Future<void> _initializeAsyncStuff() async {
+    userId = await _getUserId();
+    if (userId == null) {
+      debugPrint('❌ User ID not found in SharedPreferences');
+      return;
+    }
+  }
+
+  Future<int?> _getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final user = prefs.getString('user');
+    if (user != null) {
+      return jsonDecode(user)['id'];
+    }
+    return null;
+  }
+
+  // Future<void> _onCallIconTap(Map<String, dynamic> call) async {
+  //   final peerUserId = call['user_id']?.toString(); // Ensure it's a string
+  //   final peerUserName =
+  //       call['name'] as String?; // Ensure it's a string or null
+
+  //   if (peerUserId == null || peerUserName == null) {
+  //     debugPrint('❌ Peer user ID or name is null for call: $call');
+  //     return;
+  //   }
+
+  //   // ✅ ZegoCallUser ko positional arguments ke saath create karein
+  //   final ZegoCallUser invitee = ZegoCallUser(
+  //     peerUserId, // ✅ Pehla positional argument: userID
+  //     peerUserName, // ✅ Dusra positional argument: userName
+  //   );
+
+  //   // Call ID unique hona chahiye
+  //   final String callID =
+  //       'call_${DateTime.now().millisecondsSinceEpoch}_$peerUserId';
+
+  //   await ZegoUIKitPrebuiltCallInvitationService().controller.sendCallInvitation(
+  //     callID: callID,
+  //     invitees: [invitee], // Invitees list mein peer user ko add karein
+  //     isVideoCall: false, // Voice call ke liye false
+  //     resourceID:
+  //         "doctor_app_call_resource", // Yeh aapka unique Zego resource ID hoga
+  //     // production mein dynamic set karein ya unique naam dein.
+  //   );
+  //   debugPrint("✅ Call invitation sent to: $peerUserName ($peerUserId)");
+  // }
 
   @override
   void dispose() {
     mySearchController.dispose();
     _pageController.dispose();
+    SocketService().disconnectSocket();
     super.dispose();
   }
 
@@ -53,98 +115,9 @@ class _AllVideoCallScreenState extends State<AllVideoCallScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final voiceCallsPerTab = [
-      // Tab 1
-      [
-        VoiceCallItem(
-          userName: "Darlene Steward",
-          callTime: "July 08, 06:30 PM",
-          callType: "Incoming",
-          avatarUrl: "https://i.pravatar.cc/150?img=1",
-          isOnline: true,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => VoiceCallDetailScreen(user: {}),
-              ),
-            );
-          },
-        ),
-        VoiceCallItem(
-          userName: "John Doe",
-          callTime: "July 07, 04:15 PM",
-          callType: "Outgoing",
-          avatarUrl: "https://i.pravatar.cc/150?img=2",
-          isOnline: false,
-          onTap: () {},
-        ),
-        VoiceCallItem(
-          userName: "Mary Smith",
-          callTime: "July 06, 01:45 PM",
-          callType: "Missed",
-          avatarUrl: "https://i.pravatar.cc/150?img=3",
-          isOnline: true,
-          onTap: () {},
-        ),
-      ],
-      // Tab 2
-      [
-        VoiceCallItem(
-          userName: "Alice Johnson",
-          callTime: "July 05, 10:14 AM",
-          callType: "Outgoing",
-          avatarUrl: "https://i.pravatar.cc/150?img=4",
-          isOnline: true,
-          onTap: () {},
-        ),
-        VoiceCallItem(
-          userName: "Bob Martin",
-          callTime: "July 04, 09:45 AM",
-          callType: "Incoming",
-          avatarUrl: "https://i.pravatar.cc/150?img=5",
-          isOnline: false,
-          onTap: () {},
-        ),
-        VoiceCallItem(
-          userName: "Cindy White",
-          callTime: "July 03, 08:30 AM",
-          callType: "Missed",
-          avatarUrl: "https://i.pravatar.cc/150?img=6",
-          isOnline: true,
-          onTap: () {},
-        ),
-      ],
-      // Tab 3
-      [
-        VoiceCallItem(
-          userName: "Flutter Devs",
-          callTime: "July 02, 07:00 PM",
-          callType: "Incoming",
-          avatarUrl: "https://i.pravatar.cc/150?img=7",
-          isOnline: false,
-          onTap: () {},
-        ),
-        VoiceCallItem(
-          userName: "Project Team",
-          callTime: "July 01, 06:15 PM",
-          callType: "Outgoing",
-          avatarUrl: "https://i.pravatar.cc/150?img=8",
-          isOnline: false,
-          onTap: () {},
-        ),
-        VoiceCallItem(
-          userName: "Book Club",
-          callTime: "June 30, 05:45 PM",
-          callType: "Missed",
-          avatarUrl: "https://i.pravatar.cc/150?img=9",
-          isOnline: false,
-          onTap: () {},
-        ),
-      ],
-      // Tab 4 (empty)
-      [],
-    ];
+    final callProvider = Provider.of<CallProvider>(context);
+    final callConversations = callProvider.callHistory;
+    final isLoading = callProvider.isLoading;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
@@ -152,7 +125,7 @@ class _AllVideoCallScreenState extends State<AllVideoCallScreen> {
         backgroundColor: AppColors.backgroundColor,
         centerTitle: true,
         title: Text(
-          "Video Calls",
+          "Voice Calls",
           style: TextStyle(
             color: AppColors.textColor,
             fontWeight: FontWeight.bold,
@@ -161,25 +134,55 @@ class _AllVideoCallScreenState extends State<AllVideoCallScreen> {
         actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.menu))],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigator.push(
-          // context,
-          // MaterialPageRoute(builder: (context) => const CallScreen(user: {})),
-          // );
+        onPressed: () async {
+          final users = await callProvider.fetchUsersForNewCall();
+          Navigator.pushNamed(context, Routes.callListScreen, arguments: users);
         },
+        heroTag: 'addCallButton',
         shape: const CircleBorder(),
         backgroundColor: AppColors.primaryColor,
         child: const Icon(Icons.add_call, color: AppColors.backgroundColor),
       ),
-
       body: Column(
         children: [
           SearchBarWithAddButton(
             controller: mySearchController,
-            onAddPressed: () => print('Add button pressed'),
-            onChanged: (value) => print('Search text: $value'),
+            onAddPressed: () async {
+              // final users = await callProvider.fetchUsersForNewCall();
+              // if (users.isNotEmpty) {
+              //   final Map<String, dynamic> firstUser = users[0];
+              //   final String? peerUserId = firstUser['id']?.toString();
+              //   final String? peerUserName = firstUser['name'];
+
+              //   if (peerUserId != null && peerUserName != null) {
+              //     final ZegoCallUser invitee = ZegoCallUser(
+              //       peerUserId, // ✅ Pehla positional argument: userID
+              //       peerUserName, // ✅ Dusra positional argument: userName
+              //     );
+              //     final String callID =
+              //         'call_${DateTime.now().millisecondsSinceEpoch}_$peerUserId';
+
+              //     await ZegoUIKitPrebuiltCallInvitationService().controller
+              //         .sendCallInvitation(
+              //           callID: callID,
+              //           invitees: [invitee],
+              //           isVideoCall: false,
+              //           resourceID: "doctor_app_call_resource",
+              //         );
+              //     debugPrint(
+              //       "✅ Invitation sent from Add Button to: $peerUserName ($peerUserId)",
+              //     );
+              //   } else {
+              //     debugPrint(
+              //       "❌ First user's ID or Name is null from fetchUsersForNewCall.",
+              //     );
+              //   }
+              // } else {
+              //   debugPrint("❌ No users found for new call.");
+              // }
+            },
+            onChanged: (value) => debugPrint('Search text: $value'),
             onTap: () {
-              // Jab user search bar pe click kare, tab ye chalega
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const SearchScreen()),
@@ -195,24 +198,32 @@ class _AllVideoCallScreenState extends State<AllVideoCallScreen> {
             },
           ),
           Expanded(
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: tabTitles.length,
-              onPageChanged: onPageChanged,
-              itemBuilder: (context, index) {
-                final chats = voiceCallsPerTab[index];
-                if (chats.isEmpty) {
-                  return const EmptyState(text: 'You have no messages yet');
-                }
-                return ListView.builder(
-                  itemCount: chats.length,
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemBuilder: (context, chatIndex) {
-                    return chats[chatIndex];
-                  },
-                );
-              },
-            ),
+            child:
+                isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : callConversations.isEmpty
+                    ? const EmptyState(text: 'You have no voice calls yet')
+                    : ListView.builder(
+                      itemCount: callConversations.length,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      itemBuilder: (context, index) {
+                        final call = callConversations[index];
+                        return VoiceCallItem(
+                          userName: call['name'] ?? '',
+                          callTime: call['last_time'] ?? '',
+                          callType: call['call_type'] ?? '',
+                          avatarUrl: call['avatar'] ?? '',
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              Routes.voiceCallDetailScreen,
+                              arguments: call,
+                            );
+                          },
+                          onpPhoneTap: () {},
+                        );
+                      },
+                    ),
           ),
         ],
       ),

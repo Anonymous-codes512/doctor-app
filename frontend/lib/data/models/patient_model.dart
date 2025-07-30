@@ -12,6 +12,8 @@ class Patient {
   String? genderBornWith;
   String? genderIdentifiedWith;
 
+  bool? isFavourite;
+
   String? weight;
   String? height;
   String? bloodPressure;
@@ -188,6 +190,7 @@ class Patient {
     this.contact,
     this.address,
     this.dateOfBirth,
+    this.isFavourite,
     this.genderBornWith,
     this.genderIdentifiedWith,
     this.weight,
@@ -358,6 +361,7 @@ class Patient {
       contact: json['contact'],
       address: json['address'],
       dateOfBirth: json['dateOfBirth'],
+      isFavourite: json['isFavourite'],
       genderBornWith: json['genderBornWith'],
       genderIdentifiedWith: json['genderIdentifiedWith'],
       weight: json['weight'],
@@ -548,6 +552,7 @@ class Patient {
       'contact': contact,
       'address': address,
       'dateOfBirth': dateOfBirth,
+      'isFavourite': isFavourite,
       'genderBornWith': genderBornWith,
       'genderIdentifiedWith': genderIdentifiedWith,
       'weight': weight,

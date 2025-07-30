@@ -30,6 +30,8 @@ class Patient(db.Model):
     blood_pressure = db.Column(db.String(200), nullable=True)
     pulse = db.Column(db.String(200), nullable=True)
 
+    is_favourite = db.Column(db.Boolean, default=False)
+    
     image_path = db.Column(db.String(200), nullable=True)
 
     gender_born_with = db.Column(Gender, nullable=True)

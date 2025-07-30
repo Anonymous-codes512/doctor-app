@@ -96,11 +96,7 @@ class _AppDrawerState extends State<AppDrawer> {
                 Navigator.pushNamed(context, Routes.updateDoctorProfile);
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.person_add),
-              title: const Text('Invite colleagues'),
-              onTap: () {},
-            ),
+
             ListTile(
               leading: const Icon(Icons.privacy_tip),
               title: const Text('Privacy policy'),

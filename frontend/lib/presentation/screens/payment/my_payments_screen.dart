@@ -1,4 +1,3 @@
-import 'package:doctor_app/core/assets/colors/app_colors.dart';
 import 'package:flutter/material.dart';
 
 enum SortOption {
@@ -144,225 +143,82 @@ class _MyPaymentsScreenState extends State<MyPaymentsScreen> {
     }
   }
 
-  // Removes an item from search history
-  void _removeSearchHistoryItem(String item) {
-    setState(() {
-      searchHistory.remove(item);
-    });
-  }
-
-  // Calculate totals for summary
   int get totalPayments => filteredPayments.length;
   double get totalAmount =>
       filteredPayments.fold(0.0, (sum, payment) => sum + payment['amount']);
   double get outstandingAmount => 750.00; // Fixed value as shown in design
 
   // Show bottom sheet for filter options
-  void _showFilterBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Sort By',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildFilterOption('Alphabetically', SortOption.alphabetically),
-              _buildFilterOption('Date (newest)', SortOption.dateNewest),
-              _buildFilterOption('Date (oldest)', SortOption.dateOldest),
-              _buildFilterOption(
-                'Amount (high to low)',
-                SortOption.amountHighToLow,
-              ),
-              _buildFilterOption(
-                'Amount (low to high)',
-                SortOption.amountLowToHigh,
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  // void _showFilterBottomSheet() {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     backgroundColor: Colors.white,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  //     ),
+  //     builder: (BuildContext context) {
+  //       return Container(
+  //         padding: const EdgeInsets.all(20),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Row(
+  //               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //               children: [
+  //                 const Text(
+  //                   'Sort By',
+  //                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //                 ),
+  //                 IconButton(
+  //                   onPressed: () => Navigator.pop(context),
+  //                   icon: const Icon(Icons.close),
+  //                 ),
+  //               ],
+  //             ),
+  //             const SizedBox(height: 16),
+  //             _buildFilterOption('Alphabetically', SortOption.alphabetically),
+  //             _buildFilterOption('Date (newest)', SortOption.dateNewest),
+  //             _buildFilterOption('Date (oldest)', SortOption.dateOldest),
+  //             _buildFilterOption(
+  //               'Amount (high to low)',
+  //               SortOption.amountHighToLow,
+  //             ),
+  //             _buildFilterOption(
+  //               'Amount (low to high)',
+  //               SortOption.amountLowToHigh,
+  //             ),
+  //             const SizedBox(height: 20),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
-  Widget _buildFilterOption(String title, SortOption option) {
-    return ListTile(
-      title: Text(title),
-      trailing:
-          currentSort == option
-              ? const Icon(Icons.check, color: Colors.blue)
-              : null,
-      onTap: () {
-        setState(() {
-          currentSort = option;
-        });
-        Navigator.pop(context);
-      },
-    );
-  }
+  // Widget _buildFilterOption(String title, SortOption option) {
+  //   return ListTile(
+  //     title: Text(title),
+  //     trailing:
+  //         currentSort == option
+  //             ? const Icon(Icons.check, color: Colors.blue)
+  //             : null,
+  //     onTap: () {
+  //       setState(() {
+  //         currentSort = option;
+  //       });
+  //       Navigator.pop(context);
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
-    if (isSearchMode) {
-      return _buildSearchScreen();
-    } else {
-      return _buildMainScreen();
-    }
-  }
-
-  Widget _buildSearchScreen() {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppColors.backgroundColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            setState(() {
-              isSearchMode = false;
-              searchQuery = ''; // Clear search query when exiting search mode
-            });
-          },
-        ),
-        title: const Text(
-          'My Payments',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.black),
-            onPressed: () {
-              setState(() {
-                isSearchMode = false;
-                searchQuery = ''; // Clear search query when exiting search mode
-              });
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: 'Search',
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: BorderSide(color: Colors.grey[300]!),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                  borderSide: const BorderSide(color: Colors.blue),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  searchQuery = value;
-                });
-              },
-              onSubmitted: (value) {
-                if (value.isNotEmpty && !searchHistory.contains(value)) {
-                  setState(() {
-                    searchHistory.insert(0, value); // Add to history
-                  });
-                }
-              },
-            ),
-          ),
-          if (searchQuery.isEmpty)
-            Expanded(
-              child: ListView.builder(
-                itemCount: searchHistory.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: const Icon(Icons.search, color: Colors.grey),
-                    title: Text(searchHistory[index]),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.grey),
-                      onPressed:
-                          () => _removeSearchHistoryItem(searchHistory[index]),
-                    ),
-                    onTap: () {
-                      setState(() {
-                        searchQuery = searchHistory[index];
-                      });
-                    },
-                  );
-                },
-              ),
-            )
-          else
-            Expanded(
-              child: Container(
-                color: Colors.white,
-                child:
-                    filteredPayments.isEmpty
-                        ? const Center(
-                          child: Text(
-                            'No payments found',
-                            style: TextStyle(color: Colors.grey, fontSize: 16),
-                          ),
-                        )
-                        : ListView.builder(
-                          itemCount: filteredPayments.length,
-                          itemBuilder: (context, index) {
-                            return _buildPaymentItem(filteredPayments[index]);
-                          },
-                        ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMainScreen() {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {},
-        ),
         centerTitle: true,
         title: const Text(
           'My Payments',
@@ -372,67 +228,9 @@ class _MyPaymentsScreenState extends State<MyPaymentsScreen> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.menu, color: Colors.black),
-          ),
-        ],
       ),
       body: Column(
         children: [
-          // Search and Filter Section
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isSearchMode = true;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[300]!),
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.search, color: Colors.grey),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Search',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.filter_alt, color: Colors.white),
-                    onPressed: _showFilterBottomSheet,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           // Table Header
           Container(
             color: const Color(0xFFF8F9FA),

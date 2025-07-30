@@ -3,7 +3,9 @@ import 'package:doctor_app/core/constants/approutes/approutes.dart';
 import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/presentation/widgets/menu_list_item.dart';
 import 'package:doctor_app/presentation/widgets/patient_header_card.dart';
+import 'package:doctor_app/provider/patient_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class PatientProfileScreen extends StatefulWidget {
   final Patient patient;
@@ -53,16 +55,28 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
         child: Column(
           children: [
             const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: PatientHeaderCard(
-                name: widget.patient.fullName,
-                age: '${_calculateAge(widget.patient.dateOfBirth)} Years',
-                condition: widget.patient.allergies ?? 'Allergic',
-                phone: widget.patient.contact,
-                imagePath: widget.patient.imagePath,
-              ),
+            Consumer<PatientProvider>(
+              builder: (context, provider, _) {
+                final updatedPatient = provider.patients.firstWhere(
+                  (p) => p.id == widget.patient.id,
+                  orElse: () => widget.patient,
+                );
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: PatientHeaderCard(
+                    patientId: updatedPatient.id!,
+                    name: updatedPatient.fullName,
+                    age: '${_calculateAge(updatedPatient.dateOfBirth)} Years',
+                    condition: updatedPatient.allergies ?? 'Allergic',
+                    phone: updatedPatient.contact,
+                    imagePath: updatedPatient.imagePath,
+                    isFavourite: updatedPatient.isFavourite,
+                  ),
+                );
+              },
             ),
+
             const SizedBox(height: 16),
             // Action Buttons Row
             Row(
@@ -217,14 +231,20 @@ class _PatientProfileScreenState extends State<PatientProfileScreen> {
                   ),
                   const Divider(height: 1, indent: 56),
                   MenuListItem(
-                    icon: Icons.schedule_outlined,
-                    title: 'Pre-Appointment Info',
-                    onTap: () {},
+                    icon: Icons.monitor_heart_outlined,
+                    title: 'Health Tracker',
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        Routes.healthTrackerScreen,
+                        arguments: widget.patient.id,
+                      );
+                    },
                   ),
                   const Divider(height: 1, indent: 56),
                   MenuListItem(
-                    icon: Icons.monitor_heart_outlined,
-                    title: 'Health Tracker',
+                    icon: Icons.schedule_outlined,
+                    title: 'Pre-Appointment Info',
                     onTap: () {},
                   ),
                   const Divider(height: 1, indent: 56),

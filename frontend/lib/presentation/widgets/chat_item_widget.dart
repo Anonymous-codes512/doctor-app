@@ -20,14 +20,14 @@ class ChatItem extends StatelessWidget {
     this.onTap,
   }) : super(key: key);
 
-  String _getInitials(String name) {
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    } else if (parts.isNotEmpty) {
-      return parts[0][0].toUpperCase();
-    }
-    return '';
+  String _getInitials(String? name) {
+    final trimmed = name?.trim();
+    if (trimmed == null || trimmed.isEmpty) return '?';
+    final parts = trimmed.split(' ');
+    final first = parts[0].isNotEmpty ? parts[0][0] : '';
+    final second = parts.length > 1 && parts[1].isNotEmpty ? parts[1][0] : '';
+    final initials = (first + second).toUpperCase();
+    return initials.isEmpty ? '?' : initials;
   }
 
   @override

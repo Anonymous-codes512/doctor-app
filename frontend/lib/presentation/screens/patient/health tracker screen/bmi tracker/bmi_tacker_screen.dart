@@ -1,5 +1,5 @@
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/bmi%20tracker/bmi_empty_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/bmi%20tracker/bmi_history_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/bmi%20tracker/bmi_empty_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/bmi%20tracker/bmi_history_screen.dart';
 
 import 'package:flutter/material.dart';
 

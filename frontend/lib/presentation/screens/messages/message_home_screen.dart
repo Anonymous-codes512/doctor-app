@@ -130,7 +130,7 @@ class _MessageHomeScreenState extends State<MessageHomeScreen> {
           ),
           const SizedBox(height: 10),
           CustomTabs(
-            tabs: ["All chats", "Favorites", "Groups", "Former"],
+            tabs: [],
             selectedIndex: selectedIndex,
             onTabSelected: onTabTapped,
           ),

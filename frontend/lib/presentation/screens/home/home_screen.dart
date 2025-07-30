@@ -313,11 +313,11 @@ class _HomeScreenState extends State<HomeScreen> {
         'route': '/all_video_screen',
       },
       {'icon': Icons.payment, 'label': 'Payments', 'route': '/payments_screen'},
-      {
-        'icon': Icons.health_and_safety,
-        'label': 'Health Tracker',
-        'route': '/health_tracker_start_screen',
-      },
+      // {
+      //   'icon': Icons.health_and_safety,
+      //   'label': 'Health Tracker',
+      //   'route': '/health_tracker_screen',
+      // },
       {'icon': Icons.add, 'label': 'Add New', 'route': '/add_patient_screen'},
     ];
 

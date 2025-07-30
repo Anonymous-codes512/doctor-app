@@ -1,6 +1,8 @@
 import os
 from flask import request, jsonify, Blueprint
+from flask_jwt_extended import jwt_required
 from werkzeug.utils import secure_filename
+from models.health_tracker import HealthTracker
 from extensions import db
 from models import User , Patient, Doctor , Note
 from utils.enum import Gender
@@ -146,10 +148,11 @@ def fetch_patients(user_id):
                 'fullName': user.name if user else None,
                 'email': user.email if user else None,
                 'contact': patient.user.phone_number,
+                'isFavourite': patient.is_favourite,
                 'address': patient.address,
                 'dateOfBirth': patient.date_of_birth.isoformat() if patient.date_of_birth else None,
-                'genderBornWith': patient.gender_born_with.name if patient.gender_born_with else None,
-                'genderIdentifiedWith': patient.gender_identified_with.name if patient.gender_identified_with else None,
+                'genderBornWith': patient.gender_born_with if patient.gender_born_with else None,
+                'genderIdentifiedWith': patient.gender_identified_with if patient.gender_identified_with else None,
                 'weight': patient.weight,
                 'height': patient.height,
                 'bloodPressure': patient.blood_pressure,
@@ -339,3 +342,71 @@ def update_patient_history(patient_id):
         print(f"❌ Exception in updating patient history: {e}")
         db.session.rollback()
         return jsonify({'success': False, 'message': f'Update failed: {str(e)}'}), 500
+
+@patient_bp.route('/fetch_health_records/<int:user_id>/<int:patient_id>', methods=['GET'])
+@jwt_required()
+def fetchHealthRecord(user_id, patient_id):
+    try:
+        doctor = Doctor.query.filter_by(user_id=user_id).first()
+        if not doctor:
+            return jsonify({"message": "Doctor not found or unauthorized access"}), 403
+
+        patient = Patient.query.get(patient_id)
+        if not patient:
+            return jsonify({"message": "Patient not found"}), 404
+
+        health_records = HealthTracker.query.filter_by(
+            patient_id=patient_id,
+            doctor_id=doctor.id
+        ).order_by(HealthTracker.created_at.desc()).all()
+
+        if not health_records:
+            return jsonify({"message": "No health records found for this patient by this doctor"}), 404
+
+        results = []
+        for record in health_records:
+            results.append({
+                "id": record.id,
+                "patient_id": record.patient_id,
+                "doctor_id": record.doctor_id,
+                "weight": float(record.weight) if record.weight else None,
+                "height": float(record.height) if record.height else None,
+                "BMI": float(record.BMI) if record.BMI else None,
+                "blood_pressure": record.blood_pressure,
+                "pulse_rate": record.pulse_rate,
+                "steps_count": record.steps_count,
+                "calories_burned": record.calories_burned,
+                "created_at": record.created_at.isoformat() if record.created_at else None,
+                "updated_at": record.updated_at.isoformat() if record.updated_at else None,
+            })
+        
+        return jsonify(results), 200
+
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return jsonify({"message": "An internal server error occurred", "error": str(e)}), 500
+    
+@patient_bp.route('/update_favourite_status', methods=['POST'])
+def update_favourite_status():
+    data = request.get_json()
+    patient_id = data.get('patient_id')
+    favourite_status = data.get('favourite_status')
+
+    if patient_id is None or favourite_status is None:
+        return jsonify({'message': 'Missing patient_id or favourite_status'}), 400
+
+    try:
+        patient = Patient.query.get(patient_id)
+
+        if not patient:
+            return jsonify({'message': 'Patient not found'}), 404
+
+        patient.is_favourite = favourite_status 
+        db.session.commit()
+
+        return jsonify({'message': 'Favourite status updated successfully'}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': f'Server error: {str(e)}'}), 500
+

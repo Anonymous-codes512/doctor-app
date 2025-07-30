@@ -6,6 +6,7 @@ class HealthTracker(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'), nullable=False)
     weight = db.Column(db.Numeric(5,2), nullable=True)
     height = db.Column(db.Numeric(5,2), nullable=True)
     BMI = db.Column(db.Numeric(5,2), nullable=True)
@@ -18,3 +19,4 @@ class HealthTracker(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     patient = db.relationship('Patient', back_populates='health_records')
+    doctor = db.relationship('Doctor', back_populates='health_records')

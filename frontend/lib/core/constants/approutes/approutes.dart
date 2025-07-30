@@ -10,6 +10,7 @@ import 'package:doctor_app/presentation/screens/patient/add_note_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/appointment_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/correspondence_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/dictation_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/edit_patient_profile_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/group_profile_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/history/activities_of_daily_living_screen.dart';
 import 'package:doctor_app/presentation/screens/patient/history/family_history_screen.dart';
@@ -41,19 +42,17 @@ import 'package:doctor_app/presentation/screens/auth/reset_password_screen.dart'
 import 'package:doctor_app/presentation/screens/calendar/add_appointment_screen.dart';
 import 'package:doctor_app/presentation/screens/calendar/add_task_screen.dart';
 import 'package:doctor_app/presentation/screens/calendar/calendar_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/bmi%20tracker/bmi_record_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/bmi%20tracker/bmi_tacker_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/bp%20tracker/bp_record_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/bp%20tracker/bp_tacker_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/analysis_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/health_tracker_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/health_tracker_start_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/pulse%20tracker/pulse_record_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/pulse%20tracker/pulse_tacker_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/reminders_settings_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/steps%20and%20calories%20counter/steps_and_calories_counter_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/weight%20tracker/weight_record_screen.dart';
-import 'package:doctor_app/presentation/screens/health%20tracker%20screen/weight%20tracker/weight_tacker_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/bmi%20tracker/bmi_record_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/bmi%20tracker/bmi_tacker_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/analysis_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/health_tracker_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/health_tracker_start_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/pulse%20tracker/pulse_record_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/pulse%20tracker/pulse_tacker_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/reminders_settings_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/steps%20and%20calories%20counter/steps_and_calories_counter_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/weight%20tracker/weight_record_screen.dart';
+import 'package:doctor_app/presentation/screens/patient/health%20tracker%20screen/weight%20tracker/weight_tacker_screen.dart';
 import 'package:doctor_app/presentation/screens/home/home_screen.dart';
 import 'package:doctor_app/presentation/screens/invoice/invoice_details_screen.dart';
 import 'package:doctor_app/presentation/screens/invoice/my_invoices_screen.dart';
@@ -65,12 +64,16 @@ import 'package:doctor_app/presentation/screens/payment/my_payments_screen.dart'
 import 'package:doctor_app/presentation/screens/splash screen/splash_screen.dart';
 import 'package:doctor_app/presentation/screens/task/task_screen.dart';
 import 'package:doctor_app/presentation/screens/video/all_video_screen.dart';
+import 'package:doctor_app/presentation/screens/video/video_calling_screen.dart';
 import 'package:doctor_app/presentation/screens/voice/all_voice_screen.dart';
 import 'package:doctor_app/presentation/screens/voice/call_list_screen.dart';
 import 'package:doctor_app/presentation/screens/voice/calling_screen.dart';
 import 'package:doctor_app/presentation/screens/voice/incoming_call_screen.dart';
 import 'package:doctor_app/presentation/screens/voice/voice_detail_screen.dart';
 import 'package:flutter/material.dart';
+
+import '../../../presentation/screens/patient/health tracker screen/BP Tracker/bp_record_screen.dart';
+import '../../../presentation/screens/patient/health tracker screen/BP Tracker/bp_tacker_screen.dart';
 
 class Routes {
   static const String home = '/';
@@ -98,7 +101,10 @@ class Routes {
   static const String inCommingCallScreen = '/in_comming_call_screen';
 
   static const String allVideoCallsScreen = '/all_video_screen';
+  static const String videoCallingScreen = '/video_calling_screen';
+
   static const String healthTrackerStartScreen = '/health_tracker_start_screen';
+
   static const String healthTrackerScreen = '/health_tracker_screen';
   static const String analysisScreen = '/analysis_screen';
   static const String remindersSettingsScreen = '/reminders_settings_screen';
@@ -129,6 +135,7 @@ class Routes {
   static const String patientProfileScreen = '/patient_profile_screen';
 
   static const String addNewPatientScreen = '/add_new_patient_screen';
+  static const String editPatientProfileScreen = '/edit_patient_profile_screen';
   static const String patientSelectionScreen = '/patient_selection_screen';
   static const String addNewGroupScreen = '/add_new_group_screen';
   static const String groupProfileScreen = '/group_profile_screen';
@@ -237,10 +244,22 @@ class Routes {
 
       case allVideoCallsScreen:
         return MaterialPageRoute(builder: (_) => AllVideoCallScreen());
+
+      case videoCallingScreen:
+        final callingData = settings.arguments;
+        if (callingData != null && callingData is Map<String, dynamic>) {
+          return MaterialPageRoute(
+            builder: (_) => VideoCallingScreen(callingData: callingData),
+          );
+        }
+
       case healthTrackerStartScreen:
         return MaterialPageRoute(builder: (_) => HealthTrackerStartScreen());
       case healthTrackerScreen:
-        return MaterialPageRoute(builder: (_) => HealthTrackerScreen());
+        int patientId = settings.arguments as int;
+        return MaterialPageRoute(
+          builder: (_) => HealthTrackerScreen(patientId: patientId),
+        );
       case analysisScreen:
         return MaterialPageRoute(builder: (_) => AnalysisScreen());
       case remindersSettingsScreen:
@@ -352,6 +371,14 @@ class Routes {
 
       case addNewPatientScreen:
         return MaterialPageRoute(builder: (_) => AddNewPatientScreen());
+
+      case editPatientProfileScreen:
+        int patientId = settings.arguments as int;
+        if (patientId != null) {
+          return MaterialPageRoute(
+            builder: (_) => EditPatientScreen(patientId: patientId),
+          );
+        }
 
       case patientSelectionScreen:
         return MaterialPageRoute(builder: (_) => PatientSelectionScreen());

@@ -87,7 +87,28 @@ class PatientProvider with ChangeNotifier {
     }
   }
 
-  // provider/patient_provider.dart
+  Future<List<Map<String, dynamic>>> fetchHealthRecords(int patientId) async {
+    _setLoading(true);
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('user');
+      if (userJson == null) return [];
+
+      final userMap = jsonDecode(userJson);
+      final userId = userMap['id'];
+
+      final fetchedHealthRecords = await _service.fetchHealthRecords(
+        patientId,
+        userId,
+      );
+      return fetchedHealthRecords;
+    } catch (e) {
+      print('Error fetching patients: $e');
+      return [];
+    } finally {
+      _setLoading(false);
+    }
+  }
 
   Future<void> updatePatientFields(
     BuildContext context, {
@@ -102,7 +123,8 @@ class PatientProvider with ChangeNotifier {
 
       if (result['success']) {
         ToastHelper.showSuccess(context, result['message']);
-        await fetchPatients(); // refresh
+        await fetchPatients();
+        Navigator.pop(context);
       } else {
         ToastHelper.showError(context, result['message']);
         print('❌ Failed to update fields: ${result['message']}');
@@ -110,6 +132,43 @@ class PatientProvider with ChangeNotifier {
     } catch (e) {
       print('🚨 Exception in updatePatientFields: $e');
       ToastHelper.showError(context, 'Error while updating fields');
+    }
+  }
+
+  Future<void> updateFavouriteStatus(
+    BuildContext context,
+    int patientId,
+    bool isFavourite,
+  ) async {
+    try {
+      final result = await _service.updateFavouriteStatus(
+        patientId,
+        isFavourite,
+      );
+      if (result['success']) {
+        ToastHelper.showSuccess(context, result['message']);
+
+        final index = _patients.indexWhere((p) => p.id == patientId);
+        if (index != -1) {
+          _patients[index].isFavourite = isFavourite;
+          notifyListeners(); // 👈 this triggers UI rebuild
+        }
+        await fetchPatients();
+      } else {
+        ToastHelper.showError(context, result['message']);
+        print('❌ Failed to update fields: ${result['message']}');
+      }
+    } catch (e) {
+      print('🚨 Exception in updatePatientFields: $e');
+      ToastHelper.showError(context, 'Error while updating fields');
+    }
+  }
+
+  Patient? getPatientById(int id) {
+    try {
+      return _patients.firstWhere((p) => p.id == id);
+    } catch (_) {
+      return null;
     }
   }
 }

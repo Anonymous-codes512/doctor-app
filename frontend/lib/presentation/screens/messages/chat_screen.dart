@@ -85,14 +85,14 @@ class _ChatScreenState extends State<ChatScreen>
     );
   }
 
-  String _getInitials(String name) {
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    } else if (parts.isNotEmpty) {
-      return parts[0][0].toUpperCase();
-    }
-    return '';
+  String _getInitials(String? name) {
+    final trimmed = name?.trim();
+    if (trimmed == null || trimmed.isEmpty) return '?';
+    final parts = trimmed.split(' ');
+    final first = parts[0].isNotEmpty ? parts[0][0] : '';
+    final second = parts.length > 1 && parts[1].isNotEmpty ? parts[1][0] : '';
+    final initials = (first + second).toUpperCase();
+    return initials.isEmpty ? '?' : initials;
   }
 
   Future<int?> _getCurrentUserId() async {
@@ -331,15 +331,6 @@ class _ChatScreenState extends State<ChatScreen>
               color: AppColors.textColor,
               fontWeight: FontWeight.bold,
             ),
-          ),
-          const Spacer(),
-          IconButton(
-            icon: Icon(
-              Icons.person_add_alt_1_outlined,
-              size: 22,
-              color: AppColors.primaryColor,
-            ),
-            onPressed: () {},
           ),
         ],
       ),

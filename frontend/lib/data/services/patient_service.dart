@@ -4,8 +4,14 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:doctor_app/data/models/patient_model.dart';
 import 'package:doctor_app/core/constants/appapis/api_constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PatientService {
+  Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token');
+  }
+
   Future<Map<String, dynamic>> addPatient(Patient patient) async {
     try {
       final uri = Uri.parse(ApiConstants.createPatient);
@@ -81,6 +87,67 @@ class PatientService {
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(updatedFields),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': responseData['message']};
+      } else {
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Unknown error occurred',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchHealthRecords(
+    int patientId,
+    int userId,
+  ) async {
+    try {
+      final token = await getToken();
+      final url = Uri.parse(
+        '${ApiConstants.fetchHealthRecords}/$userId/$patientId',
+      );
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final List<dynamic> records = data['health_record'] ?? [];
+        return records.cast<Map<String, dynamic>>();
+      } else {
+        final error = jsonDecode(response.body);
+        throw Exception(error['message'] ?? 'Failed to fetch health records');
+      }
+    } catch (e) {
+      print('❌ Exception in fetchHealthRecords: $e');
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> updateFavouriteStatus(
+    int patientId,
+    bool isFavourite,
+  ) async {
+    final url = Uri.parse('${ApiConstants.updateFavouriteStatus}');
+
+    final data = {'patient_id': patientId, 'favourite_status': isFavourite};
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(data),
       );
 
       final responseData = jsonDecode(response.body);
