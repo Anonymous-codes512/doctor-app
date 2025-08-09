@@ -167,3 +167,7 @@ class _MessageHomeScreenState extends State<MessageHomeScreen> {
     );
   }
 }
+
+
+// this is message screen
+// it shows the list of conversations and allows users to start new chats
